@@ -11,15 +11,12 @@ check_paths() {
     printf '%s\n' "$matches" >&2
     return 1
   fi
-  local canonical="$source/images/basic/iteration-finish.md"
-  for image_dir in "$source"/images/*; do
-    test -d "$image_dir" || continue
-    local prompt="$image_dir/iteration-finish.md"
-    if ! cmp -s "$canonical" "$prompt"; then
-      printf 'images/%s/iteration-finish.md differs from images/basic/iteration-finish.md\n' "$(basename -- "$image_dir")" >&2
-      return 1
-    fi
-  done
+  local duplicate
+  duplicate=$(find "$source/images" -mindepth 2 -maxdepth 2 -name iteration-finish.md -print -quit)
+  if test -n "$duplicate"; then
+    printf '%s duplicates skills/loop/finish-iteration.md\n' "${duplicate#"$source/"}" >&2
+    return 1
+  fi
 }
 
 if test "${1:-}" = "--paths-only"; then

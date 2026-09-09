@@ -35,4 +35,4 @@ prompts:
   - file: ./instructions.md
   - file: ./rubric.md
   - runtime: user-prompt
-  - file: ./iteration-finish.md
+  - file: ../../skills/loop/finish-iteration.md

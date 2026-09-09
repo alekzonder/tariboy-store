@@ -28,4 +28,4 @@ prompts:
   - runtime: context
   - runtime: workdir
   - runtime: user-prompt
-  - file: ./iteration-finish.md
+  - file: ../../skills/loop/finish-iteration.md
