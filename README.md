@@ -1,15 +1,12 @@
 # Tariboy Store
 
-Canonical sources for Tariboy agent images, Agent Skills, and static image
-prompt layers.
+Canonical sources for Tariboy agent images and Agent Skills.
 
 ## Layout
 
 - `images/<name>/Tariboyfile.yaml` defines a versioned schema-v2 image.
 - `skills/<name>/` contains reusable Agent Skills packaged by those images.
-- Each image directory contains its static prompt layers. The identical
-  `iteration-finish.md` copies are checked against `images/basic` because
-  prompt paths are confined to an image source root.
+- `skills/loop/finish-iteration.md` is the shared finishing prompt.
 
 Every image uses repository-relative paths. A built runnable image contains its
 declared static prompt bytes and complete Agent Skill trees; it does not need

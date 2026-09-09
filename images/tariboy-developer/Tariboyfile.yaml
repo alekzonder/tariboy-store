@@ -47,4 +47,4 @@ prompts:
   - runtime: workdir
   - file: ./instructions.md
   - runtime: user-prompt
-  - file: ./iteration-finish.md
+  - file: ../../skills/loop/finish-iteration.md

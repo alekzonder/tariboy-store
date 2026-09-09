@@ -26,15 +26,15 @@ case "$output" in
 esac
 
 rm -rf -- "$fixture"
-mkdir -p "$fixture/images/basic" "$fixture/images/example"
-printf '%s\n' canonical >"$fixture/images/basic/iteration-finish.md"
-printf '%s\n' drifted >"$fixture/images/example/iteration-finish.md"
+mkdir -p "$fixture/skills/loop" "$fixture/images/example"
+printf '%s\n' canonical >"$fixture/skills/loop/finish-iteration.md"
+printf '%s\n' canonical >"$fixture/images/example/iteration-finish.md"
 if output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); then
-  printf '%s\n' 'expected finish prompt drift to fail' >&2
+  printf '%s\n' 'expected image-local finish prompt to fail' >&2
   exit 1
 fi
 case "$output" in
-  *'images/example/iteration-finish.md differs from images/basic/iteration-finish.md'*) ;;
+  *'images/example/iteration-finish.md duplicates skills/loop/finish-iteration.md'*) ;;
   *)
     printf 'unexpected diagnostic: %s\n' "$output" >&2
     exit 1
