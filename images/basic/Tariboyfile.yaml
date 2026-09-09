@@ -1,0 +1,31 @@
+schema_version: 2
+image_version: 0.1.0
+plugins:
+  - name: whoami
+  - name: loop
+  - name: messages
+  - name: context
+  - name: status
+  - name: workdir
+  - name: scripts
+  - name: goal
+  - name: tasks
+skills:
+  - dir: ../../skills/whoami
+  - dir: ../../skills/loop
+  - dir: ../../skills/messages
+  - dir: ../../skills/context
+  - dir: ../../skills/status
+  - dir: ../../skills/workdir
+  - dir: ../../skills/scripts
+  - dir: ../../skills/goal
+  - dir: ../../skills/tasks
+prompts:
+  - runtime: identity
+  - runtime: one-shot
+  - runtime: messages
+  - runtime: goal
+  - runtime: context
+  - runtime: workdir
+  - runtime: user-prompt
+  - file: ./iteration-finish.md
