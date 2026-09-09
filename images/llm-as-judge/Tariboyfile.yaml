@@ -1,0 +1,38 @@
+schema_version: 2
+image_version: 0.1.1
+
+plugins:
+  - name: whoami
+  - name: loop
+  - name: messages
+  - name: context
+  - name: status
+  - name: workdir
+  - name: schedule
+  - name: tasks
+  - name: goal
+  - name: llm-as-judge
+
+skills:
+  - dir: ../../skills/whoami
+  - dir: ../../skills/loop
+  - dir: ../../skills/messages
+  - dir: ../../skills/context
+  - dir: ../../skills/status
+  - dir: ../../skills/workdir
+  - dir: ../../skills/schedule
+  - dir: ../../skills/tasks
+  - dir: ../../skills/goal
+  - dir: ../../skills/llm-as-judge
+
+prompts:
+  - runtime: identity
+  - runtime: one-shot
+  - runtime: messages
+  - runtime: goal
+  - runtime: context
+  - runtime: workdir
+  - file: ./instructions.md
+  - file: ./rubric.md
+  - runtime: user-prompt
+  - file: ./iteration-finish.md
