@@ -10,6 +10,33 @@ This skill covers whole-image behavior and routing. **REQUIRED:** Use existing
 Route a failure inside a selected skill there; do not invent a competing skill
 authoring or skill-evaluation method.
 
+## Select the eval model
+
+Apply this selection to every eval actor and model-based evaluator, including
+individual skill tests owned by `writing-skills`. Check the current harness's
+available models and required capabilities before launching:
+
+| Observed condition | Model selection |
+| --- | --- |
+| Task explicitly requires a model/configuration | Use that requirement; record it |
+| Codex offers `gpt-5.6-terra` with the required capabilities | Use `gpt-5.6-terra` |
+| Terra is unavailable, or another harness is used | Choose an available smaller, lower-cost capable analogue; record the substitute and reason |
+
+Use current availability/cost information, not guessed model names or prices.
+If no suitable choice can be established, record the limitation and ask through
+the Native Task for the missing model/access decision.
+
+Pass the selected model and reasoning effort explicitly; use `medium` when
+supported and not specified by the task. Keep model, effort and other sampling
+settings identical across each baseline/candidate pair. Record the actual
+configuration and any unavailable controls. For Codex, for example:
+`spawn_agent(model="gpt-5.6-terra", reasoning_effort="medium", fork_turns="none", ...)`.
+
+Omitted model/effort and copied launchers that inherit a premium parent are
+red flags: identical inherited settings do not satisfy budget selection.
+Select and pin both variants before running either; a changed model requires
+a new matched comparison, not reuse of the old baseline.
+
 ## Choose the boundary
 
 | Observed problem | Evaluation owner |

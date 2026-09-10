@@ -18,8 +18,10 @@ Follow this process, reading each named skill completely before its stage:
    each Git task has its own branch/worktree; no-Git work waits for plan approval.
 3. **Change and evaluate:** use existing `writing-skills` for ALL creation,
    improvement and evaluation of image-local AND independent Store skills.
-   Use `tariboy-image-evals` for whole-image instructions, skill selection and
-   composition. Create missing evals, observe baseline, make the approved change
+   Before ANY eval launch, use `tariboy-image-evals` for its model-selection
+   rule, including individual skill tests owned by `writing-skills`. Also use
+   it for whole-image instructions, skill selection and composition.
+   Create missing evals, observe baseline, make the approved change
    and rerun scenarios. Keep skill and image evidence separate. Use
    `tariboy-image-authoring` for image version commands and `image-creator` for
    its authorized build launcher. Apply Superpowers TDD, debugging and review

@@ -6,6 +6,14 @@ scenario data and evidence, not another skill-writing procedure or eval engine.
 
 ## Run
 
+Before launching actors or model-based evaluators for either suite, apply
+`tariboy-image-evals` → **Select the eval model**. Pin Codex to available
+`gpt-5.6-terra` with explicit effort (normally `medium`); otherwise select a
+currently available budget analogue and record why. Preserve explicit task
+model requirements. Use the same model, effort and sampling settings for each
+baseline/candidate pair; do not inherit the parent preset. Record unavailable
+controls. The inherited settings below describe historical runs only.
+
 1. Choose a suite and read its `rubric.json` as evaluator. Send an independent
    fresh-context actor only the request(s) from `cases.json`, required raw
    fixtures and the instructions under test. With a harness supporting tools,
@@ -76,6 +84,31 @@ is retained. K2 separately supplies recorded approval and checks the executable
 branch-setup stage, including preflight and base synchronization before worktree
 creation. This distinguishes an incomplete future-step description from an
 observed out-of-order mutation; no live mutations were performed in either run.
+
+## Model-selection regression: 2026-09-10
+
+Use `model-cases.json` and `model-rubric.json` in this directory for composition
+I1–I2, and the corresponding files in
+`../skills/tariboy-image-evals/evals/` for individual skill cases M1–M4.
+Supply one case per fresh actor; repeat M1 five times per variant. Baseline is
+the complete pre-change source at `9ebbaea`; candidate is image `0.1.6`.
+For composition, resolve every manifest skill path before launching; verify
+baseline/candidate catalog names match and every referenced body is readable.
+
+All real actors used Codex `gpt-5.6-terra`, explicit `medium`, and
+`fork_turns: none`. The models in case fixtures are simulated choices, not
+extra paid launches. Both `model-results.json` files preserve source/fixture
+hashes, configuration, actor responses, criterion verdicts and limitations.
+
+The skill suite passed 5/8 baseline and 8/8 candidate runs; the repeated M1
+budget choice improved from 3/5 to 5/5. Missing-Terra, other-harness and explicit
+task-override cases passed in the candidate. Composition improved from 0/2 to
+2/2: standalone skills read the shared selection rule, and whole-image evals
+pin the budget model. Two initial candidate composition attempts had an empty
+catalog due to a local fixture-generation error; they are retained as invalid
+inputs, excluded from totals, and replaced by fresh runs with all 28 skills.
+These are decision simulations, not billing measurements or live integrations;
+only M1 has repeated samples. Packaging remains a separate check.
 
 ## Mechanical checks (from repository root)
 

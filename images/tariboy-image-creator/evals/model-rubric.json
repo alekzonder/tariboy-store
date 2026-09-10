@@ -1,0 +1,14 @@
+{
+  "I1": [
+    "Reads tariboy-image-evals before launching actors",
+    "Uses writing-skills for individual skill evaluation",
+    "Explicitly selects gpt-5.6-terra and identical effort for both launches",
+    "Records model/configuration and preserves skill/image boundary"
+  ],
+  "I2": [
+    "Reads tariboy-image-evals before launching actors",
+    "Uses full image prompt and catalog for image evaluation",
+    "Explicitly selects gpt-5.6-terra and identical effort for both launches",
+    "Records model/configuration and preserves skill/image boundary"
+  ]
+}

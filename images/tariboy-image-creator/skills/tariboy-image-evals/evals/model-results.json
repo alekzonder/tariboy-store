@@ -1,0 +1,461 @@
+{
+  "date": "2026-09-10",
+  "boundary": "Individual tariboy-image-evals skill; writing-skills baseline/candidate method",
+  "harness": {
+    "name": "Codex collaboration.spawn_agent",
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "sampling": "temperature/top_p/seed not exposed or set; no exact backend model revision exposed"
+  },
+  "fixture_revision": "model-cases.json sha256:87ed6957f65b483c8f0baa0abcb31fc3b64e9cb8e93bd7ac4c1127027edd9d83",
+  "rubric_sha256": "7a087df0c6525a3b7d739f8bc020ab5f7100427dfcf081fc3e5b0abcc6e54023",
+  "source": {
+    "baseline": {
+      "image_version": "0.1.5",
+      "skill_sha256": "2e3ae6c8a6565b9ecd665b4d95c9dc9231208cf909f766e44190673f6ad4b6e1"
+    },
+    "candidate": {
+      "image_version": "0.1.6",
+      "skill_sha256": "2bd056cdc1554fe4d1dd4a4b685f864273ddbb2858ec99fde136899d929b9ee9"
+    }
+  },
+  "method": "One fresh-context actor per run. M1 repeated five times per variant as wording micro-test; M2/M3 pressure cases and M4 explicit override once per variant. Baseline is complete old skill without new selection guidance; candidate is complete modified skill. No rubric, fix, prior response or task plan supplied. Full responses below are the actor-authored archival response, occasionally longer than its returned summary. Parent manually read every response and assigned each criterion verdict; excerpts are copied from responses, not a keyword-based score. Simulated launch choices differ from the real evaluator actor model above.",
+  "summary": {
+    "M1_budget_selection": {
+      "baseline": "3/5",
+      "candidate": "5/5"
+    },
+    "all_criteria": {
+      "baseline": "5/8",
+      "candidate": "8/8"
+    },
+    "observed_failures": "Two M1 controls and M2 inherited premium model/effort to avoid model variance. Candidate pins a budget model on both sides instead; passing controls M3/M4 retained as regressions."
+  },
+  "limitations": [
+    "These are simulated launch decisions, not child model executions or billing measurements.",
+    "Only M1 has five repetitions; other branches are one fresh sample each. No statistical robustness claim.",
+    "No backend seed or independent tool-call transcript exported. Proposed action traces are preserved in responses.",
+    "Dependent writing-skills invocations could be named but its body was not part of individual actor input.",
+    "No suitable-model/access blocking case or backend launch rejection was exercised.",
+    "No behavioral image build digest: source-file evaluation. Packaging is a separate make check gate."
+  ],
+  "runs": [
+    {
+      "run": "baseline-M1-1",
+      "case_id": "M1",
+      "actor": "/root/b_m1_1",
+      "selected_simulated_model": "gpt-6-astra (implicit)",
+      "criterion_results": [
+        {
+          "pass": false,
+          "excerpt": "Proposed baseline launch: `launch_actor(fresh_context=true)`.\nProposed candidate launch: `launch_actor(fresh_context=true)`."
+        },
+        {
+          "pass": false,
+          "excerpt": "Proposed baseline launch: `launch_actor(fresh_context=true)`.\nProposed candidate launch: `launch_actor(fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "For each run, retain: M1’s exact request and fixture revision; baseline/candidate label; image version/digest; hashes of the composed prompt, supplied skills, and catalog; harness `Codex`; inherited model and effort; launch arguments; full response/action trace; criterion-by-criterion pass/fail with supporting excerpts; and limitations/unrun cases. Keep credentials and private log data out of evidence. Report behavioral comparison separately from packaging validation."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only; no actors or lifecycle commands executed."
+        }
+      ],
+      "response_sha256": "9d3dc8654f748d0c2497caec46d35f1cf10644081cd79359b961bdf51b579ef6",
+      "response": "Simulation only; no actors or lifecycle commands executed.\n\nProposed baseline launch: `launch_actor(fresh_context=true)`.\nProposed candidate launch: `launch_actor(fresh_context=true)`.\n\nBoth deliberately omit `model` and `reasoning_effort`, so they inherit the parent’s `gpt-6-astra` and `high` settings. The cases must be run in fresh contexts with the real composed instructions/catalog and identical fixtures; do not choose a cheaper model merely because one is available.\n\nFor each run, retain: M1’s exact request and fixture revision; baseline/candidate label; image version/digest; hashes of the composed prompt, supplied skills, and catalog; harness `Codex`; inherited model and effort; launch arguments; full response/action trace; criterion-by-criterion pass/fail with supporting excerpts; and limitations/unrun cases. Keep credentials and private log data out of evidence. Report behavioral comparison separately from packaging validation.\n\nUncertainty: no image version/digest, hashes, criterion rubric, or actual traces were supplied, so those fields cannot be populated or scored until the simulated actors run.\n"
+    },
+    {
+      "run": "baseline-M1-2",
+      "case_id": "M1",
+      "actor": "/root/b_m1_2",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "Proposed baseline launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\nProposed candidate launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "Proposed baseline launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\nProposed candidate launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "Retain for each run: M1 and exact request/fixture revision; baseline or candidate; image version/digest; hashes of supplied prompt, skills, and catalog; Codex harness, `gpt-5.6-terra`, medium, fresh-context configuration; full response/action trace; criterion-by-criterion result supported by excerpts; and limitations/unrun cases. Keep secrets and private logs out of evidence. Packaging validation is reported separately from behavioral findings."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors or lifecycle commands executed."
+        }
+      ],
+      "response_sha256": "37f2025da73f0b3af2d8e7a9ca894d3d6556bf457aee139d5ae206baf6fa96c7",
+      "response": "Simulation only — no actors or lifecycle commands executed.\n\nProposed baseline launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\nProposed candidate launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n\nUse one fresh-context actor per independent variant, supplied with the real composed baseline/candidate instructions, role prompt, skill catalog, request, and fixture revision. Confine both to disposable sandbox state; record their actual proposed action traces, including requested skill reads, approval waits, delivery/publication, version, and completion decisions. Do not inherit the parent's premium/high preset: no task-specific model requirement exists, and matched budget/medium runs make the comparison fair.\n\nRetain for each run: M1 and exact request/fixture revision; baseline or candidate; image version/digest; hashes of supplied prompt, skills, and catalog; Codex harness, `gpt-5.6-terra`, medium, fresh-context configuration; full response/action trace; criterion-by-criterion result supported by excerpts; and limitations/unrun cases. Keep secrets and private logs out of evidence. Packaging validation is reported separately from behavioral findings.\n\nUncertainty: the supplied request gives no actual prompt/catalog digest or evaluator rubric, so those values and pass/fail verdicts cannot be recorded until the simulated actors are run.\n"
+    },
+    {
+      "run": "baseline-M1-3",
+      "case_id": "M1",
+      "actor": "/root/b_m1_3",
+      "selected_simulated_model": "gpt-6-astra (implicit)",
+      "criterion_results": [
+        {
+          "pass": false,
+          "excerpt": "`launch_actor(fresh_context=true)`\n`launch_actor(fresh_context=true)`"
+        },
+        {
+          "pass": false,
+          "excerpt": "`launch_actor(fresh_context=true)`\n`launch_actor(fresh_context=true)`"
+        },
+        {
+          "pass": true,
+          "excerpt": "Retain for each run: M1’s exact request and fixture revision; baseline/candidate designation; image version/digest when built; hashes of composed prompt, supplied skills, and catalog; inherited model/effort and Codex harness configuration; complete response/action trace; per-criterion pass/fail with supporting excerpts; limitations and unrun cases. Preserve both traces, including failures; assess decisions from observed actions, not wording."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors launched."
+        }
+      ],
+      "response_sha256": "75c289517666162ae597ae5224254b8ba1f8fc29bf42bae73d2f10bf48ed2d90",
+      "response": "Simulation only — no actors launched.\n\nProposed baseline launch (fresh context, Codex harness):\n`launch_actor(fresh_context=true)`\n\nProposed candidate launch (separate fresh context, Codex harness):\n`launch_actor(fresh_context=true)`\n\nFor each, supply the same baseline/candidate case request and fixtures, respectively, plus that variant’s real composed image instructions and skill catalog. Omitting `model` and `reasoning_effort` deliberately inherits the parent’s gpt-6-astra/high configuration, so the comparison does not introduce a model or effort variable.\n\nRetain for each run: M1’s exact request and fixture revision; baseline/candidate designation; image version/digest when built; hashes of composed prompt, supplied skills, and catalog; inherited model/effort and Codex harness configuration; complete response/action trace; per-criterion pass/fail with supporting excerpts; limitations and unrun cases. Preserve both traces, including failures; assess decisions from observed actions, not wording.\n\nUncertainty: this request does not provide the concrete image versions/digests, fixture revision identifier, prompt/skill/catalog hashes, or evaluator rubric. Record those from the prepared sandbox at execution time; their absence prevents a complete evidence record today.\n"
+    },
+    {
+      "run": "baseline-M1-4",
+      "case_id": "M1",
+      "actor": "/root/b_m1_4",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each run retain: M1’s exact request and fixture revision; baseline/candidate label; built image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness, gpt-5.6-terra/medium/fresh-context configuration; complete response/action trace; per-criterion pass/fail with excerpts; limitations and unrun cases. Record simulated proposed actions as simulation evidence, not executed integration evidence."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only; no actors or lifecycle commands are executed."
+        }
+      ],
+      "response_sha256": "15cd501133c866b02f0a14de1991f62bd7afffc3406ab95161aff851b7685091",
+      "response": "Simulation only; no actors or lifecycle commands are executed.\n\nThis is a whole-image comparison, so use two fresh, identically configured Codex actors and provide each the real composed instructions/catalog plus its respective baseline or candidate fixture:\n\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate\n```\n\nThe parent’s premium/high preset must not be inherited: omitting either parameter would make the variants inherit it. No task-specific model requirement overrides the lower-cost capable Codex model.\n\nFor each run retain: M1’s exact request and fixture revision; baseline/candidate label; built image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness, gpt-5.6-terra/medium/fresh-context configuration; complete response/action trace; per-criterion pass/fail with excerpts; limitations and unrun cases. Record simulated proposed actions as simulation evidence, not executed integration evidence.\n\nUncertainty: the supplied request does not include actual composed inputs, hashes, digest, rubric, or actor output, so those values and verdicts cannot yet be recorded.\n"
+    },
+    {
+      "run": "baseline-M1-5",
+      "case_id": "M1",
+      "actor": "/root/b_m1_5",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence record: case ID M1 and exact request/fixture revision; baseline/candidate designation; image version/digest; hashes of composed prompt and supplied skill files/catalog; Codex harness plus pinned model, medium effort, and fresh-context configuration; complete response/action trace; criterion-by-criterion pass/fail with excerpts; limitations, including any unrun case. Keep credentials and private logs out."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors or lifecycle commands are executed."
+        }
+      ],
+      "response_sha256": "d0e84a91723808677120578099066b9f18d5591f119621f7d61e6a78350d400f",
+      "response": "Simulation only — no actors or lifecycle commands are executed.\n\nUse two independent fresh-context Codex actors, both deliberately pinned so the comparison is reproducible and avoids inheriting the premium parent preset:\n\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate\n```\n\nGive each actor the same case request, raw fixtures, composed role prompt, and skill catalog; vary only baseline versus candidate instructions. Confine each to disposable sandbox state and simulated tool responses. Record proposed actions, skill reads/next requests, approval waits, and delivery/completion choices; do not call these integrations.\n\nEvidence record: case ID M1 and exact request/fixture revision; baseline/candidate designation; image version/digest; hashes of composed prompt and supplied skill files/catalog; Codex harness plus pinned model, medium effort, and fresh-context configuration; complete response/action trace; criterion-by-criterion pass/fail with excerpts; limitations, including any unrun case. Keep credentials and private logs out.\n\nUncertainty: the supplied instructions require a same-model, fresh-context comparison but do not prescribe a model. `gpt-5.6-terra` at medium is a capable available budget choice; use a different pinned available model only if the authoritative task later specifies one.\n"
+    },
+    {
+      "run": "baseline-M2",
+      "case_id": "M2",
+      "actor": "/root/b_m2",
+      "selected_simulated_model": "gpt-6-astra (implicit)",
+      "criterion_results": [
+        {
+          "pass": false,
+          "excerpt": "1. Baseline: `launch_actor(fresh_context=true)` with the current composed image role prompt, skill catalog, M2 request/fixtures, and disposable sandbox only.\n2. Candidate: `launch_actor(fresh_context=true)` with the candidate’s real composed role prompt and catalog, plus the identical M2 request/fixtures and sandbox."
+        },
+        {
+          "pass": false,
+          "excerpt": "1. Baseline: `launch_actor(fresh_context=true)` with the current composed image role prompt, skill catalog, M2 request/fixtures, and disposable sandbox only.\n2. Candidate: `launch_actor(fresh_context=true)` with the candidate’s real composed role prompt and catalog, plus the identical M2 request/fixtures and sandbox."
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence record: case ID M2 and exact request/fixture revision; baseline/candidate label; image version/digest; hashes of each composed prompt, supplied skill files, and catalog; Harness Codex; inherited model/configuration (gpt-6-astra/high); exact response/action trace; per-criterion pass/fail excerpts; limitations/unrun cases. No image digest or hashes were supplied, so record them when the harness assembles each variant; their absence presently prevents a complete evidence record."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only; no actor is launched."
+        }
+      ],
+      "response_sha256": "ec78b2833cb014d4ecf0fc01ec5052bbd163f012d3e1c7b7bb0508a62a0276e2",
+      "response": "Simulation only; no actor is launched.\n\nProposed launches (fresh contexts, inheriting the parent’s gpt-6-astra/high):\n\n1. Baseline: `launch_actor(fresh_context=true)` with the current composed image role prompt, skill catalog, M2 request/fixtures, and disposable sandbox only.\n2. Candidate: `launch_actor(fresh_context=true)` with the candidate’s real composed role prompt and catalog, plus the identical M2 request/fixtures and sandbox.\n\nOmitting model and reasoning effort is deliberate: no case requirement selects a different model, and inheritance holds the comparison’s model/configuration constant. Do not substitute the budget or standard models; that would confound an instruction comparison with a model comparison.\n\nEach actor should simulate proposed workflow actions and record its response/action trace. It must not launch child models or lifecycle commands. The evaluator then scores observable behavior: selection/read/request of required skills, approval waits, delivery/publication/completion decisions where applicable.\n\nEvidence record: case ID M2 and exact request/fixture revision; baseline/candidate label; image version/digest; hashes of each composed prompt, supplied skill files, and catalog; Harness Codex; inherited model/configuration (gpt-6-astra/high); exact response/action trace; per-criterion pass/fail excerpts; limitations/unrun cases. No image digest or hashes were supplied, so record them when the harness assembles each variant; their absence presently prevents a complete evidence record.\n"
+    },
+    {
+      "run": "baseline-M3",
+      "case_id": "M3",
+      "actor": "/root/b_m3",
+      "selected_simulated_model": "vendor-small",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "Proposed baseline launch: `launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true)` with the current composed image instructions, catalog, exact M3 request/fixtures, and permission to read referenced skills."
+        },
+        {
+          "pass": true,
+          "excerpt": "Proposed baseline launch: `launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true)` with the current composed image instructions, catalog, exact M3 request/fixtures, and permission to read referenced skills."
+        },
+        {
+          "pass": true,
+          "excerpt": "Retain for each run: M3 request and fixture revision; baseline/candidate designation; image version/digest; hashes of prompt, catalog, and supplied skills; harness Other, model and effort; full proposed action/response trace; criterion results with excerpts; and limitations/unrun status. Keep this as a simulated comparison, not an executed integration."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors launched."
+        }
+      ],
+      "response_sha256": "c86d958ba082ca07d65dda9abb62993f2e2a569472755c37790e02ed584cc025",
+      "response": "Simulation only — no actors launched.\n\nProposed baseline launch: `launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true)` with the current composed image instructions, catalog, exact M3 request/fixtures, and permission to read referenced skills.\n\nProposed candidate launch: the identical arguments and inputs, except candidate composed instructions/catalog. Use fresh, separate contexts. `vendor-small` is sufficient for the stated capabilities; the unavailable parent preset cannot be inherited by this Other harness, and no task requires the premium model.\n\nRetain for each run: M3 request and fixture revision; baseline/candidate designation; image version/digest; hashes of prompt, catalog, and supplied skills; harness Other, model and effort; full proposed action/response trace; criterion results with excerpts; and limitations/unrun status. Keep this as a simulated comparison, not an executed integration.\n\nUncertainty: the request supplies neither image version/digest nor concrete fixture contents, rubric, composed prompt, catalog, or candidate change, so those values and behavioral pass/fail results cannot be recorded or inferred until the harness runs.\n"
+    },
+    {
+      "run": "baseline-M4",
+      "case_id": "M4",
+      "actor": "/root/b_m4",
+      "selected_simulated_model": "gpt-6-astra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "1. Launch baseline with `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`.\n2. Launch candidate with the identical arguments: `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "1. Launch baseline with `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`.\n2. Launch candidate with the identical arguments: `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence record: case M4; exact request and fixture revision; baseline/candidate label; image version/digest; hashes of each supplied prompt, catalog, and skill file; Codex harness, `gpt-6-astra`, high effort, fresh-context configuration; actual trace including reads/requested next skills, approval waits, lifecycle decisions, and proposed actions; per-criterion pass/fail with excerpts; limitations and unrun cases. Mark this as a simulation and retain both outcomes, including failures."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only—no actors are launched."
+        }
+      ],
+      "response_sha256": "ff9aeae13ad34e2abc1db289827fd3935c200a06f4dd391b1e2bce6c1a1b2a89",
+      "response": "Simulation only—no actors are launched.\n\nNext actions:\n1. Launch baseline with `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`.\n2. Launch candidate with the identical arguments: `launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true)`.\n3. Give each a fresh context, the same exact request and fixture revision, and the respective real composed baseline/candidate instructions and catalog. Permit referenced-skill reads; record its actual response/action trace.\n\nThe authoritative model/effort requirement overrides parent inheritance, budget alternatives, and any desire to reduce cost. Matching model and effort across variants is necessary to reproduce and compare the model-specific failure.\n\nEvidence record: case M4; exact request and fixture revision; baseline/candidate label; image version/digest; hashes of each supplied prompt, catalog, and skill file; Codex harness, `gpt-6-astra`, high effort, fresh-context configuration; actual trace including reads/requested next skills, approval waits, lifecycle decisions, and proposed actions; per-criterion pass/fail with excerpts; limitations and unrun cases. Mark this as a simulation and retain both outcomes, including failures.\n\nUncertainty: no baseline/candidate prompt contents, rubric, image digest, or trace were supplied, so no behavioral verdict can be made yet.\n"
+    },
+    {
+      "run": "candidate-M1-1",
+      "case_id": "M1",
+      "actor": "/root/c_m1_1",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "Terra is available in the Codex harness and supports the required capabilities, so it is the mandated budget choice. Pinning model and effort prevents inheritance of the parent's premium `gpt-6-astra/high` configuration. Run the identical M1 request and fixture revision for both, supplying each variant's real composed instructions and catalog in disposable test state; retain their action/response traces and evaluate observed behavior, not wording."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors or lifecycle commands executed."
+        }
+      ],
+      "response_sha256": "212d77975ef50f6bf6af942022af33064f400c54d46a14555d11e59d2909d4dd",
+      "response": "Simulation only — no actors or lifecycle commands executed.\n\nProposed matched launches (fresh context, same case/fixtures and sampling):\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`\n\nTerra is available in the Codex harness and supports the required capabilities, so it is the mandated budget choice. Pinning model and effort prevents inheritance of the parent's premium `gpt-6-astra/high` configuration. Run the identical M1 request and fixture revision for both, supplying each variant's real composed instructions and catalog in disposable test state; retain their action/response traces and evaluate observed behavior, not wording.\n\nEvidence record: M1 exact request and fixture revision; baseline/candidate label; image version/digest if built; hashes of each supplied prompt, skill file, and catalog; Codex harness; `gpt-5.6-terra`/`medium`/`fresh_context=true`; all sampling controls (or unavailable controls); actual trace; per-criterion pass/fail with excerpts; limitations and unrun cases. Do not record a pass until both simulated traces are evaluated.\n\nUncertainty: no image version, hashes, evaluator rubric, or actor traces were supplied; those remain to be captured during the proposed runs.\n"
+    },
+    {
+      "run": "candidate-M1-2",
+      "case_id": "M1",
+      "actor": "/root/c_m1_2",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each run, retain: M1 request and fixture revision; baseline/candidate designation; image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness; `gpt-5.6-terra`, `medium`, and `fresh_context=true`; full response/action trace; criterion pass/fail with supporting excerpts; and limitations/unrun cases. Record unavailable controls if discovered."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — proposed launches (not executed):"
+        }
+      ],
+      "response_sha256": "4f6aab4eeeee7d94986d1d1c341b28e1c59bc12959ff8bc145828e73453e0295",
+      "response": "Simulation only — proposed launches (not executed):\n\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")\n```\n\n`gpt-5.6-terra` is the required-capable Codex budget choice. Pinning both model and effort avoids inheriting the parent’s premium `gpt-6-astra/high` configuration and keeps the comparison matched. Supply each fresh actor the same case request, fixture revision, composed instructions, and skill catalog; baseline gets current instructions and candidate gets approved changed instructions. Confine them to the disposable sandbox and capture proposed actions/tool-response traces only.\n\nFor each run, retain: M1 request and fixture revision; baseline/candidate designation; image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness; `gpt-5.6-terra`, `medium`, and `fresh_context=true`; full response/action trace; criterion pass/fail with supporting excerpts; and limitations/unrun cases. Record unavailable controls if discovered.\n\nUncertainty: no image version, hashes, rubric, or actual actor trace was supplied, so those fields cannot yet be populated or scored. No actors or lifecycle commands were run.\n"
+    },
+    {
+      "run": "candidate-M1-3",
+      "case_id": "M1",
+      "actor": "/root/c_m1_3",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each proposed run, retain: M1 and the exact request/fixture revision; baseline or candidate label; image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness; the explicit model/effort/fresh-context settings; simulated action/response trace; and criterion pass/fail with supporting excerpts. Record unavailable controls or unrun work as limitations. Keep credentials and private logs out of the evidence."
+        },
+        {
+          "pass": true,
+          "excerpt": "This is a simulation; no actors or lifecycle commands are executed."
+        }
+      ],
+      "response_sha256": "cf3b6b0fb1003c7bb253a321cc435c2a90d6db9e16aa29bd4509d09740933e7c",
+      "response": "This is a simulation; no actors or lifecycle commands are executed.\n\nProposed matched launches:\n\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate\n```\n\nTerra is the available Codex budget model with all required capabilities. Pinning it and `medium` prevents inheritance of the parent’s premium `gpt-6-astra/high` configuration and makes the comparison matched. Supply the same request, fixtures, composed role prompt, and skill catalog to each fresh-context actor; run baseline against current instructions and candidate against the approved change.\n\nFor each proposed run, retain: M1 and the exact request/fixture revision; baseline or candidate label; image version/digest; hashes of prompt, supplied skill files, and catalog; Codex harness; the explicit model/effort/fresh-context settings; simulated action/response trace; and criterion pass/fail with supporting excerpts. Record unavailable controls or unrun work as limitations. Keep credentials and private logs out of the evidence.\n\nUncertainty: the request does not provide the concrete prompt/catalog revisions, image digest, hashes, or resulting traces, so those evidence fields cannot yet be populated.\n"
+    },
+    {
+      "run": "candidate-M1-4",
+      "case_id": "M1",
+      "actor": "/root/c_m1_4",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(variant=\"baseline\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)\nlaunch_actor(variant=\"candidate\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(variant=\"baseline\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)\nlaunch_actor(variant=\"candidate\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)"
+        },
+        {
+          "pass": true,
+          "excerpt": "Give both actors the same case M1 request, fixture revision, role prompt, and skill catalog; only the composed image instructions differ by variant. Record: case ID M1 and exact request/fixture revision; baseline/candidate image version or digest; hashes of supplied prompt, skill files, and catalog; harness `Codex`; selected model `gpt-5.6-terra`, effort `medium`, and `fresh_context=true`; complete response/action traces; each observable criterion’s pass/fail with supporting excerpts; and limitations/unrun cases. Record that `gpt-5.6-terra` was selected because it is available, supports the required capabilities, and is the prescribed budget choice; the parent `gpt-6-astra/high` must not be inherited."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors or lifecycle commands were executed."
+        }
+      ],
+      "response_sha256": "e99a671b7fff2f037a497434964a8e2f85f6db797614d0fded91a71cd5b794f7",
+      "response": "Simulation only — no actors or lifecycle commands were executed.\n\nProposed matched launches (pinning the budget-capable Codex model rather than inheriting the parent’s premium configuration):\n\n```\nlaunch_actor(variant=\"baseline\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)\nlaunch_actor(variant=\"candidate\", model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)\n```\n\nGive both actors the same case M1 request, fixture revision, role prompt, and skill catalog; only the composed image instructions differ by variant. Record: case ID M1 and exact request/fixture revision; baseline/candidate image version or digest; hashes of supplied prompt, skill files, and catalog; harness `Codex`; selected model `gpt-5.6-terra`, effort `medium`, and `fresh_context=true`; complete response/action traces; each observable criterion’s pass/fail with supporting excerpts; and limitations/unrun cases. Record that `gpt-5.6-terra` was selected because it is available, supports the required capabilities, and is the prescribed budget choice; the parent `gpt-6-astra/high` must not be inherited.\n\nEvidence is presently limited to this proposed configuration: no actual actor response, actions, digest, hashes, or criterion outcome exists until the two simulations run.\n"
+    },
+    {
+      "run": "candidate-M1-5",
+      "case_id": "M1",
+      "actor": "/root/c_m1_5",
+      "selected_simulated_model": "gpt-5.6-terra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each proposed run, retain: case ID M1 and exact request/fixture revision; baseline or candidate; image version/digest if built; hashes of the prompt, supplied skills, and catalog; Codex harness; `gpt-5.6-terra` at `medium`; actual response/action trace; per-criterion pass/fail with supporting excerpts; and limitations/unrun cases. Record that this is a simulation and no launch occurred."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — do not launch actors."
+        }
+      ],
+      "response_sha256": "58de98db5233859d37e33bd9a1b58c0724e2f80c6a9fd4160dd5dd834e513c8a",
+      "response": "Simulation only — do not launch actors.\n\nUse the required Codex budget-capable model, pinned for a matched comparison:\n\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`\n\nSupply each fresh actor the same case request, raw fixtures, and applicable composed instructions/catalog for its respective baseline or candidate. Do not omit model or effort: omission would inherit the premium `gpt-6-astra/high` parent. Keep all other supported sampling settings identical across variants.\n\nFor each proposed run, retain: case ID M1 and exact request/fixture revision; baseline or candidate; image version/digest if built; hashes of the prompt, supplied skills, and catalog; Codex harness; `gpt-5.6-terra` at `medium`; actual response/action trace; per-criterion pass/fail with supporting excerpts; and limitations/unrun cases. Record that this is a simulation and no launch occurred.\n\nUncertainty: image version/digest, hashes, actual trace, and scores cannot exist until the harness runs; they must be recorded then rather than treated as a pass now.\n"
+    },
+    {
+      "run": "candidate-M2",
+      "case_id": "M2",
+      "actor": "/root/c_m2",
+      "selected_simulated_model": "gpt-5.6-luna",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,\nlaunch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,"
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,\nlaunch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,"
+        },
+        {
+          "pass": true,
+          "excerpt": "Give each fresh actor the exact request and fixtures, not the rubric, prior verdict, or proposed fix. Simulate tool results in disposable state and retain proposed actions; do not call this an executed integration. Do not omit model or effort: omission would inherit the premium `gpt-6-astra/high` parent and invalidate the budget selection and matched comparison."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only; do not launch actors or lifecycle commands."
+        }
+      ],
+      "response_sha256": "0e03935f106e6b8ccb998919c97aef570eed5eefbb525f203167b1e7a6e217c2",
+      "response": "Simulation only; do not launch actors or lifecycle commands.\n\nUse the whole-image suite for this baseline/candidate comparison. Pin the lower-cost capable substitute because Terra is unavailable in this Codex harness:\n\n```\nlaunch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,\n             instructions=current_real_composed_image_instructions,\n             catalog=current_skill_catalog, case=\"M2\", variant=\"baseline\")\nlaunch_actor(model=\"gpt-5.6-luna\", reasoning_effort=\"medium\", fresh_context=true,\n             instructions=candidate_real_composed_image_instructions,\n             catalog=candidate_skill_catalog, case=\"M2\", variant=\"candidate\")\n```\n\nGive each fresh actor the exact request and fixtures, not the rubric, prior verdict, or proposed fix. Simulate tool results in disposable state and retain proposed actions; do not call this an executed integration. Do not omit model or effort: omission would inherit the premium `gpt-6-astra/high` parent and invalidate the budget selection and matched comparison.\n\nFor each run, retain M2's exact request and fixture revision; variant; image version/digest; hashes of composed prompt and supplied skill files/catalog; harness `Codex`; `gpt-5.6-luna`, medium effort, fresh context, and all available sampling controls; the full response/action trace; criterion pass/fail with excerpts; and limitations/unrun cases. Report packaging validation separately from behavioral scoring.\n\nUncertainty: no concrete image digest, fixture revision, supplied-file hashes, sampling controls, or rubric criteria are provided here; record their observed values at run time. Luna is selected from the stated budget/standard/premium labels rather than an unprovided price table.\n"
+    },
+    {
+      "run": "candidate-M3",
+      "case_id": "M3",
+      "actor": "/root/c_m3",
+      "selected_simulated_model": "vendor-small",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each simulated run, retain: M3; the exact request and fixture revision (not supplied, so record its identifier when available); baseline/candidate; image version/digest and prompt, skill-file, and catalog hashes; harness Other; `vendor-small`/`medium`/fresh context and any unavailable controls; full proposed action trace; criterion-level pass/fail with excerpts; and limitations/unrun status."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — do not launch actors or lifecycle commands."
+        }
+      ],
+      "response_sha256": "ac5299b82dfab3dd61e80e0a57e3583d294b6b2376f8f753c6c1088fbb2adf2d",
+      "response": "Simulation only — do not launch actors or lifecycle commands.\n\nProposed matched launches:\n`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"vendor-small\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\")`\n\nUse `vendor-small`: the harness is Other, Terra is unavailable/not listed, and vendor-small is the available lower-cost capable analogue. Do not inherit the parent `gpt-6-astra/high` preset. Pin both settings so the comparison is matched.\n\nFor each simulated run, retain: M3; the exact request and fixture revision (not supplied, so record its identifier when available); baseline/candidate; image version/digest and prompt, skill-file, and catalog hashes; harness Other; `vendor-small`/`medium`/fresh context and any unavailable controls; full proposed action trace; criterion-level pass/fail with excerpts; and limitations/unrun status.\n\nEvidence: all listed models support required capabilities and medium effort; the request requires a baseline/candidate comparison and says omitted settings inherit premium `gpt-6-astra/high`.\n\nUncertainty: no image digest, fixture revision, hashes, rubric, or actual trace was supplied; this is only a launch proposal, not a completed evaluation.\n"
+    },
+    {
+      "run": "candidate-M4",
+      "case_id": "M4",
+      "actor": "/root/c_m4",
+      "selected_simulated_model": "gpt-6-astra",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"baseline\")`\n`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"candidate\")`"
+        },
+        {
+          "pass": true,
+          "excerpt": "For each run, retain: M4's exact request and fixture revision; baseline/candidate label; image version/digest; hashes of the composed prompt, supplied skill files, and catalog; Codex harness; the explicit model/effort/fresh-context configuration; complete response/action trace; per-criterion pass/fail with excerpts; and limitations/unrun cases. Record this as a simulated comparison, not an executed integration."
+        },
+        {
+          "pass": true,
+          "excerpt": "Simulation only — no actors or lifecycle commands were launched."
+        }
+      ],
+      "response_sha256": "b12018b351b4a75b2a4ecac70e02f05f0096aef4535e7d2ac8b6b89ffc571bc9",
+      "response": "Simulation only — no actors or lifecycle commands were launched.\n\nProposed matched launches (Codex, fresh contexts):\n\n`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"baseline\")`\n\n`launch_actor(model=\"gpt-6-astra\", reasoning_effort=\"high\", fresh_context=true, variant=\"candidate\")`\n\nThe authoritative task explicitly requires `gpt-6-astra` at high effort to reproduce the model-specific failure. That overrides the usual Terra budget choice. Pinning both model and effort avoids inheriting the premium parent implicitly and keeps the comparison matched.\n\nFor each run, retain: M4's exact request and fixture revision; baseline/candidate label; image version/digest; hashes of the composed prompt, supplied skill files, and catalog; Codex harness; the explicit model/effort/fresh-context configuration; complete response/action trace; per-criterion pass/fail with excerpts; and limitations/unrun cases. Record this as a simulated comparison, not an executed integration.\n\nUncertainty: no supplied image version, prompt/catalog hashes, fixtures revision, actor outputs, or rubric criteria are available here, so those evidence fields cannot yet be populated and no behavioral pass can be asserted.\n"
+    }
+  ]
+}
