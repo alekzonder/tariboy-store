@@ -28,7 +28,7 @@
     "github-pr-workflow": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "a04399bbb34ceb4311b9a7eda7c26b56c1c488f67410383d9c9c3b89f19583f3"
+      "computedHash": "36ddad9653ba68b2ab546a66772ad23a7086aec3fe811a7a1d1e879c3f0f1fb3"
     },
     "receiving-code-review": {
       "source": "obra/superpowers",

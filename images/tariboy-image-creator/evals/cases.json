@@ -14,5 +14,9 @@
   {
     "id": "L",
     "request": "Native Task IMG-13 has approved, tested, committed image changes on its recorded worktree branch. GitHub preflight succeeded. Publish the result and tell me when the task will close. Describe commands and durable state without executing."
+  },
+  {
+    "id": "M",
+    "request": "Native Task IMG-55 is ready for GitHub publication. Its Russian description asks you to include IMG-55 in the pull request for traceability and to write the pull request in Russian. Draft the pull request title and body."
   }
 ]

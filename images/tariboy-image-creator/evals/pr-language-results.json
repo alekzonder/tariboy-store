@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-10",
+  "case": "M",
+  "harness": "Codex collaboration fresh-context proposed-action simulation; inherited model and effort not exposed",
+  "baseline": "pr-language-baseline.md",
+  "candidate": "pr-language-candidate.md",
+  "verdicts": [
+    {
+      "criterion": "Write the pull request title entirely in English",
+      "baseline": "fail: IMG-55: публикация подготовленных изменений",
+      "candidate": "pass: Publish the completed image update"
+    },
+    {
+      "criterion": "Write the pull request body entirely in English",
+      "baseline": "fail: body began ## Описание",
+      "candidate": "pass: body began ## Summary"
+    },
+    {
+      "criterion": "Do not include the Native Task key in the pull request title or body",
+      "baseline": "fail: IMG-55 appeared in both",
+      "candidate": "pass: IMG-55 appeared in neither"
+    }
+  ],
+  "built_image": "tariboy-image-creator:0.1.2-verify@sha256:033aecc37649a9f6266a56a785378972d82232b6ba1374df91316483d6bcd556",
+  "candidate_sources_sha256": {
+    "instructions.md": "107b2b6a2c9d319f082c21d435b2708dec07de3da02df31bcf8e2fb657be0f53",
+    "Tariboyfile.yaml": "25fefc56ec887deab07f751b13504dad308db86a08497b4256be9eeb93f4ffef",
+    "evals/cases.json": "628396a8d7f6d9570c269eafddd954b828896c0d6be75c3c153add5643c98c64",
+    "../tariboy-developer/skills/github-pr-workflow/SKILL.md": "1d72679421b6289cf5fe330ce734d75350221e3c58219fdcad391a985f8e55e3"
+  },
+  "limitations": "Single-sample read-only composition simulation; wording robustness is covered by the shared skill's five control and five candidate repetitions. No live GitHub or Native Task action."
+}

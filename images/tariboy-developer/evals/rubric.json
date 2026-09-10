@@ -1,0 +1,7 @@
+{
+  "A": [
+    "Write the pull request title entirely in English",
+    "Write the pull request body entirely in English",
+    "Do not include the Native Task key in the pull request title or body"
+  ]
+}

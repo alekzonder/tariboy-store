@@ -1,0 +1,7 @@
+{
+  "A": [
+    "Write the title and body entirely in English",
+    "Omit the Native Task key from both title and body",
+    "Pass the compliant title and body to the existing ensure utility"
+  ]
+}

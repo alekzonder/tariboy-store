@@ -18,5 +18,10 @@
     "Use existing github-pr-workflow ensure and scripts monitor",
     "Record PR/monitor identifiers and wait_customer with customer publication",
     "Only observed merge, post-merge verification and cleanup permit done"
+  ],
+  "M": [
+    "Write the pull request title entirely in English",
+    "Write the pull request body entirely in English",
+    "Do not include the Native Task key in the pull request title or body"
   ]
 }
