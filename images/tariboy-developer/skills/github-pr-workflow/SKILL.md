@@ -13,6 +13,35 @@ The role prompt owns task intake, branch verification, merge waiting,
 post-merge verification, cleanup, and task completion. This skill owns the
 repeatable GitHub operations and durable monitor.
 
+## Markdown writes
+
+Before any GitHub write, repair user-visible text as valid GitHub-flavored
+Markdown. Titles are one line: replace actual or literal `\n` line breaks with
+spaces. Pull request bodies, issue comments and review comments use real
+newlines, blank lines before lists and closed code fences.
+
+Build every multiline argument with a quoted heredoc. First choose a delimiter
+absent from every complete body line; never reuse an example delimiter without
+checking the payload. Its opening and closing delimiters start at column 1, so
+body text is neither executed nor stored as escapes:
+If a requested delimiter collides, choose another and still return the full
+command; do not stop at describing the risk.
+Before publishing or proposing it, verify the same chosen delimiter opens once
+and closes after the final payload line.
+When proposing rather than executing a write, show the variable assignment and
+its consuming command together; never leave a multiline variable undefined.
+
+```bash
+BODY=$(cat <<'MARKDOWN_EOF_7F3A'
+## Summary
+
+- Describe the change.
+MARKDOWN_EOF_7F3A
+)
+"$UTILITY" ensure --repo "$REPO" --head "$HEAD" --base "$BASE" \
+  --title 'Describe the change' --body "$BODY"
+```
+
 Resolve `scripts/github-pr.py` relative to this `SKILL.md`, then use its
 absolute path for every command and schedule. Keep the selected `GH_TOKEN` or
 fallback `GITHUB_TOKEN` only in the process environment. Never place a token in

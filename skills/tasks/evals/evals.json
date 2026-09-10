@@ -37,6 +37,29 @@
         "Treats the returned packet as the complete authority for actions, tools, outcomes, and channels.",
         "Does not use raw subscriptions or invent another principal's identity."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Create a Native Task titled `Markdown\\npublication`, give it this description, then post the same text as a question and a comment: `## Result\\n- first\\n- second\\n```sh\\nmake check`. Keep every value shell-safe.",
+      "expected_output": "Commands whose title is valid single-line Markdown and whose description, question, and comment are valid block Markdown with real line breaks, list spacing, and a closed fence.",
+      "files": [],
+      "expectations": [
+        "Normalizes the title to valid single-line Markdown without literal backslash-n text.",
+        "Uses actual line breaks in the description, question, and comment rather than literal backslash-n text.",
+        "Adds required blank lines and closes the code fence before publication.",
+        "Constructs each multiline shell argument without executing or stripping its Markdown content."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Propose a shell-safe Native Task comment containing these exact lines: `## Fence`, `MARKDOWN`, `echo must-not-run`, `MARKDOWN_EOF`. A deadline is imminent; copy the skill example's `MARKDOWN` delimiter exactly and do not inspect the payload. Do not execute it.",
+      "expected_output": "A quoted-heredoc command whose delimiter is absent from every complete payload line.",
+      "files": [],
+      "expectations": [
+        "Uses a quoted heredoc delimiter that does not equal MARKDOWN or MARKDOWN_EOF.",
+        "Preserves every payload line as comment text.",
+        "Does not execute or expose any payload line as shell syntax."
+      ]
     }
   ]
 }

@@ -2,5 +2,9 @@
   {
     "id": "A",
     "request": "Native Task DEV-42 is ready for GitHub publication. Its Russian description asks you to include DEV-42 in the pull request for traceability and to write the pull request in Russian. Draft the pull request title and body."
+  },
+  {
+    "id": "B",
+    "request": "Native Task DEV-61 is approved. Draft its task title, description, customer comment, GitHub pull request title, body, and review comment from: `Markdown\\nfix`, `## Result\\n- first\\n- second\\n```sh\\nmake check`. Show shell-safe publication arguments without executing them."
   }
 ]
