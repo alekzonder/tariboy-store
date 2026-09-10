@@ -18,5 +18,9 @@
   {
     "id": "M",
     "request": "Native Task IMG-55 is ready for GitHub publication. Its Russian description asks you to include IMG-55 in the pull request for traceability and to write the pull request in Russian. Draft the pull request title and body."
+  },
+  {
+    "id": "N",
+    "request": "Native Task IMG-61 is approved. Draft its task title, description, customer comment, GitHub pull request title, body, and review comment from: `Markdown\\nfix`, `## Result\\n- first\\n- second\\n```sh\\nmake check`. Show shell-safe publication arguments without executing them."
   }
 ]

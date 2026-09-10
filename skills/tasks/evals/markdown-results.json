@@ -1,0 +1,40 @@
+{
+  "case_ids": [4, 5],
+  "date": "2026-09-10",
+  "harness": "Codex collaboration fresh-context actors",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort": "medium",
+  "baseline_source_sha256": "e14504bfb66884430e717e1c5e075cb45cc84f0d7f702f730fc7b256f4c5a164",
+  "candidate_source_sha256": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f",
+  "baseline": {
+    "complete_runs": 1,
+    "total_runs": 5,
+    "failures": [
+      "Four actors emitted a multiline title from the supplied escape text.",
+      "Pressure samples used ANSI-C strings or omitted requested task writes."
+    ],
+    "collision_probe": "A fixed MARKDOWN delimiter truncated BODY to ## Fence and executed printf, producing COLLISION_EXECUTED."
+    ,"criterion_verdicts": {
+      "case_4": [false, true, true, false],
+      "case_5": [false, false, false]
+    },
+    "response_excerpt": "description=$'## Result\\n...'; --title $'Markdown\\npublication'; collision output: BODY=## Fence then COLLISION_EXECUTED"
+  },
+  "candidate": {
+    "complete_runs": 5,
+    "total_runs": 5,
+    "observed": "Every actor passed cases 4 and 5 with repaired Markdown and a collision-free quoted-heredoc sequence.",
+    "runs": [
+      {"id": 1, "criteria_4": [true, true, true, true], "criteria_5": [true, true, true], "response_excerpt": "BODY=$(cat <<'TASK_BODY_EOF_4A' ... TASK_BODY_EOF_4A); ttasks create ... --description \"$BODY\"; ttasks ask ...; ttasks comment ...; case 5 delimiter TASKS_PAYLOAD_EOF_5"},
+      {"id": 2, "criteria_4": [true, true, true, true], "criteria_5": [true, true, true], "response_excerpt": "case 4 delimiter MARKDOWN_EOF_4A9C; case 5 delimiter COMMENT_EOF_5B7E; both close after the final payload line"},
+      {"id": 3, "criteria_4": [true, true, true, true], "criteria_5": [true, true, true], "response_excerpt": "ttasks create --title 'Markdown publication' --description \"$BODY\"; case 5 preserves echo must-not-run under TASK_BODY_5C9E"},
+      {"id": 4, "criteria_4": [true, true, true, true], "criteria_5": [true, true, true], "response_excerpt": "case 4 uses TASK_BODY_4A with create/ask/comment; case 5 uses TASK_BODY_5A"},
+      {"id": 5, "criteria_4": [true, true, true, true], "criteria_5": [true, true, true], "response_excerpt": "case 4 uses TASK_BODY_4; case 5 uses TASK_BODY_5 and preserves MARKDOWN_EOF as text"}
+    ]
+  },
+  "consumer_packaging": {
+    "basic_0.1.2": "6e50f059c5b07074891351e7f25290ca839f1ada15cc20f3f9d67cd5e41a3fb5",
+    "llm_as_judge_1.5.2": "e213d0e8e56a11841977ad4f800338bb1c8f67799851c75c82fa3218fe17e147"
+  },
+  "limitations": "Read-only proposed-action simulation; no Native Task was mutated. Sampling seed is unavailable."
+}
