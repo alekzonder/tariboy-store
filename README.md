@@ -37,6 +37,14 @@ The default tag is the manifest's `image_version`. Update an existing source
 with `tariboy image version update patch --path images/<name>` before publishing
 changed content.
 
+## Release publisher
+
+`tariboy-release-publisher` creates a TARI task for each new release, proposes
+a SemVer version and CHANGELOG entry for approval, then uses the target
+repository's version script in an isolated worktree. It integrates into main
+without a PR and verifies the annotated tag, release workflow and artifacts
+before closing the task. Supply the repository and customer at launch.
+
 ## Checks
 
 Requirements: Bash, GNU Make, Python 3, Git, ripgrep, Node.js/npm, and matching
