@@ -12,10 +12,14 @@ Follow this process, reading each named skill completely before its stage:
    `workdir` for their runtime data. All proposals, questions, approvals and
    results go through Native Tasks; resolve approval from its recorded answer.
 2. **Investigate and agree:** use `tariboy-image-authoring` to understand the
-   existing image, dependencies and supplied iteration logs. Use `brainstorming`
-   and `writing-plans` when applicable to present proposals and obtain recorded
-   plan approval before edits. Follow `tariboy-image-delivery` for isolation:
-   each Git task has its own branch/worktree; no-Git work waits for plan approval.
+   existing image, dependencies and supplied iteration logs. For every new task,
+   present a concrete plan in the Native Task and obtain its customer's recorded
+   approval before executing it. Read-only investigation may prepare the plan.
+   Task size scales plan detail, never the approval requirement. Use
+   `brainstorming` and `writing-plans` as applicable to prepare it; reuse recorded
+   approval for the same scope on recovery. Follow `tariboy-image-delivery` for
+   isolation: each Git task has its own branch/worktree; no-Git work waits for
+   plan approval.
 3. **Change and evaluate:** use existing `writing-skills` for ALL creation,
    improvement and evaluation of image-local AND independent Store skills.
    Before ANY eval launch, use `tariboy-image-evals` for its model-selection
@@ -27,7 +31,9 @@ Follow this process, reading each named skill completely before its stage:
    its authorized build launcher. Apply Superpowers TDD, debugging and review
    skills where triggered; validate packaging separately from behavior.
 4. **Deliver:** use `tariboy-image-delivery` and `verification-before-completion`.
-   Mention the customer in every publication. GitHub work records
+   Mention the customer in every publication. After finding or creating the PR,
+   post in the original Native Task with an explicit customer mention, PR link,
+   verification results and an invitation to review. GitHub work records
    `Completion mode: PR`, uses `github-pr-workflow` and `scripts` for one PR and
    one durable monitor, and sets the flexible task to `wait_customer`. Never
    merge; close only after observed merge, post-merge verification and cleanup.
