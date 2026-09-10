@@ -1,0 +1,459 @@
+{
+  "date": "2026-09-10",
+  "boundary": "Image composition and routing; separate from the individual model-selection skill suite",
+  "harness": {
+    "name": "Codex collaboration.spawn_agent",
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "sampling": "temperature/top_p/seed not exposed or set; backend model revision not exposed"
+  },
+  "fixture_revision": "model-cases.json sha256:c1d1227f6df7b3bd7172098432884ac405d0f2f21e0936f4d26bfcb052a402bd",
+  "rubric_sha256": "ffa56c522afe172cb6caa1e7dd101527a0aefe33f0e448bc4221948be153ec28",
+  "input_composition": "Complete instructions.md + heading Skill catalog + each manifest skill name/description/resolved SKILL.md path in manifest order + shared skills/loop/finish-iteration.md. Runtime goal/identity/workdir are replaced with the case simulation. Referenced bodies readable; no rubric, proposed fix, plan or past verdict supplied. The source base is commit 9ebbaea. Upstream skill bodies are the installed Store source files, fingerprinted below.",
+  "inputs": {
+    "baseline": {
+      "image_version": "0.1.5",
+      "snapshot_store_root": "/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-58-evidence/baseline/store",
+      "instructions_sha256": "107b2b6a2c9d319f082c21d435b2708dec07de3da02df31bcf8e2fb657be0f53",
+      "finish_prompt_sha256": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039",
+      "composed_prompt_sha256": "601d8b861178ebbab4ad80bca179f2325a391ae998a9110acf67bf768a46ccac",
+      "catalog_sha256": "0852e59aa219c0b97d6a6d1a7b7a728a46b7467b9270356e979bf5d69d735f33",
+      "catalog": [
+        {
+          "name": "tariboy-image-authoring",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-authoring/SKILL.md",
+          "sha256": "9f0150004ab4bec06a1a8205fe7105de5ad64866931d7d58305e0c078bc28642"
+        },
+        {
+          "name": "tariboy-image-evals",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-evals/SKILL.md",
+          "sha256": "2e3ae6c8a6565b9ecd665b4d95c9dc9231208cf909f766e44190673f6ad4b6e1"
+        },
+        {
+          "name": "tariboy-image-delivery",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-delivery/SKILL.md",
+          "sha256": "32b15e37b87ddf0586eab2f86d97e9c1f2c63fdc9e751de1ff6f135374fa5560"
+        },
+        {
+          "name": "writing-skills",
+          "path": "images/tariboy-image-creator/.agents/skills/writing-skills/SKILL.md",
+          "sha256": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b"
+        },
+        {
+          "name": "github-pr-workflow",
+          "path": "images/tariboy-developer/skills/github-pr-workflow/SKILL.md",
+          "sha256": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9"
+        },
+        {
+          "name": "whoami",
+          "path": "skills/whoami/SKILL.md",
+          "sha256": "229db4504ce2f64957103f3dbcf356bc817e0e6375cdc159ac345b704dc65e54"
+        },
+        {
+          "name": "context",
+          "path": "skills/context/SKILL.md",
+          "sha256": "4782cd39667a5af6b4de480864816f05ee21a905d66373e3a28ee0ae70882c0a"
+        },
+        {
+          "name": "status",
+          "path": "skills/status/SKILL.md",
+          "sha256": "b3f06d8248366950fdb49e517f96405ec8f1c53b7b063eba2eb32961c1716952"
+        },
+        {
+          "name": "workdir",
+          "path": "skills/workdir/SKILL.md",
+          "sha256": "e1a73eff223369f0de8a64294a83d7b98b03769e5dfe9768fe802b06cf3b7d7d"
+        },
+        {
+          "name": "scripts",
+          "path": "skills/scripts/SKILL.md",
+          "sha256": "b112e460026f2c437db8cc71a12e6e93385bf9ef0a38b8f94e59341bd2948686"
+        },
+        {
+          "name": "tasks",
+          "path": "skills/tasks/SKILL.md",
+          "sha256": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f"
+        },
+        {
+          "name": "goal",
+          "path": "skills/goal/SKILL.md",
+          "sha256": "e876de3c9eed5a2998b10f0ef39e66c32fc8fe36bbb7bb8766446db864dc237c"
+        },
+        {
+          "name": "messages",
+          "path": "skills/messages/SKILL.md",
+          "sha256": "7eeb7b13ab0b69b657962e570a38a880585b885946c4bf7ce67128e1460e7485"
+        },
+        {
+          "name": "loop",
+          "path": "skills/loop/SKILL.md",
+          "sha256": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed"
+        },
+        {
+          "name": "image-creator",
+          "path": "skills/image-creator/SKILL.md",
+          "sha256": "66be920b55aeca10493e12491d18712a4414e85c27d765f358aee3481b4c2e4d"
+        },
+        {
+          "name": "brainstorming",
+          "path": "images/tariboy-image-creator/.agents/skills/brainstorming/SKILL.md",
+          "sha256": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608"
+        },
+        {
+          "name": "dispatching-parallel-agents",
+          "path": "images/tariboy-image-creator/.agents/skills/dispatching-parallel-agents/SKILL.md",
+          "sha256": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c"
+        },
+        {
+          "name": "executing-plans",
+          "path": "images/tariboy-image-creator/.agents/skills/executing-plans/SKILL.md",
+          "sha256": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b"
+        },
+        {
+          "name": "finishing-a-development-branch",
+          "path": "images/tariboy-image-creator/.agents/skills/finishing-a-development-branch/SKILL.md",
+          "sha256": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65"
+        },
+        {
+          "name": "receiving-code-review",
+          "path": "images/tariboy-image-creator/.agents/skills/receiving-code-review/SKILL.md",
+          "sha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438"
+        },
+        {
+          "name": "requesting-code-review",
+          "path": "images/tariboy-image-creator/.agents/skills/requesting-code-review/SKILL.md",
+          "sha256": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8"
+        },
+        {
+          "name": "subagent-driven-development",
+          "path": "images/tariboy-image-creator/.agents/skills/subagent-driven-development/SKILL.md",
+          "sha256": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5"
+        },
+        {
+          "name": "systematic-debugging",
+          "path": "images/tariboy-image-creator/.agents/skills/systematic-debugging/SKILL.md",
+          "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787"
+        },
+        {
+          "name": "test-driven-development",
+          "path": "images/tariboy-image-creator/.agents/skills/test-driven-development/SKILL.md",
+          "sha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54"
+        },
+        {
+          "name": "using-git-worktrees",
+          "path": "images/tariboy-image-creator/.agents/skills/using-git-worktrees/SKILL.md",
+          "sha256": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd"
+        },
+        {
+          "name": "using-superpowers",
+          "path": "images/tariboy-image-creator/.agents/skills/using-superpowers/SKILL.md",
+          "sha256": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3"
+        },
+        {
+          "name": "verification-before-completion",
+          "path": "images/tariboy-image-creator/.agents/skills/verification-before-completion/SKILL.md",
+          "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
+        },
+        {
+          "name": "writing-plans",
+          "path": "images/tariboy-image-creator/.agents/skills/writing-plans/SKILL.md",
+          "sha256": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2"
+        }
+      ]
+    },
+    "candidate": {
+      "image_version": "0.1.6",
+      "snapshot_store_root": "/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-58-evidence/candidate/store",
+      "instructions_sha256": "497997c1bdaba644b92a4a61bc24676c733ffc0e2defcb471b1392c675faedfa",
+      "finish_prompt_sha256": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039",
+      "composed_prompt_sha256": "c0737764863841ca1378cc11530c819a1d463d84ddfd48b39bf747eb3ff740d1",
+      "catalog_sha256": "7182131fa524de734fe26b409c2cb62e380c22c88772a759b1e211aea4eb0803",
+      "catalog": [
+        {
+          "name": "tariboy-image-authoring",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-authoring/SKILL.md",
+          "sha256": "9f0150004ab4bec06a1a8205fe7105de5ad64866931d7d58305e0c078bc28642"
+        },
+        {
+          "name": "tariboy-image-evals",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-evals/SKILL.md",
+          "sha256": "2bd056cdc1554fe4d1dd4a4b685f864273ddbb2858ec99fde136899d929b9ee9"
+        },
+        {
+          "name": "tariboy-image-delivery",
+          "path": "images/tariboy-image-creator/skills/tariboy-image-delivery/SKILL.md",
+          "sha256": "32b15e37b87ddf0586eab2f86d97e9c1f2c63fdc9e751de1ff6f135374fa5560"
+        },
+        {
+          "name": "writing-skills",
+          "path": "images/tariboy-image-creator/.agents/skills/writing-skills/SKILL.md",
+          "sha256": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b"
+        },
+        {
+          "name": "github-pr-workflow",
+          "path": "images/tariboy-developer/skills/github-pr-workflow/SKILL.md",
+          "sha256": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9"
+        },
+        {
+          "name": "whoami",
+          "path": "skills/whoami/SKILL.md",
+          "sha256": "229db4504ce2f64957103f3dbcf356bc817e0e6375cdc159ac345b704dc65e54"
+        },
+        {
+          "name": "context",
+          "path": "skills/context/SKILL.md",
+          "sha256": "4782cd39667a5af6b4de480864816f05ee21a905d66373e3a28ee0ae70882c0a"
+        },
+        {
+          "name": "status",
+          "path": "skills/status/SKILL.md",
+          "sha256": "b3f06d8248366950fdb49e517f96405ec8f1c53b7b063eba2eb32961c1716952"
+        },
+        {
+          "name": "workdir",
+          "path": "skills/workdir/SKILL.md",
+          "sha256": "e1a73eff223369f0de8a64294a83d7b98b03769e5dfe9768fe802b06cf3b7d7d"
+        },
+        {
+          "name": "scripts",
+          "path": "skills/scripts/SKILL.md",
+          "sha256": "b112e460026f2c437db8cc71a12e6e93385bf9ef0a38b8f94e59341bd2948686"
+        },
+        {
+          "name": "tasks",
+          "path": "skills/tasks/SKILL.md",
+          "sha256": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f"
+        },
+        {
+          "name": "goal",
+          "path": "skills/goal/SKILL.md",
+          "sha256": "e876de3c9eed5a2998b10f0ef39e66c32fc8fe36bbb7bb8766446db864dc237c"
+        },
+        {
+          "name": "messages",
+          "path": "skills/messages/SKILL.md",
+          "sha256": "7eeb7b13ab0b69b657962e570a38a880585b885946c4bf7ce67128e1460e7485"
+        },
+        {
+          "name": "loop",
+          "path": "skills/loop/SKILL.md",
+          "sha256": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed"
+        },
+        {
+          "name": "image-creator",
+          "path": "skills/image-creator/SKILL.md",
+          "sha256": "66be920b55aeca10493e12491d18712a4414e85c27d765f358aee3481b4c2e4d"
+        },
+        {
+          "name": "brainstorming",
+          "path": "images/tariboy-image-creator/.agents/skills/brainstorming/SKILL.md",
+          "sha256": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608"
+        },
+        {
+          "name": "dispatching-parallel-agents",
+          "path": "images/tariboy-image-creator/.agents/skills/dispatching-parallel-agents/SKILL.md",
+          "sha256": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c"
+        },
+        {
+          "name": "executing-plans",
+          "path": "images/tariboy-image-creator/.agents/skills/executing-plans/SKILL.md",
+          "sha256": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b"
+        },
+        {
+          "name": "finishing-a-development-branch",
+          "path": "images/tariboy-image-creator/.agents/skills/finishing-a-development-branch/SKILL.md",
+          "sha256": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65"
+        },
+        {
+          "name": "receiving-code-review",
+          "path": "images/tariboy-image-creator/.agents/skills/receiving-code-review/SKILL.md",
+          "sha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438"
+        },
+        {
+          "name": "requesting-code-review",
+          "path": "images/tariboy-image-creator/.agents/skills/requesting-code-review/SKILL.md",
+          "sha256": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8"
+        },
+        {
+          "name": "subagent-driven-development",
+          "path": "images/tariboy-image-creator/.agents/skills/subagent-driven-development/SKILL.md",
+          "sha256": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5"
+        },
+        {
+          "name": "systematic-debugging",
+          "path": "images/tariboy-image-creator/.agents/skills/systematic-debugging/SKILL.md",
+          "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787"
+        },
+        {
+          "name": "test-driven-development",
+          "path": "images/tariboy-image-creator/.agents/skills/test-driven-development/SKILL.md",
+          "sha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54"
+        },
+        {
+          "name": "using-git-worktrees",
+          "path": "images/tariboy-image-creator/.agents/skills/using-git-worktrees/SKILL.md",
+          "sha256": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd"
+        },
+        {
+          "name": "using-superpowers",
+          "path": "images/tariboy-image-creator/.agents/skills/using-superpowers/SKILL.md",
+          "sha256": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3"
+        },
+        {
+          "name": "verification-before-completion",
+          "path": "images/tariboy-image-creator/.agents/skills/verification-before-completion/SKILL.md",
+          "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
+        },
+        {
+          "name": "writing-plans",
+          "path": "images/tariboy-image-creator/.agents/skills/writing-plans/SKILL.md",
+          "sha256": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2"
+        }
+      ]
+    }
+  },
+  "scoring": "Parent manually read all actor-authored archived responses and assigned each rubric criterion using the quoted proposed action/skill-read trace. No automated keyword verdicts. Archived responses may be longer than actor final summaries.",
+  "summary": {
+    "all_criteria": {
+      "baseline": "0/2",
+      "candidate": "2/2"
+    },
+    "baseline_failures": {
+      "I1": "Skipped shared model rule because this was a standalone writing-skills evaluation.",
+      "I2": "Inherited premium parent model/high to avoid model variance."
+    },
+    "candidate": "Reads shared model-selection skill for both boundaries; explicitly pins Terra/medium in each matched launch pair."
+  },
+  "limitations": [
+    "Decision simulations, not live Tariboy integrations, actual nested launches or billing measurements.",
+    "One fresh sample per composition case and variant; no statistical robustness claim.",
+    "Global harness instructions remain present; full production runtime prompt and daemon behavior were not exercised.",
+    "Skill-read traces are actor reports; independent tool-call transcript is not exported.",
+    "Two invalid-input candidate attempts retained separately, not counted as passes or source regressions.",
+    "Previous lifecycle suites were not rerun: lifecycle instructions and dependencies unchanged.",
+    "No built behavioral image digest; make check is a separate isolated packaging gate."
+  ],
+  "invalid_runs": [
+    {
+      "run": "candidate-I1",
+      "status": "invalid-input; excluded from verdict totals",
+      "reason": "One-off composition setup matched YAML indentation; version updater reformatted it, producing an empty candidate catalog. Fixed extraction using stripped lines, restored manifest formatting, asserted all 28 baseline/candidate catalog names match and all files readable, then reran both cases with fresh actors. Baseline and individual skill inputs unchanged; their verification retained.",
+      "composed_prompt_sha256": "31b9efc52f2dc06e6c94af7cd32b3210128a63f3a8025d0f48b67e642044a387",
+      "catalog": [],
+      "response_sha256": "233063ee41eb836e6e03f9e024e90b5f26ef15e8b9feb42fd2fba8855251d67c",
+      "response": "Simulation only — no actors or lifecycle commands launched.\n\nBefore either actor, read (in order): `superpowers:test-driven-development` (the prerequisite required by `writing-skills`), `superpowers:writing-skills`, then `tariboy-image-evals`. The last read is required before an individual skill evaluation; this is not a whole-image routing change.\n\nThen run the same approved pressure scenario twice in fresh contexts:\n\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # baseline: skill absent\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)  # candidate: improved independent skill present\n```\n\nUse the budget model at medium effort for both variants so the model, effort, harness, fixture, and scenario are controlled; gpt-6-astra/high has no task-specific requirement here. Record each actor's exact response/actions, whether it follows the independent-skill requirement, any rationalizations, and the baseline-versus-candidate verdict. Keep this skill-evaluation evidence separate from image evidence; there should be none for the latter.\n\nSkill bodies actually read: `superpowers:writing-skills`; `superpowers:test-driven-development`. `tariboy-image-evals` was not found in the available local skill paths, so its exact model-selection rule remains unverified; resolve that read before a real launch.\n"
+    },
+    {
+      "run": "candidate-I2",
+      "status": "invalid-input; excluded from verdict totals",
+      "reason": "One-off composition setup matched YAML indentation; version updater reformatted it, producing an empty candidate catalog. Fixed extraction using stripped lines, restored manifest formatting, asserted all 28 baseline/candidate catalog names match and all files readable, then reran both cases with fresh actors. Baseline and individual skill inputs unchanged; their verification retained.",
+      "composed_prompt_sha256": "31b9efc52f2dc06e6c94af7cd32b3210128a63f3a8025d0f48b67e642044a387",
+      "catalog": [],
+      "response_sha256": "2ae6dabda880e7bc9f87b8f5173e0ed7b45c4d2faedc113a5d06e773cac4dae1",
+      "response": "Skill reads before either actor: `tariboy-image-evals` — `/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-58-evidence/candidate/store/images/tariboy-image-creator/skills/tariboy-image-evals/SKILL.md` (complete). It owns whole-image skill-routing evaluation. No individual skill failure is identified, so `writing-skills` is not yet triggered.\n\nNext actions (simulation only): bind case I2's exact request and fixtures to two disposable, fresh Codex harness contexts. Give each its complete respective image prompt/catalog and permission to read referenced skills; do not provide a rubric, expected result, prior verdict, or proposed fix. Capture the proposed action/skill-read trace without executing lifecycle or launch actions.\n\nBaseline launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\nCandidate launch: `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n\nTerra is explicitly available and capable; medium is supported. Pinning both avoids inheriting the parent's premium `gpt-6-astra/high` and keeps the pair matched.\n\nEvidence per variant: case ID; verbatim request and fixture revision; baseline/candidate label; prompt/catalog and supplied-skill hashes; image version/digest if built; harness/model/effort/fresh-context configuration; complete response and proposed-action trace, including skills read/requested; criterion-by-criterion pass/fail with excerpts; limitations/unrun cases. Preserve both traces and report behavioral results separately from packaging.\n\nUncertainty: the exact baseline prompt/catalog revision and evaluator-only criteria must be supplied by the ready harness; neither should be inferred from the candidate catalog.\n"
+    }
+  ],
+  "runs": [
+    {
+      "run": "baseline-I1",
+      "case_id": "I1",
+      "actor": "/root/b_i1",
+      "criterion_results": [
+        {
+          "pass": false,
+          "excerpt": "**Skill reads before either actor:** `using-superpowers` (read; its subagent-stop clause makes it non-operative here), `tariboy-image-delivery`, `tasks`, `writing-skills`, and its required background `test-driven-development`. No whole-image eval skill is needed: this is one independent Store skill."
+        },
+        {
+          "pass": true,
+          "excerpt": "**Skill reads before either actor:** `using-superpowers` (read; its subagent-stop clause makes it non-operative here), `tariboy-image-delivery`, `tasks`, `writing-skills`, and its required background `test-driven-development`. No whole-image eval skill is needed: this is one independent Store skill."
+        },
+        {
+          "pass": true,
+          "excerpt": "2. Baseline: provide the skill-under-test's pre-change text (and identical ambient task context), without the candidate guidance; launch `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n3. Candidate: provide the proposed revised text in the identical context; launch `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`."
+        },
+        {
+          "pass": true,
+          "excerpt": "**Evidence record:** task key/approval revision; fixture and sandbox identifiers; exact pre-change and candidate skill revisions; complete actor prompts/context; both exact launch arguments; model/harness; raw outputs; per-criterion scores with human rationale; baseline-vs-candidate verdict; limitations (one sample per variant and model-specific result)."
+        }
+      ],
+      "response_sha256": "341629477f6e4e717011a0e98b58e3e28c2769550e568845b4863a9ce02c0da4",
+      "response": "Simulation only — no actor, lifecycle, or model launch was executed.\n\n**Skill reads before either actor:** `using-superpowers` (read; its subagent-stop clause makes it non-operative here), `tariboy-image-delivery`, `tasks`, `writing-skills`, and its required background `test-driven-development`. No whole-image eval skill is needed: this is one independent Store skill.\n\n**Next actions:**\n1. Use the approved task packet's existing sandbox and fixtures; preserve the same request, fixture state, and scorer for both runs.\n2. Baseline: provide the skill-under-test's pre-change text (and identical ambient task context), without the candidate guidance; launch `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n3. Candidate: provide the proposed revised text in the identical context; launch `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n4. Score both raw responses against the approved behavior comparison, then record the comparison on the Native Task. Do not edit, publish, or finish the iteration.\n\nUsing the same budget model and medium effort keeps model capability and reasoning effort from confounding the skill comparison; fresh contexts prevent carry-over. The premium parent setting is available but is unnecessary when both variants use this supported equal-cost configuration.\n\n**Evidence record:** task key/approval revision; fixture and sandbox identifiers; exact pre-change and candidate skill revisions; complete actor prompts/context; both exact launch arguments; model/harness; raw outputs; per-criterion scores with human rationale; baseline-vs-candidate verdict; limitations (one sample per variant and model-specific result).\n\n**Uncertainty:** the request names an approved task but supplies neither its key/revision nor the scorer's exact criteria, so those must be read from the task packet before the simulated launches.\n"
+    },
+    {
+      "run": "baseline-I2",
+      "case_id": "I2",
+      "actor": "/root/b_i2",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "Actually read skill bodies: `using-superpowers`, `tariboy-image-delivery`, `tasks`, `tariboy-image-evals`."
+        },
+        {
+          "pass": true,
+          "excerpt": "2. Give the baseline actor the exact baseline role prompt and complete catalog, then case I2’s exact request and ready sandbox/fixtures. It may read catalog-referenced skills, but receives no rubric, expected result, prior verdict, or candidate text. Record proposed actions only."
+        },
+        {
+          "pass": false,
+          "excerpt": "baseline:  launch_actor(fresh_context=true)\ncandidate: launch_actor(fresh_context=true)"
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence record per variant: I2 request verbatim; baseline/candidate label; fixture revision; prompt/catalog and supplied-skill-file hashes; resolved inherited model/effort and harness; full response plus skill-read/requested-next-action trace; criterion excerpts and pass/fail; limitations. Preserve both raw traces, including failures. Build/image digest is unavailable until a built version is supplied, so record it as unavailable rather than passing it."
+        }
+      ],
+      "response_sha256": "782d16fd6cd7ba16d35a82ad8d98e3cb8515a4f66c61cf452b979dd75544b048",
+      "response": "Simulated next actions (no launch or lifecycle command executed):\n\n1. Before either actor, read: `using-superpowers`, `tariboy-image-delivery`, `tasks`, and `tariboy-image-evals`. The first three establish the Native Task/allowed actions; the eval skill requires a fresh-context, disposable-state whole-image comparison.\n2. Give the baseline actor the exact baseline role prompt and complete catalog, then case I2’s exact request and ready sandbox/fixtures. It may read catalog-referenced skills, but receives no rubric, expected result, prior verdict, or candidate text. Record proposed actions only.\n3. Give the candidate actor the same inputs, replacing only the composed image prompt/catalog with the candidate version. Compare actual skill reads and proposed actions, especially whether it avoids launches/lifecycle commands and supplies a valid baseline/candidate comparison plan.\n\nExact parameters for both variants:\n\n```text\nbaseline:  launch_actor(fresh_context=true)\ncandidate: launch_actor(fresh_context=true)\n```\n\nOmitting `model` and `reasoning_effort` deliberately holds both at the parent’s inherited `gpt-6-astra` / `high`; model variation would confound the image-instruction comparison. Harness: Codex. No launches were made.\n\nEvidence record per variant: I2 request verbatim; baseline/candidate label; fixture revision; prompt/catalog and supplied-skill-file hashes; resolved inherited model/effort and harness; full response plus skill-read/requested-next-action trace; criterion excerpts and pass/fail; limitations. Preserve both raw traces, including failures. Build/image digest is unavailable until a built version is supplied, so record it as unavailable rather than passing it.\n\nActually read skill bodies: `using-superpowers`, `tariboy-image-delivery`, `tasks`, `tariboy-image-evals`.\n\nUncertainty: the supplied case has no explicit fixture revision or candidate image version/digest; capture those identifiers if present in the launch context, otherwise mark absent.\n"
+    },
+    {
+      "run": "candidate-I1-retry",
+      "case_id": "I1",
+      "actor": "/root/c_i1_retry",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "Skill bodies read in this simulation: `using-superpowers` (its subagent-stop clause applies), `tariboy-image-delivery`, `tasks`, `test-driven-development` (required background), `writing-skills`, `tariboy-image-evals`, and `using-superpowers/references/codex-tools.md` (Codex harness reference)."
+        },
+        {
+          "pass": true,
+          "excerpt": "Next actions: read the approved Native Task packet with `tasks`; then use the individual-skill suite mandated by `writing-skills`. Before either actor, read `tariboy-image-evals` and apply its model rule. The relevant boundary is the independent Store skill's `evals/`, not whole-image routing or image packaging."
+        },
+        {
+          "pass": true,
+          "excerpt": "launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\", suite=\"<independent-skill>/evals\", case=\"I1\")\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\", suite=\"<independent-skill>/evals\", case=\"I1\")"
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence to retain: I1 request and fixture revision; baseline/candidate labels; independent skill-file hash; model/harness/configuration; complete action/response trace including skill reads; per-criterion pass/fail excerpts; and limitations/unrun cases. Record skill evidence separately from image evidence."
+        }
+      ],
+      "response_sha256": "017699471a18dcdb4711cfcb7cb4941a153760fb85a691e97ba65edd869c074f",
+      "response": "Simulation only — no actor, evaluator, lifecycle, or model launch was executed.\n\nNext actions: read the approved Native Task packet with `tasks`; then use the individual-skill suite mandated by `writing-skills`. Before either actor, read `tariboy-image-evals` and apply its model rule. The relevant boundary is the independent Store skill's `evals/`, not whole-image routing or image packaging.\n\nSkill bodies read in this simulation: `using-superpowers` (its subagent-stop clause applies), `tariboy-image-delivery`, `tasks`, `test-driven-development` (required background), `writing-skills`, `tariboy-image-evals`, and `using-superpowers/references/codex-tools.md` (Codex harness reference).\n\nProposed matched launches, pinned before either begins:\n```\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"baseline\", suite=\"<independent-skill>/evals\", case=\"I1\")\nlaunch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true, variant=\"candidate\", suite=\"<independent-skill>/evals\", case=\"I1\")\n```\n`gpt-5.6-terra` is the available lower-cost Codex model with required capabilities; explicit medium prevents inheriting the premium parent. Both runs receive only the skill and raw I1 fixture, never rubric, expected result, prior verdict, or proposed fix.\n\nEvidence to retain: I1 request and fixture revision; baseline/candidate labels; independent skill-file hash; model/harness/configuration; complete action/response trace including skill reads; per-criterion pass/fail excerpts; and limitations/unrun cases. Record skill evidence separately from image evidence.\n\nUncertainty: the case does not provide the independent skill path, fixture revision, criterion rubric, or candidate file hash; obtain these from the approved task/suite before launch.\n"
+    },
+    {
+      "run": "candidate-I2-retry",
+      "case_id": "I2",
+      "actor": "/root/c_i2_retry",
+      "criterion_results": [
+        {
+          "pass": true,
+          "excerpt": "Skill bodies read before either actor: `using-superpowers` (catalog says subagents executing a specific task ignore it) and `tariboy-image-evals`. The latter selects Terra because it is available and capable, requires explicit medium effort, and requires matched baseline/candidate settings. No other skill body was read."
+        },
+        {
+          "pass": true,
+          "excerpt": "1. Supply each fresh actor the complete respective image prompt/catalog and only I2’s request; permit reads of catalog-referenced skills, but withhold rubrics, prior results, and proposed fixes."
+        },
+        {
+          "pass": true,
+          "excerpt": "2. Launch the baseline actor with `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n3. Launch the candidate actor with the identical `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)` after the approved candidate prompt is available. Capture proposed actions, including its requested/read skills; do not run them."
+        },
+        {
+          "pass": true,
+          "excerpt": "Evidence record per variant: I2 exact request and fixture revision; baseline/candidate label; image version/digest; hashes of supplied prompt and catalog/skill files; `Codex`, `gpt-5.6-terra`, `medium`, fresh-context configuration; full response/action trace; routing criterion result with supporting excerpt; limitations/unrun status."
+        }
+      ],
+      "response_sha256": "5de9887ae95c565fd062d861152aff3c9ad1a7f657bce17e7af826c74ced6226",
+      "response": "Simulation only — no actor, model, lifecycle command, or live service was launched.\n\nNext actions:\n1. Supply each fresh actor the complete respective image prompt/catalog and only I2’s request; permit reads of catalog-referenced skills, but withhold rubrics, prior results, and proposed fixes.\n2. Launch the baseline actor with `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)`.\n3. Launch the candidate actor with the identical `launch_actor(model=\"gpt-5.6-terra\", reasoning_effort=\"medium\", fresh_context=true)` after the approved candidate prompt is available. Capture proposed actions, including its requested/read skills; do not run them.\n\nSkill bodies read before either actor: `using-superpowers` (catalog says subagents executing a specific task ignore it) and `tariboy-image-evals`. The latter selects Terra because it is available and capable, requires explicit medium effort, and requires matched baseline/candidate settings. No other skill body was read.\n\nEvidence record per variant: I2 exact request and fixture revision; baseline/candidate label; image version/digest; hashes of supplied prompt and catalog/skill files; `Codex`, `gpt-5.6-terra`, `medium`, fresh-context configuration; full response/action trace; routing criterion result with supporting excerpt; limitations/unrun status.\n\nUncertainty: this packet does not provide the actual baseline/candidate prompt revisions, fixtures, versions/digests, hashes, or rubric, so no comparison result can be claimed. The parent’s premium Astra/high settings must not be inherited.\n"
+    }
+  ]
+}
