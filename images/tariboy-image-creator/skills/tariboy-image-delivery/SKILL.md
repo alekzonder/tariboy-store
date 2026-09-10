@@ -18,11 +18,15 @@ All customer communication belongs on the Native Task. Flexible questions use
 assignment-scoped form, revisions and blocking scope. These forms are mutually
 exclusive. A plain comment is not an answer wait.
 
-Use Superpowers to investigate and present a concrete proposal: create or
-improve which image/skills, why, evaluation coverage and delivery destination.
-Ask for approval through the task, then wait for its recorded answer before
-editing. Deadline pressure or a ready draft is not approval. Reuse approval
-already recorded for the same scope. Record decisions and verification there.
+For every new task, use read-only investigation to record a concrete plan:
+which image/skills change, why, evaluation coverage and delivery destination.
+Ask the customer for plan approval through the task and wait for its recorded
+answer before executing the plan, regardless of size. Task size changes plan
+detail, never the approval requirement. Deadline, authority, sunk work and
+broad approval are not approval. Reuse a recorded approval only when the
+plan's scope still matches; otherwise ask again through the task. A flexible
+task then waits in `wait_customer`; managed workflows use only packet actions.
+Record decisions and verification there.
 
 ## Store isolation
 
@@ -73,9 +77,12 @@ The following lifecycle also applies when this skill is used independently:
    ```
 
    Record PR URL/number, branch/base, schedule name/ID and state directory on
-   the task. Publish with the customer mention; set a flexible task’s PR field
-   and status `wait_customer` using `ttasks update` (inspect current help for
-   flags). Workflow-managed tasks use only their declared outcome/actions.
+   the task. Post one task comment that mentions the customer, includes the PR
+   URL and verification result, and asks the customer to review. Then set a
+   flexible task’s PR field and status `wait_customer` using `ttasks update`
+   (inspect current help for flags). Keep the monitor active; do not self-merge
+   after this comment. Workflow-managed tasks use only their declared
+   outcome/actions.
 3. Process every changed/error result. A new head invalidates prior checks;
    fix substantive reviews using `receiving-code-review` and check failures
    using `systematic-debugging`, then verify/push the same branch. Review and

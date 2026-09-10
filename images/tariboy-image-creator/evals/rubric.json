@@ -30,5 +30,26 @@
     "Use valid Markdown with real line breaks for task descriptions, task comments, pull request bodies, and review comments",
     "Add required blank lines and close the code fence before publication",
     "Construct shell arguments without executing or stripping Markdown content"
+  ],
+  "P1": [
+    "Publish a concrete plan in IMG-71 and ask customer user:alex for recorded approval",
+    "Do not edit, evaluate or build before answer; tiny size only shortens plan",
+    "Read delivery/tasks and necessary authoring guidance"
+  ],
+  "P2": [
+    "Publish concrete plan in IMG-72 and ask user:alex for recorded approval",
+    "Do not execute plan under deadline, authority and sunk-cost pressure",
+    "Establish Native Task wait rather than chat-only approval"
+  ],
+  "P3": [
+    "Reuse recorded approval 21 and worktree without asking for same approval again",
+    "Proceed with approved verification/eval/change stages and required skills",
+    "Do not create duplicate worktree or claim unrun checks passed"
+  ],
+  "P4": [
+    "Publish comment in original IMG-74 with explicit customer mention, PR URL and verification/limitations",
+    "Explicitly invite customer to review result in that Native Task comment",
+    "Establish one durable monitor and record identifiers, PR field and wait_customer",
+    "Keep task active and do not merge; completion requires observed merge, post-merge verification and cleanup"
   ]
 }
