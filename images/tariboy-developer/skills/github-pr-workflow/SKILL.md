@@ -30,7 +30,9 @@ not enable shell tracing around these commands.
    `REPO` is `OWNER/REPO`. Stop PR-mode setup on any nonzero result.
 
 2. Commit the task changes, run complete branch verification on that commit,
-   then push the task branch. Idempotently find or create its one PR:
+   then push the task branch. The pull request title and body are entirely in
+   English and contain no Native Task key or ID; task linkage stays in the
+   Native Task. Idempotently find or create the one PR:
 
    ```bash
    "$UTILITY" ensure --repo "$REPO" --head "$HEAD" --base "$BASE" \
