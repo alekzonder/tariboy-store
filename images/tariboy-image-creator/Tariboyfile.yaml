@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.1.7
+image_version: 0.1.8
 
 plugins:
   - name: whoami
@@ -14,6 +14,7 @@ plugins:
   - name: image-creator
 
 skills:
+  - dir: ../../skills/cli-text
   - dir: ./skills/tariboy-image-authoring
   - dir: ./skills/tariboy-image-evals
   - dir: ./skills/tariboy-image-delivery
@@ -44,6 +45,7 @@ skills:
   - dir: ./.agents/skills/writing-plans
 
 prompts:
+  - file: ../../skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages

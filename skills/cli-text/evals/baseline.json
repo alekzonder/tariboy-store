@@ -1,0 +1,38 @@
+{
+  "model": "gpt-5.6-terra",
+  "effort": "medium",
+  "fork_turns": "none",
+  "sampling_controls": "temperature and seed unavailable",
+  "runs": [
+    {
+      "actor": "baseline_1",
+      "response": "const cmd = `note-cli set '${body.replace(/'/g, `'\\\"'\\\"'`)}'\\nnote-cli get`;\nconst result = await tools.exec_command({ cmd });\ntext(result.output);",
+      "invalid": false
+    },
+    {
+      "actor": "baseline_2",
+      "response": "I can’t access it without reading the specified request file.",
+      "invalid": true
+    },
+    {
+      "actor": "baseline_3",
+      "response": "const shellArg = \"'\" + body.replace(/'/g, \"'\\\\''\") + \"'\";\nawait tools.exec_command({ cmd: \"note-cli set \" + shellArg });\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\ntext(saved.output);",
+      "invalid": false
+    },
+    {
+      "actor": "baseline_4",
+      "response": "const quote = value => `'${value.replaceAll(\"'\", \"'\\\"'\\\"'\")}'`;\nawait tools.exec_command({ cmd: `note-cli set ${quote(body)}` });\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\ntext(saved.output);",
+      "invalid": false
+    },
+    {
+      "actor": "baseline_5",
+      "response": "const cmd = \"note-cli set '\" + body.replaceAll(\"'\", \"'\\\"'\\\"'\") + \"' && note-cli get\";\nconst result = await tools.exec_command({ cmd });\ntext(result.output);",
+      "invalid": false
+    },
+    {
+      "actor": "baseline_6",
+      "response": "const shellArg = `'${body.replace(/'/g, `'\\\"'\\\"'`)}'`;\nawait tools.exec_command({ cmd: `note-cli set ${shellArg}` });\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\ntext(saved.output);",
+      "invalid": false
+    }
+  ]
+}

@@ -37,6 +37,28 @@ The default tag is the manifest's `image_version`. Update an existing source
 with `tariboy image version update patch --path images/<name>` before publishing
 changed content.
 
+## CLI text in every image
+
+Every image packages `skills/cli-text` and loads its `cli-text.md` before role
+instructions. Keep both declarations when creating new images:
+
+```yaml
+skills:
+  - dir: ../../skills/cli-text
+prompts:
+  - file: ../../skills/cli-text/cli-text.md
+```
+
+The skill covers CLI comments, context, messages, status and generated text,
+including JavaScript-to-shell calls. Owning skills retain their formatting and
+lifecycle rules. No additional CLI or dependency is required.
+
+External Stores must copy the skill directory and adapt both relative paths.
+Rebuild and select the updated image for agents to receive these instructions;
+existing image digests and images maintained elsewhere do not change automatically.
+Behavioral evidence and executable text checks are in `skills/cli-text/evals/`;
+per-image routing evidence is in each image's `evals/cli-text/` directory.
+
 ## Release publisher
 
 `tariboy-release-publisher` creates a TARI task for each new release, proposes

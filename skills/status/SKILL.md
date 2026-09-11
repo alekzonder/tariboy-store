@@ -5,6 +5,10 @@ description: Use when an agent needs to read or publish its one-line Tariboy pro
 
 # Status
 
+**REQUIRED:** Use `cli-text` before passing text to this CLI. Keep the storage
+rules below; quote transport separately. Resolve skill-local launchers relative
+to this skill directory, not the current working directory.
+
 Execute the launcher when command execution is available. If it is unavailable,
 return the exact command instead; never claim a status was read or updated unless
 the command succeeded.

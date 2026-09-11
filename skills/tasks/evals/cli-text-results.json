@@ -1,0 +1,28 @@
+{
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "sampling_controls": "temperature and seed unavailable",
+  "request_sha256": "9a3e169fb8a3d2b6bc4bb8bafc7b3e0570e4fc10dd76f01b1baca0a634dc4ca8",
+  "baseline_skill_sha256": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f",
+  "candidate_skill_sha256": "11ad38d0b752c4273d872f9abbc5e84f71d56c7d83c0fdca9a0e44edef74f66c",
+  "results": {
+    "baseline": {
+      "exact": false,
+      "received": [
+        "comment",
+        "DEMO-1",
+        "## Result\n\n- O'Reilly fixed `parser`."
+      ]
+    },
+    "candidate": {
+      "exact": true,
+      "received": [
+        "comment",
+        "DEMO-1",
+        "## Result\n\n- O'Reilly fixed `parser`.\n\n"
+      ]
+    }
+  },
+  "limitation": "One fresh actor per variant. Fake ttasks capture only; no task writes."
+}

@@ -19,6 +19,14 @@ relevant product documentation before proposing changes. Keep the process in
 `instructions.md`; put reusable stage details and repeatable scripts in skills
 inside the image directory, and explicitly require those skills in the process.
 
+Every new or revised Store image MUST package the shared `cli-text` skill and
+load its `cli-text.md` before role instructions. For `images/NAME/`, declare
+`skills: [{dir: ../../skills/cli-text}]` and include
+`{file: ../../skills/cli-text/cli-text.md}` in `prompts`. Preserve the existing
+entries and owning skills (tasks, context, messages, status). External Stores
+must vendor this directory and adapt both paths; rebuilding is required for
+agents to receive the change. Never invent a built-in text-transport skill.
+
 Schema v2 accepts only `schema_version`, `image_version`, `plugins`, `skills`,
 `prompts`. Harness, model, CWD, environment and runtime evals belong to agent or
 compose configuration. A plugin enables a capability; it inserts no skill or
@@ -30,16 +38,18 @@ image_version: 0.1.0
 plugins:
   - name: tasks
 skills:
-  - dir: $CURRENT_VERSION_STORE/skills/tasks
+  - dir: ../../skills/cli-text
+  - dir: ../../skills/tasks
   - dir: ./skills/review
 prompts:
+  - file: ../../skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages
   - runtime: goal
   - file: ./instructions.md
   - runtime: user-prompt
-  - file: $CURRENT_VERSION_STORE/prompts/iteration-finish.md
+  - file: ../../skills/loop/finish-iteration.md
 ```
 
 This fragment illustrates declarations; select every capability/skill/runtime

@@ -5,6 +5,10 @@ description: Use when sending requests or replies, subscribing to channels, or r
 
 # Tariboy Messages
 
+**REQUIRED:** Use `cli-text` before passing text to this CLI. Keep the storage
+rules below; quote transport separately. Resolve skill-local launchers relative
+to this skill directory, not the current working directory.
+
 This skill's `scripts/messages.sh` launcher lives inside this skill directory
 and calls the identity-bound daemon through `TARIBOY_TOOLS_SOCKET`.
 Execute the launcher when command execution is available. If it is unavailable,

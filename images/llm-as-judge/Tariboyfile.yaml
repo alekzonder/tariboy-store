@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 1.5.2
+image_version: 1.5.3
 
 plugins:
   - name: whoami
@@ -14,6 +14,7 @@ plugins:
   - name: llm-as-judge
 
 skills:
+  - dir: ../../skills/cli-text
   - dir: ../../skills/whoami
   - dir: ../../skills/loop
   - dir: ../../skills/messages
@@ -26,6 +27,7 @@ skills:
   - dir: ../../skills/llm-as-judge
 
 prompts:
+  - file: ../../skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages

@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5.6-terra",
+  "effort": "medium",
+  "fork_turns": "none",
+  "sampling_controls": "temperature and seed unavailable",
+  "runs": [
+    {
+      "actor": "candidate_1",
+      "response": "if (body.includes(\"\\0\")) throw new Error(\"CLI argv cannot contain NUL\");\n\nlet delimiter = \"CLI_TEXT_END\";\nwhile (body.split(\"\\n\").includes(delimiter)) delimiter += \"_\";\n\nconst cmd = \"CLI_TEXT=$(cat <<'\" + delimiter + \"'\\n\" + body +\n  \"\\n\" + delimiter + \"\\nprintf .\\n)\\n\" +\n  'CLI_TEXT=${CLI_TEXT%.}\\nCLI_TEXT=${CLI_TEXT%?}\\n' +\n  'note-cli set \"$CLI_TEXT\"';\n\nconst result = await tools.exec_command({ cmd });\nif (result.exit_code !== 0) throw new Error(\"Text write failed\");\n\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\nif (saved.exit_code !== 0 || saved.output !== body) {\n  throw new Error(\"Saved text does not match\");\n}",
+      "invalid": false
+    },
+    {
+      "actor": "candidate_2",
+      "response": "if (body.includes(\"\\0\")) throw new Error(\"CLI argv cannot contain NUL\");\n\nlet delimiter = \"CLI_TEXT_END\";\nwhile (body.split(\"\\n\").includes(delimiter)) delimiter += \"_\";\n\nconst cmd =\n  \"CLI_TEXT=$(cat <<'\" + delimiter + \"'\\n\" + body + \"\\n\" + delimiter +\n  \"\\nprintf .\\n)\\nCLI_TEXT=${CLI_TEXT%.}\\nCLI_TEXT=${CLI_TEXT%?}\\nnote-cli set \\\"$CLI_TEXT\\\"\";\n\nconst write = await tools.exec_command({ cmd });\nif (write.exit_code !== 0) throw new Error(\"note-cli set failed\");\n\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\nif (saved.exit_code !== 0) throw new Error(\"note-cli get failed\");\nif (saved.output !== body) throw new Error(\"Saved text differs from body\");",
+      "invalid": false
+    },
+    {
+      "actor": "candidate_3",
+      "response": "if (body.includes(\"\\0\")) throw new Error(\"CLI argv cannot contain NUL\");\n\nlet delimiter = \"CLI_TEXT_END\";\nwhile (body.split(\"\\n\").includes(delimiter)) delimiter += \"_\";\n\nconst cmd =\n  \"CLI_TEXT=$(cat <<'\" + delimiter + \"'\\n\" + body +\n  \"\\n\" + delimiter + \"\\nprintf .\\n)\\n\" +\n  'CLI_TEXT=${CLI_TEXT%.}\\nCLI_TEXT=${CLI_TEXT%?}\\n' +\n  'note-cli set \"$CLI_TEXT\"';\n\nconst setResult = await tools.exec_command({ cmd });\nif (setResult.exit_code !== 0) throw new Error(\"Text write failed\");\n\nconst getResult = await tools.exec_command({ cmd: \"note-cli get\" });\nif (getResult.exit_code !== 0 || getResult.output !== body) {\n  throw new Error(\"Saved text did not match\");\n}",
+      "invalid": false
+    },
+    {
+      "actor": "candidate_4",
+      "response": "if (body.includes(\"\\0\")) throw new Error(\"CLI argv cannot contain NUL\");\n\nlet delimiter = \"CLI_TEXT_END\";\nwhile (body.split(\"\\n\").includes(delimiter)) delimiter += \"_\";\n\nconst cmd =\n  \"CLI_TEXT=$(cat <<'\" + delimiter + \"'\\n\" + body +\n  \"\\n\" + delimiter + \"\\nprintf .\\n)\\n\" +\n  'CLI_TEXT=${CLI_TEXT%.}\\nCLI_TEXT=${CLI_TEXT%?}\\n' +\n  'note-cli set \"$CLI_TEXT\"';\n\nconst set = await tools.exec_command({ cmd });\nif (set.exit_code !== 0) throw new Error(\"Text write failed\");\n\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\nif (saved.exit_code !== 0 || saved.output !== body) {\n  throw new Error(\"Saved text does not match body\");\n}",
+      "invalid": false
+    },
+    {
+      "actor": "candidate_5",
+      "response": "if (body.includes(\"\\0\")) throw new Error(\"CLI argv cannot contain NUL\");\n\nlet delimiter = \"CLI_TEXT_END\";\nconst lines = body.split(\"\\n\");\nwhile (lines.includes(delimiter)) delimiter += \"_\";\n\nconst cmd =\n  \"CLI_TEXT=$(cat <<'\" + delimiter + \"'\\n\" + body + \"\\n\" + delimiter +\n  \"\\nprintf .\\n)\\nCLI_TEXT=${CLI_TEXT%.}\\nCLI_TEXT=${CLI_TEXT%?}\\nnote-cli set \\\"$CLI_TEXT\\\"\";\n\nconst result = await tools.exec_command({ cmd });\nif (result.exit_code !== 0) throw new Error(\"Text write did not finish successfully\");\n\nconst saved = await tools.exec_command({ cmd: \"note-cli get\" });\nif (saved.exit_code !== 0 || saved.output !== body) {\n  throw new Error(\"Saved text does not match body\");\n}",
+      "invalid": false
+    }
+  ]
+}

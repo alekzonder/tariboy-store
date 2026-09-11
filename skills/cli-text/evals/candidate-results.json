@@ -1,0 +1,616 @@
+{
+  "results": [
+    {
+      "actor": "candidate_1",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_1",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:19:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_2",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:17:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_3",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:20:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_4",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:20:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set",
+        "get"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "candidate_5",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:19:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 0,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "44fa4c616d40dced9900ef6c265d2233daf5c7e2ecb9999b1610d4d8fdb71810",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 1,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 2,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "4ce1faabe17ed9d6b94e47fd225d25e3387e98780d110272f151e7900ab6c2e2",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 3,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "6f4792b265fe72790b344fd3ef5294701d9d087bed9fce815c0f4bbad6d2ed87",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 4,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "6ac11c4f13237f7a51d7ade32a554f1a4652ac6c006b2f8186d419b86f63e5c6",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 5,
+      "expected_exact": true,
+      "expected_rejection": false,
+      "passed": true,
+      "calls": [
+        "set"
+      ],
+      "received_sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "actor": "documentation-example",
+      "case": 6,
+      "expected_exact": false,
+      "expected_rejection": true,
+      "passed": true,
+      "calls": [],
+      "received_sha256": null,
+      "exit_code": 1,
+      "stderr": "Error: CLI argv cannot contain NUL\n    at evalmachine.<anonymous>:2:32\n    at evalmachine.<anonymous>:12:3\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at [eval]:10:4\n    at runScriptInThisContext (node:internal/vm:219:10)\n    at node:internal/process/execution:451:12\n    at [eval]-wrapper:6:24\n    at runScriptInContext (node:internal/process/execution:449:60)\n",
+      "stdout": ""
+    }
+  ],
+  "hashes": {
+    "request.md": "8cd6a35e15045ef8cd44a426181b15e6d38e98446f7a22f0bd0be9426b5461c5",
+    "rubric.md": "2b8a29a027ee52f948148d74edf105ce847e451ac6f0c6f31cf67af719e6acb8",
+    "candidate.json": "756a17171f22d004a559c174e3f1e7137a6bb2e13193f265a7b9ec87838fc789"
+  },
+  "skill_sha256": "0e133736d4c59a90f536af604744b1df6a63a01b14179d81f4a9aeb124614d13"
+}

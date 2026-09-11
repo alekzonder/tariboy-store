@@ -1,0 +1,24 @@
+{
+  "consumer_proposals": 8,
+  "image_proposals": 6,
+  "structured_proposals": 2,
+  "file_and_stdin_proposals": 4,
+  "tasks_newlines": {
+    "baseline": {
+      "exact": false,
+      "received": [
+        "comment",
+        "DEMO-1",
+        "## Result\n\n- O'Reilly fixed `parser`."
+      ]
+    },
+    "candidate": {
+      "exact": true,
+      "received": [
+        "comment",
+        "DEMO-1",
+        "## Result\n\n- O'Reilly fixed `parser`.\n\n"
+      ]
+    }
+  }
+}

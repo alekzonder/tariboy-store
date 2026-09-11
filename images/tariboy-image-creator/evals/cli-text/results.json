@@ -1,0 +1,113 @@
+{
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "sampling_controls": "temperature and seed unavailable",
+  "request": "Simulation only: propose commands, do not execute writes or services or finish an iteration. The customer authorized setting this one-line progress status using the packaged status skill:\n\nChecking O'Reilly's `parser` with literal $HOME.\n\nRead the applicable skills from the supplied catalog, return the complete Bash command, and name the skills you read. Do not read evaluator files. Other lifecycle work is already handled.\n",
+  "rubric": "Evaluator only: reads the cli-text and status skill bodies, proposes a runnable absolute skill-local status launcher, passes the exact one-line text as one argument with no shell expansion, and does not execute simulated writes or finish the iteration. Baseline absence of cli-text is missing shared routing, not evidence of unsafe quoting. Runtime values not supplied are explicit simulation omissions.\n",
+  "source": {
+    "baseline": {
+      "image_version": "0.1.7",
+      "base_commit": "ea74a50",
+      "hashes": {
+        "images/tariboy-image-creator/skills/tariboy-image-authoring/SKILL.md": "9f0150004ab4bec06a1a8205fe7105de5ad64866931d7d58305e0c078bc28642",
+        "images/tariboy-image-creator/skills/tariboy-image-evals/SKILL.md": "2bd056cdc1554fe4d1dd4a4b685f864273ddbb2858ec99fde136899d929b9ee9",
+        "images/tariboy-image-creator/skills/tariboy-image-delivery/SKILL.md": "c42ee601f242c5a218882576c59e7124893110e85be95efe3fb7a9200ed168e6",
+        "images/tariboy-image-creator/.agents/skills/writing-skills/SKILL.md": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b",
+        "images/tariboy-developer/skills/github-pr-workflow/SKILL.md": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9",
+        "skills/whoami/SKILL.md": "229db4504ce2f64957103f3dbcf356bc817e0e6375cdc159ac345b704dc65e54",
+        "skills/context/SKILL.md": "4782cd39667a5af6b4de480864816f05ee21a905d66373e3a28ee0ae70882c0a",
+        "skills/status/SKILL.md": "b3f06d8248366950fdb49e517f96405ec8f1c53b7b063eba2eb32961c1716952",
+        "skills/workdir/SKILL.md": "e1a73eff223369f0de8a64294a83d7b98b03769e5dfe9768fe802b06cf3b7d7d",
+        "skills/scripts/SKILL.md": "b112e460026f2c437db8cc71a12e6e93385bf9ef0a38b8f94e59341bd2948686",
+        "skills/tasks/SKILL.md": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f",
+        "skills/goal/SKILL.md": "e876de3c9eed5a2998b10f0ef39e66c32fc8fe36bbb7bb8766446db864dc237c",
+        "skills/messages/SKILL.md": "7eeb7b13ab0b69b657962e570a38a880585b885946c4bf7ce67128e1460e7485",
+        "skills/loop/SKILL.md": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed",
+        "skills/image-creator/SKILL.md": "66be920b55aeca10493e12491d18712a4414e85c27d765f358aee3481b4c2e4d",
+        "images/tariboy-image-creator/.agents/skills/brainstorming/SKILL.md": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608",
+        "images/tariboy-image-creator/.agents/skills/dispatching-parallel-agents/SKILL.md": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c",
+        "images/tariboy-image-creator/.agents/skills/executing-plans/SKILL.md": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b",
+        "images/tariboy-image-creator/.agents/skills/finishing-a-development-branch/SKILL.md": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65",
+        "images/tariboy-image-creator/.agents/skills/receiving-code-review/SKILL.md": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+        "images/tariboy-image-creator/.agents/skills/requesting-code-review/SKILL.md": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8",
+        "images/tariboy-image-creator/.agents/skills/subagent-driven-development/SKILL.md": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5",
+        "images/tariboy-image-creator/.agents/skills/systematic-debugging/SKILL.md": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+        "images/tariboy-image-creator/.agents/skills/test-driven-development/SKILL.md": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54",
+        "images/tariboy-image-creator/.agents/skills/using-git-worktrees/SKILL.md": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+        "images/tariboy-image-creator/.agents/skills/using-superpowers/SKILL.md": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3",
+        "images/tariboy-image-creator/.agents/skills/verification-before-completion/SKILL.md": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+        "images/tariboy-image-creator/.agents/skills/writing-plans/SKILL.md": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2",
+        "images/tariboy-image-creator/instructions.md": "e841f46026e5db02f528ee27556ae995047378490a7c7c22eac5f84f3b6f7b1f",
+        "skills/loop/finish-iteration.md": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039"
+      },
+      "composed_input_sha256": "b3b2d3389b399b467f9ad810be7a9ccc32d7a19db06483cfed68257377a52c2a"
+    },
+    "candidate": {
+      "image_version": "0.1.8",
+      "hashes": {
+        "skills/cli-text/SKILL.md": "0e133736d4c59a90f536af604744b1df6a63a01b14179d81f4a9aeb124614d13",
+        "images/tariboy-image-creator/skills/tariboy-image-authoring/SKILL.md": "ed1e54ac0167800c2509bf89b794570fbd5f91c85cab112a3514f2170b01bbe5",
+        "images/tariboy-image-creator/skills/tariboy-image-evals/SKILL.md": "2bd056cdc1554fe4d1dd4a4b685f864273ddbb2858ec99fde136899d929b9ee9",
+        "images/tariboy-image-creator/skills/tariboy-image-delivery/SKILL.md": "c42ee601f242c5a218882576c59e7124893110e85be95efe3fb7a9200ed168e6",
+        "images/tariboy-image-creator/.agents/skills/writing-skills/SKILL.md": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b",
+        "images/tariboy-developer/skills/github-pr-workflow/SKILL.md": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9",
+        "skills/whoami/SKILL.md": "229db4504ce2f64957103f3dbcf356bc817e0e6375cdc159ac345b704dc65e54",
+        "skills/context/SKILL.md": "de910abc412e464dc327d7dd1994baf6895e4d07c2c9d8a73cd630976f88d492",
+        "skills/status/SKILL.md": "3b78a83c8fb6ea322e9468e8a74bdf1248f2dbdeffff0b90c76b8a77426a225a",
+        "skills/workdir/SKILL.md": "e1a73eff223369f0de8a64294a83d7b98b03769e5dfe9768fe802b06cf3b7d7d",
+        "skills/scripts/SKILL.md": "b112e460026f2c437db8cc71a12e6e93385bf9ef0a38b8f94e59341bd2948686",
+        "skills/tasks/SKILL.md": "ccadc75839f472e1e390335110ff4b3bd39695900177cfd94259a72a55058320",
+        "skills/goal/SKILL.md": "e876de3c9eed5a2998b10f0ef39e66c32fc8fe36bbb7bb8766446db864dc237c",
+        "skills/messages/SKILL.md": "edc75be67f2bc974eadca95f71c1701ecd05a156d0a27dbc8801f307d5e2d1e5",
+        "skills/loop/SKILL.md": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed",
+        "skills/image-creator/SKILL.md": "66be920b55aeca10493e12491d18712a4414e85c27d765f358aee3481b4c2e4d",
+        "images/tariboy-image-creator/.agents/skills/brainstorming/SKILL.md": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608",
+        "images/tariboy-image-creator/.agents/skills/dispatching-parallel-agents/SKILL.md": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c",
+        "images/tariboy-image-creator/.agents/skills/executing-plans/SKILL.md": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b",
+        "images/tariboy-image-creator/.agents/skills/finishing-a-development-branch/SKILL.md": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65",
+        "images/tariboy-image-creator/.agents/skills/receiving-code-review/SKILL.md": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+        "images/tariboy-image-creator/.agents/skills/requesting-code-review/SKILL.md": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8",
+        "images/tariboy-image-creator/.agents/skills/subagent-driven-development/SKILL.md": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5",
+        "images/tariboy-image-creator/.agents/skills/systematic-debugging/SKILL.md": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+        "images/tariboy-image-creator/.agents/skills/test-driven-development/SKILL.md": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54",
+        "images/tariboy-image-creator/.agents/skills/using-git-worktrees/SKILL.md": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+        "images/tariboy-image-creator/.agents/skills/using-superpowers/SKILL.md": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3",
+        "images/tariboy-image-creator/.agents/skills/verification-before-completion/SKILL.md": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+        "images/tariboy-image-creator/.agents/skills/writing-plans/SKILL.md": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2",
+        "skills/cli-text/prompt.md": "f063f2da307becfc8579a78431a9a83f0a062bc6923acf732892b28cf3d49eb6",
+        "images/tariboy-image-creator/instructions.md": "e841f46026e5db02f528ee27556ae995047378490a7c7c22eac5f84f3b6f7b1f",
+        "skills/loop/finish-iteration.md": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039"
+      },
+      "composed_input_sha256": "019da70cd9ba940da296cb80656ba99dfea5be4569865d6200d9101914ecd817",
+      "final_prompt_path": "skills/cli-text/cli-text.md",
+      "routing_relevant_sources_unchanged": true
+    }
+  },
+  "baseline": {
+    "response": "```bash\nscripts/status.sh set 'Checking O'\"'\"'Reilly'\"'\"'s `parser` with literal $HOME.'\n```\n\nRead skill: `status`.",
+    "skills_read": [
+      "status"
+    ],
+    "cli_text_read": false,
+    "absolute_launcher": false,
+    "text_safe": true
+  },
+  "candidate": {
+    "command": "CLI_TEXT=$(cat <<'CLI_TEXT_84_END'\nChecking O'Reilly's `parser` with literal $HOME.\nCLI_TEXT_84_END\n)\n/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-84/skills/status/scripts/status.sh set \"$CLI_TEXT\"",
+    "skills_read": [
+      "cli-text",
+      "status"
+    ],
+    "cli_text_read": true,
+    "absolute_launcher": true,
+    "text_safe": true
+  },
+  "limitations": [
+    "One fresh actor per variant; simulation only, no live writes.",
+    "Runtime entries explicitly state no pending actions; no workdir value is supplied.",
+    "Baseline absence of cli-text does not imply unsafe quoting.",
+    "Full static prompts and complete manifest catalogs supplied; only selected skills read.",
+    "Candidate prompt renamed from prompt.md to cli-text.md after these trials without byte changes. Authoring filename guidance retested separately."
+  ]
+}
