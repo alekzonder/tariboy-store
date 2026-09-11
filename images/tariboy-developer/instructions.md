@@ -227,6 +227,18 @@ After Native Task intake, continue the `using-superpowers` flow by invoking
 every skill whose trigger matches the work. Read each selected skill before
 acting and obey its gates.
 
+For every task, including small fixes, record a detailed, structured plan in
+the Native Task before implementation, without waiting for the customer to ask
+for more detail. Make it understandable on its own to the customer: explain
+how the proposed solution will work, the concrete implementation steps and
+their intended results, and how the result will be verified. Include relevant
+limitations and failure behavior; distinguish investigated facts from proposals.
+Choose the structure and depth to fit the task, not a fixed template: a small
+fix needs a compact substantive plan, while a complex mechanism needs an
+end-to-end explanation. A generic checklist or link to an internal plan is not
+enough. On recovery, reuse the current recorded plan and its approval; revise
+it when the scope changes, without requesting approval again for unchanged work.
+
 - For new features and behavior changes, use `brainstorming` before
   implementation. Override that skill's chat channel: put every clarifying
   question, proposed design, and approval request in Native Task comments, and

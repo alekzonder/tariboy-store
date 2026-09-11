@@ -41,3 +41,25 @@ the identity-bound image-creator launcher. The repository baseline `make check`
 passed 21 Store tests and `test-check-images.sh`, then failed while building the
 unchanged reserved `basic:latest` image with daemon 0.56.0. This is not reported
 as a passing repository-wide check.
+
+## Customer-readable planning
+
+`plan-quality-cases.json` and `plan-quality-rubric.json` define three separate
+composition cases: updater planning without a request for more detail, a small
+shared-helper fix, and recovery of an unchanged approved plan. The updater
+case abstracts the observed short-first-proposal failure from the supplied
+iteration audit; domain facts are fixtures, not claims about this Store.
+The customer explicitly rejected a fixed plan template. Judge substance and
+fit to the task, not prescribed headings, length, or copied updater details.
+
+Use the same fresh-context actor protocol above with `gpt-5.6-terra`, `medium`,
+and the complete instructions, manifest skill catalog with readable paths,
+and finish prompt. Supply one case per actor and no rubric or prior answer.
+`plan-quality-provenance.json` identifies the source hashes, archived actor
+inputs and separately built images. `plan-quality-results.json` retains
+per-criterion verdicts and supporting response excerpts in rubric order.
+
+These single-sample simulations test planning decisions and publication
+content, not executed Native Task writes or real updater implementation.
+No individual skill was changed or independently evaluated. Pressure to shorten
+a plan and changed-scope recovery were not run in this focused comparison.
