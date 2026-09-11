@@ -54,8 +54,11 @@ its blocking or event-driven wait mechanism is not polling.
 Run the verification required by the current workflow stage once for each
 unchanged state. A successful result satisfies that verification point until
 relevant code, configuration, dependencies, environment, or the required
-stage changes. Branch verification and post-merge verification are distinct
-required stages. Repeat a check only after such a change, a concrete failure
+stage changes. In PR mode, post-merge verification uses the merged PR's
+successful CI and refreshed-main ancestry check defined in section 5; merge
+alone does not require rerunning `make check` on `main`. Local-merge mode
+retains its separate verification suite on resulting `main`. Repeat a check
+only after such a change, a concrete failure
 or incomplete result, or an explicit requirement of the active workflow.
 "Fresh evidence" does not mean rerunning the same successful check before
 each subsequent action.
@@ -305,15 +308,21 @@ intake preselects exactly one path below.
      may be cancelled and removed. Never continue to step 9 or enter main
      refresh, post-merge verification, final completion comment, `tasks done`,
      or context cleanup from this branch.
-9. Run the distinct post-merge relevant verification suite on refreshed
-   `main`.
+9. Verify that refreshed `main` contains the recorded merge commit, using
+   `git merge-base --is-ancestor <merge-commit> main`. Reuse successful required
+   CI for the merged PR's final revision, recording its checked SHA and run
+   URL/ID. An earlier head's success is not evidence for the final revision.
+   Do not rerun `make check` or the same verification suite on `main` merely
+   because the PR merged: CI already performed it. Missing, failed, or stale
+   CI evidence or a failed ancestry check keeps the task active; obtain the
+   required evidence or resolve the failure before cleanup and completion.
 10. Remove the task worktree and local task branch.
 11. Add one consolidated final Native Task comment. Earlier progress comments
     do not replace it. The comment contains these labeled parts, in order:
     - `Required:` the customer's requested outcome and acceptance criteria.
     - `Completed:` the concrete behavior and files/components changed.
-    - `Verification:` every final verification command and its result,
-      including the post-merge run on `main`.
+    - `Verification:` branch verification results, successful CI with checked
+      SHA and run URL/ID, and the main refresh and merge-commit ancestry result.
     - `Integration:` the PR number and URL, human or automation merge result,
       and merge commit.
     - `Cleanup:` confirmation that the schedule, task worktree, and local
