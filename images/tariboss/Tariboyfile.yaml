@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.1.0
+image_version: 0.1.1
 
 plugins:
   - name: whoami
@@ -10,6 +10,7 @@ plugins:
   - name: loop
 
 skills:
+  - dir: ../../skills/cli-text
   - dir: ../../skills/whoami
   - dir: ../../skills/messages
   - dir: ../../skills/context
@@ -18,6 +19,7 @@ skills:
   - dir: ../../skills/loop
 
 prompts:
+  - file: ../../skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: messages
   - runtime: context

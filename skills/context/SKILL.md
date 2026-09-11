@@ -5,6 +5,10 @@ description: Use when an agent needs to read or replace its durable Tariboy iter
 
 # Context
 
+**REQUIRED:** Use `cli-text` before passing text to this CLI. Keep the storage
+rules below; quote transport separately. Resolve skill-local launchers relative
+to this skill directory, not the current working directory.
+
 Resolve `scripts/context.sh` from this skill's directory, not from the agent's
 working directory.
 

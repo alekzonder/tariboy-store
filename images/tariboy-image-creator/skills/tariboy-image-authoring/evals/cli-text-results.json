@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "sampling_controls": "temperature and seed unavailable",
+  "request_sha256": "5588c684206c0c19ba6b98b4b83b84b48786ec11c2e50eeb04b0bf491dadbe59",
+  "baseline": {
+    "response": "- Include `writing-skills` from `$CURRENT_VERSION_STORE/skills/writing-skills`; authoring/evaluation explicitly requires it.\n- Declare the existing shared text-transport skill independently in `skills`, using its Store-root path (for example, `$CURRENT_VERSION_STORE/skills/<text-transport-skill>`), never merely through its plugin.\n- Preserve the needed runtime prompt order: `identity`, `one-shot`, `messages`, `goal`, then image `instructions.md`, then `user-prompt` and the existing finish contract. Context/messages/status capabilities must remain independently declared as selected.\n- Before delivery: read sources and consumers; verify unique lowercase skill names and valid skill metadata; update/freeze `skills-lock.json`; validate/build only through `image-creator`; use an isolated disposable test runtime; then run whole-image behavioral evaluation for Markdown and multiline CLI transport.",
+    "skill_sha256": "9f0150004ab4bec06a1a8205fe7105de5ad64866931d7d58305e0c078bc28642",
+    "shared_declarations_correct": false
+  },
+  "candidate": {
+    "response": "Include:\n\n```yaml\nskills:\n  - dir: ../../skills/cli-text\nprompts:\n  - file: ../../skills/cli-text/cli-text.md\n```\n\nPlace the `cli-text.md` prompt before the image’s role instructions, preserving all existing entries and their order otherwise. Paths point from `images/NAME/` to the Store-shared skill; an external Store must vendor it and adjust both paths.\n\nBefore delivery: inspect selected sources, consumers, locks, and relevant docs; ensure schema v2 contains only allowed keys; confirm the skill name/metadata and lock state; update the image version under task policy; then use the identity-bound `image-creator` flow to validate and build. Packaging success alone does not establish behavior. This evaluation also requires `writing-skills`; its process cannot be substituted.",
+    "skill_sha256": "8753ddda123e1ac9c7eae910f08bfade48e05dd4747a68b8c10d0095e4c2e316",
+    "shared_declarations_correct": true
+  },
+  "limitations": [
+    "One fresh actor per variant; proposal-only, not an executed build.",
+    "Final candidate distinguishes packaging from behavior but does not name an explicit whole-image eval command.",
+    "Two preliminary candidates used earlier prompt filenames/examples and were superseded by this final-source run."
+  ]
+}

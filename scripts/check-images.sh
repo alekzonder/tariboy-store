@@ -83,5 +83,5 @@ for image_dir in "$source_copy"/images/*; do
   test -d "$image_dir" || continue
   name=$(basename -- "$image_dir")
   "$tariboy_bin" --socket "$socket" image validate --path "$image_dir" --name "$name" >/dev/null
-  "$tariboy_bin" --socket "$socket" image build --path "$image_dir" --name "$name" >/dev/null
+  "$tariboy_bin" --socket "$socket" image build --path "$image_dir" --name "$name" --tag store-check >/dev/null
 done

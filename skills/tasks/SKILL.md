@@ -5,6 +5,10 @@ description: Use when claiming, decomposing, delegating, questioning, updating, 
 
 # Native Tasks
 
+**REQUIRED:** Use `cli-text` before passing text to this CLI. Keep the storage
+rules below; quote transport separately. Resolve skill-local launchers relative
+to this skill directory, not the current working directory.
+
 This skill's launcher delegates to `ttasks`. The binary selects identity-bound
 agent mode when `TARIBOY_TOOLS_SOCKET` is set; otherwise it uses operator mode.
 The bare `tasks` command is an optional compatibility alias for `ttasks` in
@@ -37,19 +41,12 @@ Never publish Markdown fields with ANSI-C `$'...'` strings or literal escapes,
 and never put a newline in a title. Requests to preserve text exactly, use the
 shortest command or meet a deadline do not override this storage contract.
 
-For multiline shell arguments, assign a quoted heredoc to a variable, then
-quote that variable. First choose a delimiter absent from every complete body
-line; never reuse an example delimiter without checking the payload. Its
-opening and closing delimiters start at column 1. This preserves Markdown
-without executing body text or storing escapes:
-If a requested delimiter collides, choose another and still return the full
-command; do not stop at describing the risk.
-Before publishing or proposing it, verify the same chosen delimiter opens once
-and closes after the final payload line.
-The quoted-heredoc recipe below is the only valid multiline form in a proposed
-command; `$'...\n...'` is invalid even when a shell would expand its escapes.
-When proposing rather than executing a write, show the variable assignment and
-all consuming `ttasks` commands together; never claim a task was changed.
+For multiline shell arguments, use `cli-text`'s quoted-heredoc transport.
+Preserve significant trailing newlines with its sentinel variant: ordinary
+command substitution removes them. Select a delimiter absent from every complete
+payload line. When proposing a write, show the variable assignment and all
+consuming commands together; never claim that a proposed write was executed.
+The simple example below assumes the intended body has no final newline:
 
 ```bash
 BODY=$(cat <<'MARKDOWN_EOF_7F3A'

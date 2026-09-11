@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.13.6
+image_version: 0.13.7
 plugins:
     - name: whoami
     - name: context
@@ -11,6 +11,7 @@ plugins:
     - name: messages
     - name: loop
 skills:
+    - dir: ../../skills/cli-text
     - dir: ../../skills/whoami
     - dir: ../../skills/loop
     - dir: ../../skills/messages
@@ -36,6 +37,7 @@ skills:
     - dir: ./.agents/skills/writing-skills
     - dir: ./skills/github-pr-workflow
 prompts:
+    - file: ../../skills/cli-text/cli-text.md
     - runtime: identity
     - runtime: one-shot
     - runtime: messages
