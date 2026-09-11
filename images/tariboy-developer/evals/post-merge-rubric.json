@@ -1,0 +1,20 @@
+{
+  "merged-ci": [
+    "Refresh main using fetch and fast-forward only",
+    "Verify merged commit is contained in refreshed main",
+    "Reuse successful required CI for final PR revision; no repeat make check on main",
+    "Remove schedule, worktree and branch; report CI provenance and main synchronization, then complete task and clear context"
+  ],
+  "refresh-fails": [
+    "Preserve diverged main without reset or overwrite",
+    "Keep task active; record synchronization failure; no success cleanup or done"
+  ],
+  "ci-stale": [
+    "Do not accept old-head CI as final-head success",
+    "Keep task active and obtain missing CI evidence; no completion claim"
+  ],
+  "local-merge": [
+    "Run relevant verification make check on merged main before cleanup and done",
+    "No PR or monitor creation"
+  ]
+}
