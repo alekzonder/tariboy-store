@@ -1,0 +1,51 @@
+{
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "harness": "Codex fresh-context subagents; simulated actions, skill reads only",
+  "sampling": "Other sampling controls unavailable; one sample per case and variant",
+  "baseline_commit": "db8bdf8e495c018b8806a8d4431cc431c583500a",
+  "baseline_version": "0.13.5",
+  "candidate_version": "0.13.6",
+  "baseline_digest": "e63105ecdaed1b40cba909172378e20eb3eb112a6d988787610cf0f2d4d3cb6d",
+  "candidate_digest": "c5ceb10eba8b4da5b8a53f9a0f087fd9d42fc1fea5e58ac2a342a40a2202bd5d",
+  "baseline_hashes": {
+    "skills/whoami/SKILL.md": "229db4504ce2f64957103f3dbcf356bc817e0e6375cdc159ac345b704dc65e54",
+    "skills/loop/SKILL.md": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed",
+    "skills/messages/SKILL.md": "7eeb7b13ab0b69b657962e570a38a880585b885946c4bf7ce67128e1460e7485",
+    "skills/context/SKILL.md": "4782cd39667a5af6b4de480864816f05ee21a905d66373e3a28ee0ae70882c0a",
+    "skills/status/SKILL.md": "b3f06d8248366950fdb49e517f96405ec8f1c53b7b063eba2eb32961c1716952",
+    "skills/workdir/SKILL.md": "e1a73eff223369f0de8a64294a83d7b98b03769e5dfe9768fe802b06cf3b7d7d",
+    "skills/scripts/SKILL.md": "b112e460026f2c437db8cc71a12e6e93385bf9ef0a38b8f94e59341bd2948686",
+    "skills/goal/SKILL.md": "e876de3c9eed5a2998b10f0ef39e66c32fc8fe36bbb7bb8766446db864dc237c",
+    "skills/tasks/SKILL.md": "c385c75344011a1535755cf6e67f727b5da08e0dc0277794b29e67d799e6857f",
+    "images/tariboy-developer/.agents/skills/brainstorming/SKILL.md": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608",
+    "images/tariboy-developer/.agents/skills/dispatching-parallel-agents/SKILL.md": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c",
+    "images/tariboy-developer/.agents/skills/executing-plans/SKILL.md": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b",
+    "images/tariboy-developer/.agents/skills/finishing-a-development-branch/SKILL.md": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65",
+    "images/tariboy-developer/.agents/skills/receiving-code-review/SKILL.md": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+    "images/tariboy-developer/.agents/skills/requesting-code-review/SKILL.md": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8",
+    "images/tariboy-developer/.agents/skills/subagent-driven-development/SKILL.md": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5",
+    "images/tariboy-developer/.agents/skills/systematic-debugging/SKILL.md": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+    "images/tariboy-developer/.agents/skills/test-driven-development/SKILL.md": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54",
+    "images/tariboy-developer/.agents/skills/using-git-worktrees/SKILL.md": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+    "images/tariboy-developer/.agents/skills/using-superpowers/SKILL.md": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3",
+    "images/tariboy-developer/.agents/skills/verification-before-completion/SKILL.md": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+    "images/tariboy-developer/.agents/skills/writing-plans/SKILL.md": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2",
+    "images/tariboy-developer/.agents/skills/writing-skills/SKILL.md": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b",
+    "images/tariboy-developer/skills/github-pr-workflow/SKILL.md": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9",
+    "images/tariboy-developer/instructions.md": "8e220868ab8d95200c06494c5217bb64cafd87baf399d3e97d77d31fa514da38",
+    "skills/loop/finish-iteration.md": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039"
+  },
+  "candidate_prompt_sha256": "2b1671b7a1b688cf2ab07f54967f1296031872eb5ee4ef65167f7c0493f9d5a6",
+  "cases_sha256": "5631793e6fd4a772b4c5bae282188601efd7d64f7085269785f2533c1685380a",
+  "input_archives": {
+    "baseline": {
+      "path": "/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-82-eval-inputs/baseline.md",
+      "sha256": "8e7ee80311bee46baf75f94326cb96620836cdc4d2e19e1f671c69f8fe44fb58"
+    },
+    "candidate": {
+      "path": "/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-82-eval-inputs/candidate.md",
+      "sha256": "af1b2f871b0586c6bfc4afd374aad0665892ce66463ba93254cc88cc0494950f"
+    }
+  }
+}
