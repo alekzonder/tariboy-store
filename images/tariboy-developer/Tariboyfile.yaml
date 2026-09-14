@@ -32,7 +32,7 @@ skills:
     - dir: ./.agents/skills/test-driven-development
     - dir: ./.agents/skills/using-git-worktrees
     - dir: ./.agents/skills/using-superpowers
-    - dir: ./skills/ponytail
+    - dir: ./.agents/skills/ponytail
     - dir: ./.agents/skills/verification-before-completion
     - dir: ./.agents/skills/writing-plans
     - dir: ./.agents/skills/writing-skills
