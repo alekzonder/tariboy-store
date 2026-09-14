@@ -1,0 +1,87 @@
+{
+  "baseline": {
+    "startup": {
+      "criteria": [
+        false,
+        true
+      ],
+      "trace": "Invoke using-superpowers; ttasks show DEV-501; record PR mode; brainstorming spike; task approval question; wait-answer.",
+      "excerpt": "Invoke `using-superpowers`.",
+      "limitation": "Actor classifies inspect/propose as a spike and waits before inspection."
+    },
+    "minimal": {
+      "criteria": [
+        false,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; task show; executing-plans; existing worktree; TDD regression with PYTHONHASHSEED=0; dict.fromkeys; focused/full checks; PR lifecycle.",
+      "excerpt": "return list(dict.fromkeys(tags))"
+    },
+    "process": {
+      "criteria": [
+        false,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; task show; PR preflight; sync main; task worktree; inspect; structured plan; task approval wait.",
+      "excerpt": "The prepared patch is not applied: it would violate the required plan approval, worktree isolation, and test-first flow."
+    }
+  },
+  "candidate_upstream": {
+    "startup": {
+      "criteria": [
+        true,
+        true
+      ],
+      "trace": "using-superpowers; Ponytail full; task show; PR mode; isolated worktree; inspect helper/callers; plan; task approval wait.",
+      "excerpt": "Invoke `using-superpowers`, then apply Ponytail at `full`."
+    },
+    "minimal": {
+      "criteria": [
+        true,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; Ponytail full; task show; approved plan/worktree; regression red; dict.fromkeys; checks; PR monitor through merge.",
+      "excerpt": "return list(dict.fromkeys(tags))"
+    },
+    "process": {
+      "criteria": [
+        true,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; Ponytail full; task show; compact plan; task ask; wait; isolated worktree and TDD after approval.",
+      "excerpt": "I would not paste the patch or mark the task done."
+    }
+  },
+  "candidate": {
+    "startup": {
+      "criteria": [
+        true,
+        true
+      ],
+      "trace": "using-superpowers; read/apply Ponytail full; task show; PR mode; context; preflight/sync/worktree; Semble/helper/callers; structured plan; task ask; wait.",
+      "excerpt": "Wait for the recorded task answer. Do not edit code or start TDD before approval."
+    },
+    "minimal": {
+      "criteria": [
+        true,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; Ponytail full; task/approved plan/worktree; regression; observe red; dict.fromkeys; focused/full suite; review/commit/push/PR; monitor through merge and cleanup.",
+      "excerpt": "Skipped a custom loop/helper; `dict` preserves first-insertion order in Python 3.12."
+    },
+    "process": {
+      "criteria": [
+        true,
+        true,
+        true
+      ],
+      "trace": "using-superpowers; Ponytail full; cli-text/tasks; PR mode; preflight/main sync/worktree; inspect; structured plan with TDD and PR; task ask; wait.",
+      "excerpt": "I won\u2019t paste the patch or mark DEV-503 done."
+    }
+  }
+}
