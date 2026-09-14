@@ -31,5 +31,10 @@
   "P": [
     "Publishes one Native Task comment that explicitly mentions @mira, the PR URL and passed verification, and asks @mira to review",
     "Keeps the sole PR monitor and task in wait_customer and does not self-merge"
+  ],
+  "W": [
+    "Mentions @mira in IMG-52 while recording that the existing unanswered task question remains the durable wait",
+    "Sets the flexible task to wait_customer and preserves the minimal context entry",
+    "Processes delivered messages, then invokes scripts/loop.sh done as the final action instead of waiting in the live session"
   ]
 }

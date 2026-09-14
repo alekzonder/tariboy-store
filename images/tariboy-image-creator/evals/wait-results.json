@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-14",
+  "case": "W1",
+  "kind": "whole-image source-composition proposed-action simulation",
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "fresh_context_repetitions": 5,
+  "full_passes": {
+    "baseline": "0/5",
+    "candidate_r1": "4/5",
+    "candidate": "4/5"
+  },
+  "verdicts": [
+    {
+      "criterion": "Use delivery, tasks, context, messages and loop behavior",
+      "baseline": "5/5",
+      "candidate": "5/5",
+      "candidate_support": "Repetition 1 reads IMG-75, posts the task mention, updates status, preserves context, checks messages, and calls the loop script."
+    },
+    {
+      "criterion": "Mention the customer, preserve the answer wait, and set wait_customer",
+      "baseline": "4/5",
+      "candidate": "5/5",
+      "candidate_support": "Repetition 2 mentions @alex, sets wait_customer, and leaves IMG-75 await-plan-approval."
+    },
+    {
+      "criterion": "Preserve context and invoke scripts/loop.sh done as the final action",
+      "baseline": "1/5",
+      "candidate": "4/5",
+      "candidate_support": "Repetitions 1-4 ended with the loop script; repetition 5 selected i-am-done from the unchanged shared finish prompt."
+    },
+    {
+      "criterion": "Do not wait for the answer in the live session",
+      "baseline": "5/5",
+      "candidate": "5/5",
+      "candidate_support": "Repetition 5 says not to launch work or wait in the live session."
+    }
+  ],
+  "response_traces": {
+    "baseline": "wait-baseline.md",
+    "candidate_r1": "wait-candidate-r1.md",
+    "candidate": "wait-candidate.md"
+  },
+  "manual_review": "Every response was read against every W1 criterion. Four of five reviewed-source responses completed the exact transition; one selected i-am-done from the unchanged shared finish prompt owned by IMPROVE-102/PR 13.",
+  "limitations": "Fresh-context simulations proposed actions without live Native Task or daemon mutation. The shared finish prompt remains the separate scope of IMPROVE-102/PR 13.",
+  "baseline_sources_sha256": {
+    "Tariboyfile.yaml": "df9386a38c3d661218b42a7109cb31010a13202408f7d154bd93030a4eecd12f",
+    "instructions.md": "e841f46026e5db02f528ee27556ae995047378490a7c7c22eac5f84f3b6f7b1f",
+    "skills/tariboy-image-delivery/SKILL.md": "c42ee601f242c5a218882576c59e7124893110e85be95efe3fb7a9200ed168e6",
+    "../../skills/tasks/SKILL.md": "11ad38d0b752c4273d872f9abbc5e84f71d56c7d83c0fdca9a0e44edef74f66c",
+    "../../skills/context/SKILL.md": "de910abc412e464dc327d7dd1994baf6895e4d07c2c9d8a73cd630976f88d492",
+    "../../skills/messages/SKILL.md": "edc75be67f2bc974eadca95f71c1701ecd05a156d0a27dbc8801f307d5e2d1e5",
+    "../../skills/loop/SKILL.md": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed",
+    "../../skills/loop/finish-iteration.md": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039",
+    "evals/cases.json": "518ae750667bdbf770e10d8d8be147301487075426fc9f1b0ae4679f7268cdbf"
+  },
+  "candidate_sources_sha256": {
+    "Tariboyfile.yaml": "8b744070a81bb749fd33a42838b2d555a38645b2056155cb7058146c17b7f308",
+    "instructions.md": "be1491cda350d63b2f2841e8f33b857ff6ee27fe558dd0af64371b1790fa634c",
+    "skills/tariboy-image-delivery/SKILL.md": "f7c7670a01578fe7d4417ca970ae5d0debc1cc8f12fd4ab6bfb2fd9de156d3df",
+    "../../skills/tasks/SKILL.md": "11ad38d0b752c4273d872f9abbc5e84f71d56c7d83c0fdca9a0e44edef74f66c",
+    "../../skills/context/SKILL.md": "de910abc412e464dc327d7dd1994baf6895e4d07c2c9d8a73cd630976f88d492",
+    "../../skills/messages/SKILL.md": "edc75be67f2bc974eadca95f71c1701ecd05a156d0a27dbc8801f307d5e2d1e5",
+    "../../skills/loop/SKILL.md": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed",
+    "../../skills/loop/finish-iteration.md": "2cd8899318282264671dc4afb8c68cba5e311a870fe6e91e268b75292b424039",
+    "evals/cases.json": "518ae750667bdbf770e10d8d8be147301487075426fc9f1b0ae4679f7268cdbf"
+  }
+}

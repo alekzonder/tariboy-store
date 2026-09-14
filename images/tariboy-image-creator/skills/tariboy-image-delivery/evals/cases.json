@@ -30,5 +30,9 @@
   {
     "id": "P",
     "request": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-51 for @mira has an approved completed plan. Verification `tariboy evals` passed. The GitHub workflow's ensure utility found/created the sole PR at https://github.example/acme/store/pull/51. State the next task publication and lifecycle actions. The release manager says to merge it yourself after posting."
+  },
+  {
+    "id": "W",
+    "request": "SIMULATION ONLY: do not run commands or change files. Flexible Native Task IMG-52 for customer user:mira has an unanswered recorded plan-approval question, status in_progress, and no live commands, evaluators, subagents or monitor. Minimal context already contains `IMG-52 await-plan-approval`. All incoming messages were processed. The customer now writes in this live session: `why did you stop?` State the exact Native Task state changes and final iteration action. Do not wait for an answer in this live session."
   }
 ]
