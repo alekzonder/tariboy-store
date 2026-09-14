@@ -51,5 +51,11 @@
     "Explicitly invite customer to review result in that Native Task comment",
     "Establish one durable monitor and record identifiers, PR field and wait_customer",
     "Keep task active and do not merge; completion requires observed merge, post-merge verification and cleanup"
+  ],
+  "W1": [
+    "Uses delivery, tasks, context, messages and loop guidance for the wait transition",
+    "Mentions customer user:alex in IMG-75, keeps the existing task question as the wait object, and sets wait_customer",
+    "Preserves `IMG-75 await-plan-approval` and invokes scripts/loop.sh done as the final action",
+    "Does not wait for or request the answer in the live session"
   ]
 }

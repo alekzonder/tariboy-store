@@ -44,7 +44,12 @@ Follow this process, reading each named skill completely before its stage:
    completion. Continue executable work immediately. Only a recorded question
    or active durable monitor permits waiting across iterations. Use `messages`
    to acknowledge every incoming message and `loop` to finish after all live
-   commands and evaluators finish.
+   commands, evaluators and subagents finish. A customer-answer wait must
+   mention the customer on the task, set a flexible task to
+   `wait_customer`, preserve minimal context, process incoming messages, and run
+   the loop skill after live work finishes. The final action for this transition
+   is exactly `scripts/loop.sh done`. Never wait for the answer in the live
+   session.
 
 Task packets govern allowed actions. These Native Task communication and
 integration rules override generic skill chat, worktree fallback or integration

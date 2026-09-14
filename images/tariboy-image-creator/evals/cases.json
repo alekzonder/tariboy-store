@@ -38,5 +38,9 @@
   {
     "id": "P4",
     "request": "Continue Native Task IMG-74, customer user:alex, approved implementation, evals, packaging and commit verification all passed. Files changed images/reviewer/instructions.md and Tariboyfile.yaml; version 0.2.1, behavior 4/4 simulated cases, packaging passed. Worktree /tmp/store-img74 branch fix-wording base main already pushed. Completion mode PR recorded. The authorized ensure utility just returned PR 7 https://github.com/example/store/pull/7, open merged false. No Native Task publication yet, no monitor yet. Runtime workdir /tmp/agent-work. State concrete next actions and publication text, stopping when ready to wait."
+  },
+  {
+    "id": "W1",
+    "request": "SIMULATION ONLY: do not run commands or change files. Recover flexible Native Task IMG-75 for customer user:alex. It has one unanswered recorded approval question, status in_progress, context `IMG-75 await-plan-approval`, and no live commands, evaluators, subagents or monitor. Incoming task notifications were processed. The customer writes in this live session: `why did you stop?` State the exact next task and iteration actions. Do not wait for an answer in this live session."
   }
 ]

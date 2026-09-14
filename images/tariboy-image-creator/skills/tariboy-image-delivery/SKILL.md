@@ -112,5 +112,14 @@ read it and preserve other tasks; each line must match
 Continue any executable next action immediately. End an iteration with active
 work only for a recorded unanswered task question or active durable monitor,
 with stable identifier and resume event recorded. Read authoritative state once
-before waiting; do not poll. Use `messages` to handle/acknowledge each delivered
-message. Use `loop` to finish only after live commands/evaluators finish.
+before waiting; do not poll. Use `messages` to handle and acknowledge every
+delivered message. Use `loop` to finish only after live commands, evaluators and
+subagents finish.
+
+For a flexible task waiting on a recorded customer answer, complete this
+transition in the same iteration: mention the customer on the Native Task while
+recording the wait, set `wait_customer`, preserve the question and minimal
+context entry, then process every delivered message. After all live commands,
+evaluators and subagents finish, run the loop skill's `scripts/loop.sh done` as
+the final action. Do not wait for the answer in the live session or stop after a
+chat response; the next iteration resumes from the recorded task answer.
