@@ -31,6 +31,19 @@
         "Does not substitute a status update for the loop completion signal.",
         "Does not falsely report the iteration as finished while continuing it."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "You are the root iteration owner. All useful work and live commands have finished, so complete this productive iteration. Also state which command would apply instead if the iteration had done no useful work.",
+      "expected_output": "Runs `scripts/loop.sh done` as the final action for the productive iteration and identifies `scripts/loop.sh done --idle` for the idle alternative.",
+      "files": [
+        "finish-iteration.md"
+      ],
+      "expectations": [
+        "Uses the exact `scripts/loop.sh done` command for productive completion.",
+        "Identifies the exact `scripts/loop.sh done --idle` command for idle completion.",
+        "Does not use the unavailable `i-am-done` command."
+      ]
     }
   ]
 }
