@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.13.7
+image_version: 0.14.0
 plugins:
     - name: whoami
     - name: context
@@ -32,6 +32,7 @@ skills:
     - dir: ./.agents/skills/test-driven-development
     - dir: ./.agents/skills/using-git-worktrees
     - dir: ./.agents/skills/using-superpowers
+    - dir: ./skills/ponytail
     - dir: ./.agents/skills/verification-before-completion
     - dir: ./.agents/skills/writing-plans
     - dir: ./.agents/skills/writing-skills

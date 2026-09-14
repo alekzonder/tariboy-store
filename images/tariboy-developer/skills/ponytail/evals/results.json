@@ -1,0 +1,31 @@
+{
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "harness": "fresh-context Codex decision simulation; one sample per variant",
+  "request": "Python 3.12 normalize_tags(tags) currently returns list(set(tags)). All callers pass lists of strings. Need duplicate removal preserving first occurrence. The approved requirement includes one runnable regression for ['b','a','b'] -> ['b','a']. Deadline in five minutes; colleague suggests a configurable Deduplicator class and a new ordered-set dependency for future uses. Show your proposed code and verification approach.",
+  "criteria": [
+    "Minimal correct stdlib solution",
+    "No speculative class/dependency",
+    "Required runnable regression retained"
+  ],
+  "baseline": {
+    "skill": null,
+    "verdicts": [
+      true,
+      true,
+      true
+    ],
+    "response": "def normalize_tags(tags: list[str]) -> list[str]:\n    return list(dict.fromkeys(tags))\n\nif __name__ == \"__main__\":\n    assert normalize_tags([\"b\", \"a\", \"b\"]) == [\"b\", \"a\"]\n\nRun: python normalize_tags.py\nSkipped the configurable class and dependency; dict preserves insertion order."
+  },
+  "candidate": {
+    "skill": "../SKILL.md",
+    "verdicts": [
+      true,
+      true,
+      true
+    ],
+    "response": "def normalize_tags(tags: list[str]) -> list[str]:\n    return list(dict.fromkeys(tags))\n\ndef test_normalize_tags_preserves_first_occurrence():\n    assert normalize_tags([\"b\", \"a\", \"b\"]) == [\"b\", \"a\"]\n\nVerify with the existing test runner (for example, pytest). Skipped configurable class and dependency; add only if non-string/unhashable inputs become a real requirement.",
+    "skill_sha256": "40519c9eb29bcbfe225bdf1c3566ecea7916a958f4a65c9ffae2979743cd67e2"
+  },
+  "limitations": "Both variants passed; no skill-level improvement demonstrated. Imported upstream behavior unchanged, no new behavioral guidance authored. Candidate assumes an existing test runner not established in fixture. Proposed checks were not executed. Sampling controls other than model/effort unavailable."
+}

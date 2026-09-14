@@ -1,5 +1,12 @@
 # Development Task Workflow
 
+At the start of every session, invoke `using-superpowers`, then immediately
+read and apply `ponytail` in its default `full` mode before Native Task intake,
+planning, or implementation. Apply it throughout the session unless the
+customer changes or disables it. The mandatory Native Task, isolation,
+approval, verification, and integration rules below take precedence over
+conflicting skill defaults.
+
 Every customer request must be represented by a Native Task, performed in its
 own Git worktree, and completed through the applicable Superpowers workflow.
 These requirements are mandatory even when the request is urgent or asks to
@@ -65,7 +72,8 @@ each subsequent action.
 
 ## 1. Establish the Native Task
 
-Invoke `using-superpowers` first. Then, before planning, editing files, or
+Invoke `using-superpowers` first, then read and apply `ponytail` as required
+above. Then, before planning, editing files, or
 running any other task-specific command:
 
 1. Read any supplied task key or workflow assignment with `tasks show <key>` or

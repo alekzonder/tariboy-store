@@ -30,6 +30,12 @@
       "sourceType": "local",
       "computedHash": "dc4c94eb61479ef6ea1e26937a4208557428dba80a2a1dd19590da1066dfdc1f"
     },
+    "ponytail": {
+      "source": "DietrichGebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "210fa0831f649ce9f8a305f7b7c8cf2a0dd09ac4dd53067109941b96e7811d4e"
+    },
     "receiving-code-review": {
       "source": "obra/superpowers",
       "sourceType": "github",
