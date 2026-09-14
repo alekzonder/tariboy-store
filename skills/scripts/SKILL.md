@@ -24,3 +24,33 @@ Inspect with `scripts/scripts.sh ls`, `scripts/scripts.sh runs`, and
 `scripts/scripts.sh cancel`, or `scripts/scripts.sh rm` for lifecycle control.
 A schedule cancellation also stops its active run; cancelling one run leaves
 its schedule intact.
+
+## External prerequisite failures
+
+**REQUIRED:** A recurring schedule whose command cannot succeed until an
+external prerequisite changes, such as a missing credential, binary, or
+dependency, is no longer a valid wait object. Run this terminal sequence once:
+
+```bash
+scripts/scripts.sh cancel <schedule-id>
+scripts/scripts.sh rm <schedule-id>
+```
+
+Then, for a Native Task:
+
+1. Mention the customer and ask one blocking question. Reuse a matching
+   unanswered question instead of creating or repeating it.
+2. Set the task to `wait_customer` if it is not already there and record the
+   question as the only resume event.
+3. As the final action, finish the iteration through the `loop` skill with
+   `scripts/loop.sh done`.
+
+The failure is handled only after the schedule is both cancelled and removed,
+the task has one customer-answer wait, and the iteration is finished. An
+action trace that omits any of these is incomplete.
+
+Pausing or disabling leaves the useless recurring work behind; it does not
+complete this sequence. Do not rerun the command, create a replacement
+schedule, or repeat the failure comment while the question remains unanswered.
+Continue the existing workflow for changed results and failures that can
+succeed without an external environment change.

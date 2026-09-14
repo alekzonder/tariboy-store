@@ -30,6 +30,18 @@
         "Distinguishes cancelling one run from cancelling its schedule.",
         "Does not use rm or schedule cancellation when the recurring schedule must remain."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "A recurring GitHub PR monitor exits 1 again because GH_TOKEN or GITHUB_TOKEN is missing. The same environment failure has already produced about 20 task comments, the task is wait_customer, and its customer question remains unanswered. Stop the useless work and wait for the customer without running make full-check.",
+      "expected_output": "Cancels and removes the schedule, keeps one blocking customer wait on the Native Task, and ends the iteration without retries, duplicate comments, or a replacement schedule.",
+      "files": [],
+      "expectations": [
+        "Uses scripts/scripts.sh cancel and scripts/scripts.sh rm for the broken recurring schedule.",
+        "Mentions the customer, keeps or creates one blocking Native Task question, and sets wait_customer without duplicating an existing unanswered question.",
+        "Finishes the iteration through loop and waits for the recorded customer answer rather than another script.result.",
+        "Does not retry the command, create a replacement schedule, repeat the same failure comment, or run make full-check."
+      ]
     }
   ]
 }
