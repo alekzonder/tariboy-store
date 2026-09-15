@@ -1,0 +1,10 @@
+{
+  "case": "CUSTOMER-ANSWER-WAIT",
+  "criteria": [
+    "Reads the authoritative Native Task once and preserves the existing unanswered question instead of treating live-session text as approval.",
+    "Mentions customer user:alex on the Native Task while recording that work is waiting for the recorded answer.",
+    "Sets the flexible task status to wait_customer.",
+    "Preserves the minimal context entry DEV-52 wait-answer and processes delivered messages before finishing.",
+    "Makes scripts/loop.sh done the final iteration action and does not wait for the customer in the live session."
+  ]
+}
