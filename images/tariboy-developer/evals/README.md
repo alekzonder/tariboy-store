@@ -12,7 +12,8 @@ open-PR publication boundary: customer-mentioned review request, PR field,
 `wait_customer` status, and continued monitoring without agent merge.
 `pr-wait-customer-results.json` records the matched 2/4 baseline and 4/4
 candidate verdicts; `pr-wait-customer-provenance.json` records the exact
-model/configuration, source hashes, build digest, and simulation limits.
+model/configuration, source hashes, and simulation limits. Packaging is checked
+separately and its final digest is recorded on the Native Task.
 
 ## Post-merge CI reuse
 

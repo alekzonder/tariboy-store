@@ -5,7 +5,7 @@
     {
       "criterion": "Post one Native Task publication comment that mentions user:agent, includes the PR URL and verification result, and asks for review",
       "baseline": "fail: the comment did not mention user:agent or ask for review",
-      "candidate": "pass: the comment mentioned @user:agent, included the PR URL and verification, and asked for review"
+      "candidate": "pass: the comment mentioned @user:agent, included the PR URL and verification, and ended with Please review the PR"
     },
     {
       "criterion": "Set the flexible Native Task pull_request field to https://github.com/example/repo/pull/88",

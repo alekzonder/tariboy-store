@@ -302,10 +302,12 @@ intake preselects exactly one path below.
    closed-unmerged blocker, ask any needed decision through the Native Task,
    and keep the task and schedule active.
    After recording an open PR and active monitor, post one task comment that
-   explicitly mentions the customer, includes the PR URL and verification
-   result, and asks the customer to review. Then set a flexible task's PR field
-   and status to `wait_customer` with `tasks update`; workflow-managed tasks use
-   only their declared actions. Keep the monitor active and never merge the PR.
+   mentions the recorded customer using matching `@user:<login>` or
+   `@agent:<name>` syntax, includes the PR URL and verification result, and ends
+   with a direct request for the customer to review the PR. Then set a flexible
+   task's PR field and status to `wait_customer` with `tasks update`;
+   workflow-managed tasks use only their declared actions. Keep the monitor
+   active and never merge the PR.
 6. Process every changed or error result before waiting again. A new head SHA
    is a new verification state and invalidates prior check success. Route a
    failed check through `systematic-debugging`; route substantive review
