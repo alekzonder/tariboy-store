@@ -9,7 +9,7 @@
   "candidate_version": "0.14.3",
   "baseline_instruction_sha256": "62d00ffb7487f99f197b01b285ddb4f6658a739fe3f2c13c32d64e9c992eb487",
   "baseline_manifest_sha256": "ea0578369d4a33f569a99b2f38aaa44a3df315457291f390453f9dfc07ffa688",
-  "candidate_instruction_sha256": "05ee1401655ace3858520215435dfcd4bb702e7ee690c3818d1db314968bef7d",
+  "candidate_instruction_sha256": "279d5f376636421429784bb1723e575d92775c339f5e4c673d0d8c0e4366b5df",
   "candidate_manifest_sha256": "79bb5208a66040c7d15290bcf6ddcec8d3531af4c97ca1f4da7d022d7fbe03ec",
   "case_sha256": "9386984c7a28b5491b0961790896b5f8d60d3cb284489d6fff5e3f83d3401ba4",
   "finish_prompt_sha256": "320261a2d850917a90519df43fcb7034fa4595f229f8290e87ff41d55e91aa77",
@@ -43,7 +43,6 @@
     "github-pr-workflow": "37f8aa96f6925e0bccd6cafff120d206810e097582f7c5e9efe9e29772eb29a9"
   },
   "baseline_build": "not built; the baseline actor consumed the exact prompt and manifest from commit 33f4088",
-  "pre_evidence_candidate_build": "tariboy-developer:0.14.3-improve111",
-  "pre_evidence_candidate_digest": "41ac45527f63c07596ff43fcbe8a6b1190da070607189595ceddfc7f2d31e298",
+  "candidate_build": "performed separately after the committed evidence; final digest is recorded on the Native Task to avoid a self-referential source digest",
   "limitations": "Single-sample read-only simulation with fake task, repository, PR, schedule, and state path. It verifies the flexible-task image-level decision and proposed commands, not live Native Task or GitHub integration. Workflow-managed behavior was unchanged and was not separately exercised. The baseline was source-composed rather than built. No individual skill changed or received an independent eval."
 }
