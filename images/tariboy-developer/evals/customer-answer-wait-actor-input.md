@@ -12,11 +12,12 @@ skills/loop/finish-iteration.md, and catalog skills as needed. Then read only
 customer-answer-wait-cases.json and respond to CUSTOMER-ANSWER-WAIT with exact
 simulated actions in order. Do not read rubric, results, traces, provenance, or
 candidate instructions.
+Treat the actor as root for choosing the final iteration action.
 
 ## Candidate
 
 Read the manifest and instructions from candidate source commit
-7dbe582d4d2d1b367cc59c016d015108de33cecb, the unchanged shared
+e2fe29f613c3aba9134190b9d62c199b963803d4, the unchanged shared
 skills/loop/finish-iteration.md, and catalog skills as needed. Then read only
 customer-answer-wait-cases.json and respond to CUSTOMER-ANSWER-WAIT with exact
 simulated actions in order. Do not read rubric, results, traces, or provenance.
