@@ -7,21 +7,41 @@
   "fresh_context_repetitions": 5,
   "full_passes": {
     "baseline": "0/5",
-    "candidate_r1": "2/5",
     "candidate": "5/5"
   },
   "verdicts": [
-    {"criterion": "Read the authoritative task once and preserve its unanswered question", "baseline": "2/5", "candidate_r1": "2/5", "candidate": "5/5"},
-    {"criterion": "Mention the customer on the Native Task", "baseline": "3/5", "candidate_r1": "5/5", "candidate": "5/5"},
-    {"criterion": "Set the flexible task to wait_customer", "baseline": "0/5", "candidate_r1": "5/5", "candidate": "5/5"},
-    {"criterion": "Preserve minimal context and process delivered messages", "baseline": "5/5", "candidate_r1": "5/5", "candidate": "5/5"},
-    {"criterion": "End with scripts/loop.sh done and do not wait in the live session", "baseline": "5/5", "candidate_r1": "5/5", "candidate": "5/5"}
+    {
+      "criterion": "Read the authoritative task once and preserve its unanswered question",
+      "baseline": "5/5",
+      "candidate": "5/5"
+    },
+    {
+      "criterion": "Mention the customer on the Native Task",
+      "baseline": "0/5",
+      "candidate": "5/5"
+    },
+    {
+      "criterion": "Set the flexible task to wait_customer",
+      "baseline": "0/5",
+      "candidate": "5/5"
+    },
+    {
+      "criterion": "Preserve minimal context and process msg-52",
+      "baseline": "5/5",
+      "candidate": "5/5"
+    },
+    {
+      "criterion": "End with scripts/loop.sh done and do not wait in the live session",
+      "baseline": "4/5",
+      "candidate": "5/5"
+    }
   ],
   "response_traces": {
     "baseline": "customer-answer-wait-baseline.md",
-    "candidate_r1": "customer-answer-wait-candidate-r1.md",
     "candidate": "customer-answer-wait-candidate.md"
   },
-  "manual_review": "Every response was read against every rubric criterion. The baseline consistently omitted wait_customer. The first wording fixed that omission but only two runs made the authoritative task read explicit. The ordered final wording passed all criteria in all five runs.",
+  "actor_input": "customer-answer-wait-actor-input.md",
+  "catalog": "customer-answer-wait-catalog.txt",
+  "manual_review": "Every response was read against every rubric criterion. Baseline runs processed msg-52 but never set wait_customer or explicitly mentioned user:alex on the Native Task; one baseline also refused the final root loop action. All five candidate runs completed every ordered transition step.",
   "limitations": "Fresh-context simulations proposed actions without mutating a live Native Task or daemon. They verify the flexible-task pre-PR wait decision, not executed integration. No individual skill changed."
 }

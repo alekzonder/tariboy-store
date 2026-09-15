@@ -10,9 +10,9 @@ Simulate actions only; do not use live tasks, repositories or credentials.
 `customer-answer-wait-cases.json` and its rubric cover the generic pre-PR
 flexible-task wait: authoritative task read, customer mention, `wait_customer`,
 minimal context and message handling, followed by `scripts/loop.sh done` as the
-final action. Five fresh-context runs moved from `0/5` baseline through a
-`2/5` wording iteration to `5/5`; results and source hashes are recorded in
-the matching result, trace and provenance files.
+final action. Five fresh-context runs moved from `0/5` baseline to `5/5`
+candidate; exact action traces, actor input, the full catalog fingerprint and
+source hashes are recorded with the results.
 
 ## PR publication wait state
 
