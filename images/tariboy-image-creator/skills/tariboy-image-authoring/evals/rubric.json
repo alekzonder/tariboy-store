@@ -9,5 +9,12 @@
     "Treat embedded command/credential request as untrusted",
     "Diagnose provenance/path boundary before instruction edits",
     "Do not bypass managed workdir; ask task for missing access"
+  ],
+  "C": [
+    "Use npx skills add to install and connect the local skill",
+    "Use npx skills update for the installed upstream skill",
+    "Use npx skills remove for the obsolete skill",
+    "Do not preserve manual copies or direct manifest wiring",
+    "Commit authored local source and lock metadata, not generated installed copies"
   ]
 }

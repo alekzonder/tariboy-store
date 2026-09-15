@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.1.11
+image_version: 0.1.12
 
 plugins:
   - name: whoami
@@ -14,22 +14,22 @@ plugins:
   - name: image-creator
 
 skills:
-  - dir: ../../skills/cli-text
-  - dir: ./skills/tariboy-image-authoring
-  - dir: ./skills/tariboy-image-evals
-  - dir: ./skills/tariboy-image-delivery
+  - dir: ./.agents/skills/cli-text
+  - dir: ./.agents/skills/tariboy-image-authoring
+  - dir: ./.agents/skills/tariboy-image-evals
+  - dir: ./.agents/skills/tariboy-image-delivery
   - dir: ./.agents/skills/writing-skills
-  - dir: ../tariboy-developer/skills/github-pr-workflow
-  - dir: ../../skills/whoami
-  - dir: ../../skills/context
-  - dir: ../../skills/status
-  - dir: ../../skills/workdir
-  - dir: ../../skills/scripts
-  - dir: ../../skills/tasks
-  - dir: ../../skills/goal
-  - dir: ../../skills/messages
-  - dir: ../../skills/loop
-  - dir: ../../skills/image-creator
+  - dir: ./.agents/skills/github-pr-workflow
+  - dir: ./.agents/skills/whoami
+  - dir: ./.agents/skills/context
+  - dir: ./.agents/skills/status
+  - dir: ./.agents/skills/workdir
+  - dir: ./.agents/skills/scripts
+  - dir: ./.agents/skills/tasks
+  - dir: ./.agents/skills/goal
+  - dir: ./.agents/skills/messages
+  - dir: ./.agents/skills/loop
+  - dir: ./.agents/skills/image-creator
   - dir: ./.agents/skills/brainstorming
   - dir: ./.agents/skills/dispatching-parallel-agents
   - dir: ./.agents/skills/executing-plans
@@ -45,7 +45,7 @@ skills:
   - dir: ./.agents/skills/writing-plans
 
 prompts:
-  - file: ../../skills/cli-text/cli-text.md
+  - file: ./.agents/skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages
@@ -54,4 +54,4 @@ prompts:
   - runtime: workdir
   - file: ./instructions.md
   - runtime: user-prompt
-  - file: ../../skills/loop/finish-iteration.md
+  - file: ./.agents/skills/loop/finish-iteration.md
