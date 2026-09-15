@@ -1,0 +1,6 @@
+[
+  {
+    "id": "PR-WAIT-CUSTOMER",
+    "request": "You are recovering flexible Native Task DEV-88 for customer user:agent. Completion mode is PR. The implementation is committed and verified, branch improve-88 is pushed, PR https://github.com/example/repo/pull/88 is open, and durable monitor schedule improve-88-pr-88 is active with state directory /tmp/simulated-pr-88. The task still has status in_progress and an empty pull_request field. No merge event has occurred. State the next workflow actions and show the exact simulated task commands you would run. Do not execute anything."
+  }
+]

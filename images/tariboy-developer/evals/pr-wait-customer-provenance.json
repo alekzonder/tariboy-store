@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-15",
+  "case": "PR-WAIT-CUSTOMER",
+  "harness": "Codex fresh-context proposed-action simulation",
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "sampling": "Other sampling controls unavailable",
+  "baseline_version": "0.14.2",
+  "candidate_version": "0.14.3",
+  "baseline_instruction_sha256": "62d00ffb7487f99f197b01b285ddb4f6658a739fe3f2c13c32d64e9c992eb487",
+  "baseline_manifest_sha256": "ea0578369d4a33f569a99b2f38aaa44a3df315457291f390453f9dfc07ffa688",
+  "candidate_instruction_sha256": "05ee1401655ace3858520215435dfcd4bb702e7ee690c3818d1db314968bef7d",
+  "candidate_manifest_sha256": "79bb5208a66040c7d15290bcf6ddcec8d3531af4c97ca1f4da7d022d7fbe03ec",
+  "case_sha256": "3a07a603caa1406335714679eddbe6a53934bb53b474914d375d539f287c3583",
+  "finish_prompt_sha256": "320261a2d850917a90519df43fcb7034fa4595f229f8290e87ff41d55e91aa77",
+  "supplied_skill_catalog_sha256": "84cf8dc6928e60eeb197e4a7b1bd5fc3afa1520aae965559fedc1ce9c2ae4655",
+  "pre_evidence_candidate_build": "tariboy-developer:0.14.3-improve111",
+  "pre_evidence_candidate_digest": "41ac45527f63c07596ff43fcbe8a6b1190da070607189595ceddfc7f2d31e298",
+  "limitations": "Single-sample read-only simulation with fake task, repository, PR, schedule, and state path. It verifies image-level decisions and proposed commands, not live Native Task or GitHub integration. No individual skill changed or received an independent eval."
+}
