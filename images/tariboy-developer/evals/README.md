@@ -5,6 +5,15 @@ Use `writing-skills` and the image composition workflow in
 image instructions and skill catalog, but not the rubric or prior responses.
 Simulate actions only; do not use live tasks, repositories or credentials.
 
+## Customer-answer wait transition
+
+`customer-answer-wait-cases.json` and its rubric cover the generic pre-PR
+flexible-task wait: authoritative task read, customer mention, `wait_customer`,
+minimal context and message handling, followed by `scripts/loop.sh done` as the
+final action. Five fresh-context runs moved from `0/5` baseline through a
+`2/5` wording iteration to `5/5`; results and source hashes are recorded in
+the matching result, trace and provenance files.
+
 ## PR publication wait state
 
 `pr-wait-customer-cases.json` and `pr-wait-customer-rubric.json` cover the

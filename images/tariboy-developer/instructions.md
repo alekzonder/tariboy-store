@@ -177,6 +177,14 @@ context compaction, a detailed checkpoint, or a request to leave a handoff are
 not stop conditions. Returning `STOP` while also naming an immediately
 executable next action is a process violation: execute that action instead.
 
+For a flexible task waiting on a recorded customer answer, complete this
+transition in the same iteration: read the authoritative task once; mention the
+customer on that task while recording the wait; set `wait_customer`; preserve
+the question and minimal context entry; then process every delivered message.
+After all live commands, evaluators and subagents finish, run the loop skill's
+`scripts/loop.sh done` as the final action. Do not wait for the answer in the
+live session.
+
 | Rationalization | Required action |
 |---|---|
 | "A detailed context is safer for compaction" | Put the detail in the Native Task; context remains `<TASK-KEY> <next-action-slug>`. |

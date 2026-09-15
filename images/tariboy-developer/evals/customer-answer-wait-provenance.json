@@ -1,0 +1,25 @@
+{
+  "date": "2026-09-15",
+  "case": "CUSTOMER-ANSWER-WAIT",
+  "harness": "Codex fresh-context proposed-action simulation",
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "sampling": "Other sampling controls unavailable",
+  "baseline_version": "0.14.3",
+  "candidate_version": "0.14.4",
+  "baseline_instruction_sha256": "279d5f376636421429784bb1723e575d92775c339f5e4c673d0d8c0e4366b5df",
+  "baseline_manifest_sha256": "79bb5208a66040c7d15290bcf6ddcec8d3531af4c97ca1f4da7d022d7fbe03ec",
+  "candidate_instruction_sha256": "8cc7a6334691914dd53de8d5e272ca600f820fc94fb845cf3b18d68ac195bebc",
+  "candidate_manifest_sha256": "307ba8326f18fdc35f5a10057171685061f5492db3a242f503a88887fbe6bd74",
+  "case_sha256": "29e267b84ebba10be993f6836e92512163967147185f400ebbfd01fef1523787",
+  "finish_prompt_sha256": "320261a2d850917a90519df43fcb7034fa4595f229f8290e87ff41d55e91aa77",
+  "relevant_skill_sha256": {
+    "tasks": "11ad38d0b752c4273d872f9abbc5e84f71d56c7d83c0fdca9a0e44edef74f66c",
+    "context": "de910abc412e464dc327d7dd1994baf6895e4d07c2c9d8a73cd630976f88d492",
+    "messages": "edc75be67f2bc974eadca95f71c1701ecd05a156d0a27dbc8801f307d5e2d1e5",
+    "loop": "867f68b46afcca338e6e8c50019b4107ae2ba66fdd197b9f78c68f3f4e1431ed"
+  },
+  "baseline_build": "not built; actors consumed the exact source composition from commit 710e49b",
+  "candidate_build": "4b0142fa0ba833c1eabed39fdb2fceae1fd154cac39e3512fb7ed8385ef52e41",
+  "limitations": "Read-only simulation with a fake task and no production credentials. The complete manifest catalog and composed role prompts were available to every actor; the listed skill hashes are the skills relevant to the observed transition."
+}
