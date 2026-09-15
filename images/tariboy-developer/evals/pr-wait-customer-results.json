@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-15",
+  "case": "PR-WAIT-CUSTOMER",
+  "verdicts": [
+    {
+      "criterion": "Post one Native Task publication comment that mentions user:agent, includes the PR URL and verification result, and asks for review",
+      "baseline": "fail: the comment did not mention user:agent or ask for review",
+      "candidate": "pass: the comment mentioned @user:agent, included the PR URL and verification, and asked for review"
+    },
+    {
+      "criterion": "Set the flexible Native Task pull_request field to https://github.com/example/repo/pull/88",
+      "baseline": "pass: proposed ttasks update DEV-88 --pull-request https://github.com/example/repo/pull/88",
+      "candidate": "pass: proposed the same pull_request update"
+    },
+    {
+      "criterion": "Set the flexible Native Task status to wait_customer after recording the PR and active monitor",
+      "baseline": "fail: explicitly stated that the task remains in_progress",
+      "candidate": "pass: proposed --status wait_customer in the task update"
+    },
+    {
+      "criterion": "Keep the durable monitor active and do not merge or complete the task",
+      "baseline": "pass: retained improve-88-pr-88 and refused merge/completion",
+      "candidate": "pass: retained improve-88-pr-88 and refused merge/completion"
+    }
+  ],
+  "baseline_score": "2/4",
+  "candidate_score": "4/4"
+}

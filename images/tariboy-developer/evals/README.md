@@ -5,6 +5,15 @@ Use `writing-skills` and the image composition workflow in
 image instructions and skill catalog, but not the rubric or prior responses.
 Simulate actions only; do not use live tasks, repositories or credentials.
 
+## PR publication wait state
+
+`pr-wait-customer-cases.json` and `pr-wait-customer-rubric.json` cover the
+open-PR publication boundary: customer-mentioned review request, PR field,
+`wait_customer` status, and continued monitoring without agent merge.
+`pr-wait-customer-results.json` records the matched 2/4 baseline and 4/4
+candidate verdicts; `pr-wait-customer-provenance.json` records the exact
+model/configuration, source hashes, build digest, and simulation limits.
+
 ## Post-merge CI reuse
 
 `post-merge-cases.json` and `post-merge-rubric.json` define a separate four-case
