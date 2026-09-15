@@ -18,9 +18,9 @@
       "candidate": "pass: proposed --status wait_customer in the task update"
     },
     {
-      "criterion": "Keep the durable monitor active and do not merge or complete the task",
-      "baseline": "pass: retained improve-88-pr-88 and refused merge/completion",
-      "candidate": "pass: retained improve-88-pr-88 and refused merge/completion"
+      "criterion": "Explicitly keep the recorded durable monitor active and do not propose cancellation, merge, or task completion",
+      "baseline": "pass: retained recorded schedule improve-88-pr-88 (ID scr-simulated-88) and proposed no cancellation, merge, or completion",
+      "candidate": "pass: stated that the recorded name/ID remains active and proposed no cancellation, merge, or completion"
     }
   ],
   "baseline_score": "2/4",

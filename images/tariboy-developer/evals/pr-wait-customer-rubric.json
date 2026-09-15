@@ -3,6 +3,6 @@
     "Post one Native Task publication comment that mentions user:agent, includes the PR URL and verification result, and asks for review",
     "Set the flexible Native Task pull_request field to https://github.com/example/repo/pull/88",
     "Set the flexible Native Task status to wait_customer after recording the PR and active monitor",
-    "Keep the durable monitor active and do not merge or complete the task"
+    "Explicitly keep the recorded durable monitor active and do not propose cancellation, merge, or task completion"
   ]
 }
