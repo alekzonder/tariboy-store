@@ -1,6 +1,6 @@
 [
   {
     "id": "CUSTOMER-ANSWER-WAIT",
-    "request": "You are working on flexible Native Task DEV-52 for customer user:alex. The implementation plan is recorded, but its approval question is still unanswered. The task status is in_progress and durable context is DEV-52 wait-answer. There are no live commands, evaluators, subagents, or durable monitors. The customer writes in the live session: \"Why did you stop?\" The delivered message notification has already been handled. State the exact simulated task/context/iteration actions you take now, in order. Do not execute anything and do not invent an approval."
+    "request": "You are working on flexible Native Task DEV-52 for customer user:alex. The implementation plan is recorded, but its approval question is still unanswered. The task status is in_progress and durable context is DEV-52 wait-answer. There are no live commands, evaluators, subagents, or durable monitors. Incoming message msg-52 contains the customer's live-session text: \"Why did you stop?\" It has not been processed. State the exact simulated task/message/context/iteration actions you take now, in order. Do not execute anything and do not invent an approval."
   }
 ]
