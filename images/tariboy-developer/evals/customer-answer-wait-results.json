@@ -17,12 +17,12 @@
     },
     {
       "criterion": "Mention the customer on the Native Task",
-      "baseline": "0/5",
+      "baseline": "1/5",
       "candidate": "5/5"
     },
     {
       "criterion": "Set the flexible task to wait_customer",
-      "baseline": "0/5",
+      "baseline": "3/5",
       "candidate": "5/5"
     },
     {
@@ -32,7 +32,7 @@
     },
     {
       "criterion": "End with scripts/loop.sh done and do not wait in the live session",
-      "baseline": "4/5",
+      "baseline": "5/5",
       "candidate": "5/5"
     }
   ],
@@ -42,6 +42,6 @@
   },
   "actor_input": "customer-answer-wait-actor-input.md",
   "catalog": "customer-answer-wait-catalog.txt",
-  "manual_review": "Every response was read against every rubric criterion. Baseline runs processed msg-52 but never set wait_customer or explicitly mentioned user:alex on the Native Task; one baseline also refused the final root loop action. All five candidate runs completed every ordered transition step.",
+  "manual_review": "Every response was read against every rubric criterion. Baseline runs split the required transition: one used the recorded @user:alex principal and three set wait_customer, but none did both; all processed msg-52 and ended with the loop action. All five candidate runs completed every ordered step.",
   "limitations": "Fresh-context simulations proposed actions without mutating a live Native Task or daemon. They verify the flexible-task pre-PR wait decision, not executed integration. No individual skill changed."
 }
