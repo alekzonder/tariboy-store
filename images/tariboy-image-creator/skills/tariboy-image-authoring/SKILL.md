@@ -20,9 +20,10 @@ relevant product documentation before proposing changes. Keep the process in
 inside the image directory, and explicitly require those skills in the process.
 
 Every new or revised Store image MUST package the shared `cli-text` skill and
-load its `cli-text.md` before role instructions. For `images/NAME/`, declare
-`skills: [{dir: ../../skills/cli-text}]` and include
-`{file: ../../skills/cli-text/cli-text.md}` in `prompts`. Preserve the existing
+load its `cli-text.md` before role instructions. Install it from
+`../../skills/cli-text` with `npx skills add`; declare the resulting
+`skills: [{dir: ./.agents/skills/cli-text}]` and include
+`{file: ./.agents/skills/cli-text/cli-text.md}` in `prompts`. Preserve the existing
 entries and owning skills (tasks, context, messages, status). External Stores
 must vendor this directory and adapt both paths; rebuilding is required for
 agents to receive the change. Never invent a built-in text-transport skill.
@@ -38,40 +39,43 @@ image_version: 0.1.0
 plugins:
   - name: tasks
 skills:
-  - dir: ../../skills/cli-text
-  - dir: ../../skills/tasks
-  - dir: ./skills/review
+  - dir: ./.agents/skills/cli-text
+  - dir: ./.agents/skills/tasks
+  - dir: ./.agents/skills/review
 prompts:
-  - file: ../../skills/cli-text/cli-text.md
+  - file: ./.agents/skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages
   - runtime: goal
   - file: ./instructions.md
   - runtime: user-prompt
-  - file: ../../skills/loop/finish-iteration.md
+  - file: ./.agents/skills/loop/finish-iteration.md
 ```
 
 This fragment illustrates declarations; select every capability/skill/runtime
 needed by the target workflow. Runtime identity/messages/goal/context/workdir
 name their owning skills. Preserve prompt order and the finish contract.
 
-| Source | Meaning |
-| --- | --- |
-| `./skills/review`, `../other/skills/review` | Image-relative directory; sibling skills are supported |
-| `../../skills/review` | Independent skill in this Store |
-| `$CURRENT_VERSION_STORE/skills/tasks` | Built-in skill of the running Tariboy version |
-| `$STORE/...`, `$PLUGINS/...` | Explicit installed Store/plugin roots |
+`npx skills` owns every image skill connection, including skills authored under
+the image directory. From `images/NAME`, use `npx skills add PACKAGE_OR_PATH`
+to install/connect a skill, `npx skills update SKILL -p -y` to update it, and
+`npx skills remove SKILL -y` to remove it. Use `npx skills init` or edit the
+canonical local source when authoring is required, then install that source
+with `npx skills add`; never copy it into `.agents/skills` or wire its source
+directory directly into `Tariboyfile.yaml`.
 
-Only these literal variables expand. Keep relative source dependencies together
-for rebuilds. Absolute paths bind the source to a host. Skill names must match
-directory basenames, be unique, and use lowercase words/digits with hyphens.
-`SKILL.md` requires YAML `name` and `description`; symlinks and special files
-are rejected. Skill sibling paths are supported; prompt traversal is not.
+Point manifest `skills` entries only at the project installations created by
+`npx skills` (normally `./.agents/skills/NAME`). Do not hand-edit
+`skills-lock.json` or generated installation directories. Prompt files shipped
+by a skill must likewise use its installed directory, not its source path.
+After checkout,
+restore the lock with `npx skills experimental_install` before validation or
+build. Commit `skills-lock.json` and any canonical local skill sources, not
+`.agents/` or other restored copies. Skill names must match directory basenames,
+be unique, and use lowercase words/digits with hyphens. `SKILL.md` requires
+YAML `name` and `description`; symlinks and special files are rejected.
 
-Keep `skills-lock.json` for upstream skills. Store builds restore it with
-`npx skills experimental_install` at Store root and image directory before
-freezing sources. Commit locks and local skills, not restored hidden trees.
 Runnable exports contain packaged skill bytes, not editable source backups.
 An immutable digest identifies exact bytes; ordinary build tags can move.
 

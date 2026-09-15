@@ -1,0 +1,25 @@
+{
+  "date": "2026-09-15",
+  "harness": "Codex fresh-context subagent simulation",
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "case": "C",
+  "repetitions": {
+    "baseline": 5,
+    "candidate": 5,
+    "candidate_regression_A": 1,
+    "candidate_regression_B": 1
+  },
+  "baseline_response": "improve-115-baseline.md",
+  "candidate_response": "improve-115-candidate.md",
+  "baseline_skill_sha256": "8753ddda123e1ac9c7eae910f08bfade48e05dd4747a68b8c10d0095e4c2e316",
+  "candidate_skill_sha256": "3b3b2f7f5e77bd3942d26122c7100b8f3974c6d40c631b6ddc01d1759331b58d",
+  "cases_sha256": "f7161f5aebeb856801af826e2b405a33293efb0b2a335703a82fbadc8abe517c",
+  "rubric_sha256": "22b3ca4dbd9c7f568efc17c4ac32bcb6a7f7044e9fa659bf58c7198516ef4c42",
+  "verdict": {
+    "baseline": "0/5 repetitions passed all criteria",
+    "candidate": "5/5 repetitions passed all criteria",
+    "candidate_regressions": "A and B passed"
+  },
+  "limitations": "Read-only proposed-action simulations; commands were not executed against the fictional fixture."
+}

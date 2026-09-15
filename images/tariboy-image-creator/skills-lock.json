@@ -7,6 +7,16 @@
       "skillPath": "skills/brainstorming/SKILL.md",
       "computedHash": "b58d55b64742ecd37923985ec7bdfbe678ffbcb9895562abd28c0a32dcacd7fb"
     },
+    "cli-text": {
+      "source": "../../skills/cli-text",
+      "sourceType": "local",
+      "computedHash": "c5d2c5472b163fd8a7d5ef9d036e7889f5c850e5fe41a63241b535190ddc0a07"
+    },
+    "context": {
+      "source": "../../skills/context",
+      "sourceType": "local",
+      "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
+    },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -25,6 +35,31 @@
       "skillPath": "skills/finishing-a-development-branch/SKILL.md",
       "computedHash": "4f571e7befb8b0946d9d7770232c818812412e9ab1dfb811f847edfba1fc6275"
     },
+    "github-pr-workflow": {
+      "source": "../tariboy-developer/skills/github-pr-workflow",
+      "sourceType": "local",
+      "computedHash": "fc2658e782ada343ee4086487213bf83cc0159e03de5850eeb812ca9eda421e1"
+    },
+    "goal": {
+      "source": "../../skills/goal",
+      "sourceType": "local",
+      "computedHash": "4efbf128f2b6950aff3901a58f03cd50cd867c57791843a6a00563e8f8afdf60"
+    },
+    "image-creator": {
+      "source": "../../skills/image-creator",
+      "sourceType": "local",
+      "computedHash": "3ef0c1b6271144f479440263ee42d1a67965d07121b6c2b2a68521baf80b74ad"
+    },
+    "loop": {
+      "source": "../../skills/loop",
+      "sourceType": "local",
+      "computedHash": "d035ef2a1a8985e98f228220d1626a5521b7a608f08ede75e956cf01270d3ef6"
+    },
+    "messages": {
+      "source": "../../skills/messages",
+      "sourceType": "local",
+      "computedHash": "382b513875790010923860d342b66271c84c2d3133cfe6e50c315d73a1701a4b"
+    },
     "receiving-code-review": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -37,6 +72,16 @@
       "skillPath": "skills/requesting-code-review/SKILL.md",
       "computedHash": "004f340ae65811095d6a9bb0a759c87d0a8085c5e705dbb019b011626293d2e9"
     },
+    "scripts": {
+      "source": "../../skills/scripts",
+      "sourceType": "local",
+      "computedHash": "61ec9dab9d5c75a30f7f1b7ecaa4ef33ab2065a41c45b849019eb075d6903d56"
+    },
+    "status": {
+      "source": "../../skills/status",
+      "sourceType": "local",
+      "computedHash": "437187bede4b07301069ea76662126deb0b74b14cd74240a60ee3f8aafee6591"
+    },
     "subagent-driven-development": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -48,6 +93,26 @@
       "sourceType": "github",
       "skillPath": "skills/systematic-debugging/SKILL.md",
       "computedHash": "a2750dfbaed1690da73b120254892c4f926b4576cb82eb16fc877783941fe39b"
+    },
+    "tariboy-image-authoring": {
+      "source": "./skills/tariboy-image-authoring",
+      "sourceType": "local",
+      "computedHash": "159e0988fde91edf04b0b7ad1c586ebc4fd5c362e5b87344690e68c61325542f"
+    },
+    "tariboy-image-delivery": {
+      "source": "./skills/tariboy-image-delivery",
+      "sourceType": "local",
+      "computedHash": "6378414b55fa828c34ec505b074bc1517f2d380e4357160d2b0202d6be1d4df9"
+    },
+    "tariboy-image-evals": {
+      "source": "./skills/tariboy-image-evals",
+      "sourceType": "local",
+      "computedHash": "f772d05844c2a47bf023774b059ba979de3a6f5d6ec8e385240f59f5694a7f3b"
+    },
+    "tasks": {
+      "source": "../../skills/tasks",
+      "sourceType": "local",
+      "computedHash": "2baac9f03fc65e3c23504a6e78e22309566d35b309c96620dc83da136a672150"
     },
     "test-driven-development": {
       "source": "obra/superpowers",
@@ -72,6 +137,16 @@
       "sourceType": "github",
       "skillPath": "skills/verification-before-completion/SKILL.md",
       "computedHash": "b529822bdac4b197b180fe12225cff86b930b65910435103c10622df7f041651"
+    },
+    "whoami": {
+      "source": "../../skills/whoami",
+      "sourceType": "local",
+      "computedHash": "1233f523b6296292af951b76a2d947d09f47fb83f57bb61a7d192ae2c1aa24e4"
+    },
+    "workdir": {
+      "source": "../../skills/workdir",
+      "sourceType": "local",
+      "computedHash": "0a7594d6122814a9ed98b391ac2e8d943a9689985ceb32a2bd050f24b4fb6943"
     },
     "writing-plans": {
       "source": "obra/superpowers",
