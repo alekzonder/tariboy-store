@@ -79,6 +79,65 @@ YAML `name` and `description`; symlinks and special files are rejected.
 Runnable exports contain packaged skill bytes, not editable source backups.
 An immutable digest identifies exact bytes; ordinary build tags can move.
 
+## Instruction file standard
+
+Every image's `instructions.md` uses these six sections, with these names, in
+this order. A section that does not apply states `none` and one clause of why;
+never drop one, because a missing section reads exactly like a forgotten rule.
+
+```markdown
+# <Role name>
+Two to four lines: what this agent does, for whom, and what it is not.
+
+## Scope
+What each iteration starts from, the working directory it requires, and what
+this agent never does.
+
+## Skills
+| Decision or subject | Owning skill | When |
+
+## Flow
+| # | Trigger | Stage | REQUIRED skills | Done when |
+
+## Waits and recovery
+What may end an iteration with work still open, the wait object recorded for
+it, the event that resumes it, and how a later iteration recovers state.
+
+## Invariants
+Rules that hold in every stage, and their precedence over conflicting skill
+defaults.
+```
+
+`## Flow` is the process contract: one row per stage for a pipeline image, one
+row per input kind for a reactive image that has no fixed order.
+
+| Column | Contract |
+| --- | --- |
+| Trigger | Observable entry condition: a recorded answer, a delivered message kind, a monitor result. Not "after step 2" |
+| Stage | Short imperative name reused everywhere that stage is referenced |
+| REQUIRED skills | Every skill the stage must read; each also appears in `## Skills`. Mark conditional ones `when applicable` |
+| Done when | Observable artifact, state or command result another agent could check. Never "understood the sources" or "considered the options" |
+
+The table names the skills a stage needs; it never replaces them. State above
+the table that every REQUIRED skill of a row is read completely before acting in
+that row, so a reader cannot treat the row as the whole procedure. The table also
+ends at the last stage that changes task or repository state: finishing the
+iteration is not a row.
+
+Prose under the table carries only what a cell cannot: ordering exceptions,
+precedence between rules, exact command text.
+
+Keep the smallest representation that makes the process clear: the table for
+stages, a short list for alternatives, inline pseudocode or a diff where prose
+would be longer. Do not put a process diagram in an image prompt. It duplicates
+the table, the two drift apart, and every iteration of every agent pays for it.
+
+Do not restate the finish-iteration contract: `skills/loop/finish-iteration.md`
+is appended to every image prompt. Do not restate a packaged skill's body;
+name the skill and the trigger that makes it REQUIRED.
+
+Use `templates/instructions.md` in this skill directory as the starting point.
+
 ## Versions and validation
 
 ```bash

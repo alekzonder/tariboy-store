@@ -1,0 +1,10 @@
+[
+  {
+    "id": "S1",
+    "request": "Approved Native Task IMG-80 authorizes creating a new image `triage` in Store /tmp/store. The agent triages incoming bug reports: it takes a selected Native Task, reproduces the report in an isolated worktree, classifies severity, files child tasks for real defects, and delivers a summary comment to the task customer; it never fixes code itself. Packaged skills available to it: `using-superpowers`, `tasks`, `cli-text`, `systematic-debugging`, `using-git-worktrees`, `verification-before-completion`, `context`, `messages`, `loop`, `workdir`, `whoami`. Write its `instructions.md`."
+  },
+  {
+    "id": "S2",
+    "request": "Approved Native Task IMG-81 authorizes creating a new image `alerts` in Store /tmp/store. This agent has no linear pipeline: each iteration it reacts to whatever arrived. Three kinds of input exist — a monitoring `script.result` message, a direct question from another agent, and a customer comment on one of its Native Tasks. Each kind has a different handling path, and some paths end the iteration waiting. Packaged skills available: `using-superpowers`, `tasks`, `messages`, `scripts`, `cli-text`, `context`, `status`, `loop`, `workdir`, `whoami`. Write its `instructions.md`."
+  }
+]

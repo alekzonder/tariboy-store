@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-16",
+  "harness": "Claude Code fresh-context subagent per case (one sample per case)",
+  "model": "claude-sonnet-5",
+  "model_selection": "Codex gpt-5.6-terra is unavailable in this harness; per tariboy-image-evals the budget analogue was the lowest-cost model in this harness able to read a 29-skill catalog and compose multi-stage routing answers. Reasoning effort is not an exposed control here; sampling settings were identical for baseline and candidate.",
+  "limitations": "Read-only proposed-action simulations; no Native Task, daemon, repository or GitHub action was executed by an actor. One sample per case, so no robustness or statistical claim is made. Baseline and candidate differ only in the instructions/skill under test.",
+  "kind": "individual skill (tariboy-image-authoring) instruction-authoring cases S1 and S2",
+  "baseline_response": "improve-109-baseline.md",
+  "candidate_response": "improve-109-candidate.md",
+  "superseded_candidate_response": "improve-109-candidate-v1.md",
+  "baseline_skill_sha256": "3b3b2f7f5e77bd3942d26122c7100b8f3974c6d40c631b6ddc01d1759331b58d",
+  "candidate_skill_sha256": "3d067404a389affef0086727f15586802215c7e4687130f8b9feba21c0d0e3d6",
+  "template_sha256": "3be5cd2ffe5e41c0af3ee96e1f5d38e7cc764469a72204ebb2ddc9936f30f657",
+  "cases_sha256": "55a47f2352f27b7c2950028e6308193439adf32fae4fb703e01a88c270071b35",
+  "rubric_sha256": "ae2ca9ba09fdedd10848eab9fc6a11125d102720ba42ed34db51b4d6a5b036b2",
+  "verdicts": {
+    "S1": [
+      {
+        "criterion": "Six standard sections, standard names, standard order",
+        "baseline": "fail",
+        "candidate_v1": "pass",
+        "candidate": "pass",
+        "note": "Baseline emitted `# Triage`, `## Process`, `## You never fix code`."
+      },
+      {
+        "criterion": "Flow is a stage contract table with entry trigger and observable done-when per stage",
+        "baseline": "fail",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "REQUIRED skills per stage, all present in the Skills section",
+        "baseline": "fail",
+        "candidate_v1": "pass",
+        "candidate": "pass",
+        "note": "Baseline named skills inline in prose and had no Skills section."
+      },
+      {
+        "criterion": "Done-when conditions observable rather than internal",
+        "baseline": "fail",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Does not restate the finish-iteration contract",
+        "baseline": "pass",
+        "candidate_v1": "fail",
+        "candidate": "pass",
+        "note": "candidate_v1 added a `Finish iteration` Flow row. The standard now states the table ends at the last stage that changes task or repository state."
+      }
+    ],
+    "S2": [
+      {
+        "criterion": "Six standard sections, standard names, standard order",
+        "baseline": "fail",
+        "candidate": "pass",
+        "note": "Baseline emitted numbered sections 1-5 with no Scope, Skills or Invariants."
+      },
+      {
+        "criterion": "One Flow row per input kind with its own trigger and observable done-when",
+        "baseline": "fail",
+        "candidate": "pass",
+        "note": "Baseline had a signal-recognition table but no done-when and kept the handling paths as prose sections."
+      },
+      {
+        "criterion": "REQUIRED skills per row, all present in the Skills section",
+        "baseline": "fail",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Waits, wait objects and resume events documented in Waits and recovery",
+        "baseline": "fail",
+        "candidate": "pass",
+        "note": "Baseline documented waits inside its own iteration-ending section and named no resume event."
+      },
+      {
+        "criterion": "Does not restate the finish-iteration contract",
+        "baseline": "fail",
+        "candidate": "pass",
+        "note": "Baseline section 5 'Ending the iteration' restated the loop contract."
+      }
+    ]
+  },
+  "summary": "S1 baseline 1/5, final candidate 5/5. S2 baseline 0/5, candidate 5/5. Both baselines produced structurally incompatible documents, which is the failure this standard addresses."
+}

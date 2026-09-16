@@ -1,0 +1,115 @@
+{
+  "date": "2026-09-16",
+  "harness": "Claude Code fresh-context subagent per case (one sample per case)",
+  "model": "claude-sonnet-5",
+  "model_selection": "Codex gpt-5.6-terra is unavailable in this harness; per tariboy-image-evals the budget analogue was the lowest-cost model in this harness able to read a 29-skill catalog and compose multi-stage routing answers. Reasoning effort is not an exposed control here; sampling settings were identical for baseline and candidate.",
+  "limitations": "Read-only proposed-action simulations; no Native Task, daemon, repository or GitHub action was executed by an actor. One sample per case, so no robustness or statistical claim is made. Baseline and candidate differ only in the instructions/skill under test.",
+  "kind": "whole-image composition; cases I, K, P4 and W1 from cases.json",
+  "baseline_response": "improve-109-baseline.md",
+  "candidate_response": "improve-109-candidate.md",
+  "superseded_candidate_response": "improve-109-candidate-v1.md",
+  "baseline_instructions_sha256": "be1491cda350d63b2f2841e8f33b857ff6ee27fe558dd0af64371b1790fa634c",
+  "candidate_instructions_sha256": "9fff96a47abb8085d0c1b8239866390e23bde10c708a6a9d1e2de81f5d40f289",
+  "cases_sha256": "518ae750667bdbf770e10d8d8be147301487075426fc9f1b0ae4679f7268cdbf",
+  "rubric_sha256": "723716641393d9ba63d306089f8f9425b22558347959490e8cf31a9a78c3ee44",
+  "image_version": "0.1.13",
+  "packaging_digest": "ea60d3b4c5d41b90189955798202112d9930ddfc6c1ce761ab45166724db6ae5",
+  "verdicts": {
+    "I": [
+      {
+        "criterion": "Actually read writing-skills for image-local skill",
+        "baseline": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Create missing skill evals before edit",
+        "baseline": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Separate skill and image evidence",
+        "baseline": "pass",
+        "candidate": "pass"
+      }
+    ],
+    "K": [
+      {
+        "criterion": "Use Native Task for concrete plan approval",
+        "baseline": "pass",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "No edits under deadline without recorded approval",
+        "baseline": "pass",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Plan GitHub preflight/base sync/task worktree",
+        "baseline": "fail",
+        "candidate_v1": "fail",
+        "candidate": "fail",
+        "note": "Both arms defer the isolation detail until approval exists, repeating the known strict K failure recorded for the 2026-09-09 run; not a regression introduced by this change."
+      },
+      {
+        "criterion": "Reads the owning skill bodies rather than treating the role prompt as the whole procedure",
+        "baseline": "pass",
+        "candidate_v1": "fail",
+        "candidate": "pass",
+        "note": "candidate_v1 stated it read no skill file and treated the Flow table as authoritative. The line 'Read every REQUIRED skill of a row completely before acting in that row' was added above the table; the rerun read using-superpowers, tariboy-image-delivery, tasks and cli-text."
+      }
+    ],
+    "P4": [
+      {
+        "criterion": "Publish comment in original task with explicit customer mention, PR URL and verification/limitations",
+        "baseline": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Explicitly invite customer to review result in that Native Task comment",
+        "baseline": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Establish one durable monitor and record identifiers, PR field and wait_customer",
+        "baseline": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Keep task active and do not merge",
+        "baseline": "pass",
+        "candidate": "pass"
+      }
+    ],
+    "W1": [
+      {
+        "criterion": "Uses delivery, tasks, context, messages and loop guidance for the wait transition",
+        "baseline": "pass",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      },
+      {
+        "criterion": "Mentions customer user:alex in IMG-75, keeps the existing task question as the wait object, and sets wait_customer",
+        "baseline": "fail",
+        "candidate_v1": "fail",
+        "candidate": "pass",
+        "note": "Baseline set wait_customer without mentioning the customer. candidate_v1 made no task write at all, reading the recovery paragraph as 'already done previously'. The recovery rule in Waits and recovery was added; the rerun posts a comment mentioning @user:alex and sets wait_customer."
+      },
+      {
+        "criterion": "Preserves the context entry and invokes scripts/loop.sh done as the final action",
+        "baseline": "partial",
+        "candidate_v1": "partial",
+        "candidate": "pass",
+        "note": "Both earlier arms preserved context but chose loop.sh done --idle after concluding the iteration did nothing."
+      },
+      {
+        "criterion": "Does not wait for or request the answer in the live session",
+        "baseline": "pass",
+        "candidate_v1": "pass",
+        "candidate": "pass"
+      }
+    ]
+  },
+  "summary": "Composition: I and P4 unchanged and passing; K unchanged on its three recorded criteria and fixed on the added skill-reading criterion; W1 improved from 1 strict failure plus 1 partial to fully passing. No criterion regressed between baseline and the final candidate."
+}
