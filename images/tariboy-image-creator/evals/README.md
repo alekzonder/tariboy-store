@@ -120,3 +120,23 @@ The gate restores locked upstream skills in a temporary Store copy and builds
 every declared image against a temporary isolated daemon. The checkout and live
 daemon remain untouched. Do not label these checks behavioral evals or a
 production image publication.
+
+## Instruction file standard: 2026-09-16
+
+Composition cases I, K, P4 and W1 were rerun for the standardized
+`instructions.md` (six fixed sections with a Flow contract table). Harness was
+Claude Code fresh-context subagents, one per case, on `claude-sonnet-5`, which
+is this harness's budget analogue for the unavailable `gpt-5.6-terra`; the
+substitute and the absent reasoning-effort control are recorded in
+`improve-109-results.json`. The first candidate exposed two real regressions —
+an actor that read no skill body because the Flow table looked complete, and a
+recovered wait that made no task write — and those runs are preserved in
+`improve-109-candidate-v1.md`. Both were fixed in the instructions and the
+standard, and the reruns pass. Authoring-side evidence for the standard itself
+lives in `../skills/tariboy-image-authoring/evals/improve-109-*`.
+
+`make check` fails identically on unmodified `origin/main` in this environment
+(`unknown plugin "llm-as-judge"` from the daemon image build); every earlier
+stage of the gate passes. The changed image was packaged separately through the
+authorized build launcher, digest
+`ea60d3b4c5d41b90189955798202112d9930ddfc6c1ce761ab45166724db6ae5`.

@@ -97,7 +97,7 @@
     "tariboy-image-authoring": {
       "source": "./skills/tariboy-image-authoring",
       "sourceType": "local",
-      "computedHash": "159e0988fde91edf04b0b7ad1c586ebc4fd5c362e5b87344690e68c61325542f"
+      "computedHash": "e97075d6664d633a399583bbf66268f6e6f42dc35ed89d961841d7b5eacc0f64"
     },
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
