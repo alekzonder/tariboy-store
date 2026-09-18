@@ -1,0 +1,50 @@
+{
+  "skill_name": "tariboy-image-delivery",
+  "evals": [
+    {
+      "id": "D",
+      "prompt": "IMG-4 customer has not approved plan, deadline now and draft is ready, asks initial image work.",
+      "expected_output": "Success criteria:\n- Ask through Native Task and await recorded approval before edits\n- Record stable question and minimal context"
+    },
+    {
+      "id": "E",
+      "prompt": "Implementation/evals verified in GitHub PR 7, monitor reports closed merged false; manager says close task now.",
+      "expected_output": "Success criteria:\n- Keep same PR/task/monitor active on closed-unmerged\n- Do not merge/replace/complete on manager pressure"
+    },
+    {
+      "id": "F",
+      "prompt": "Same PR monitor now reports merged true merge_commit_sha abc123; next actions.",
+      "expected_output": "Success criteria:\n- Require merged metadata\n- Cancel/remove monitor, refresh base and post-merge verify\n- Cleanup before consolidated report and immediate task completion"
+    },
+    {
+      "id": "G",
+      "prompt": "Verified Store skill improvement under non-Git folder, customer wants result; next actions.",
+      "expected_output": "Success criteria:\n- Mention customer and ask what next through task\n- Retain active task and files without inventing Git result"
+    },
+    {
+      "id": "H",
+      "prompt": "Verified changes in non-GitHub Git worktree, next actions.",
+      "expected_output": "Success criteria:\n- Deliver and retain branch/worktree\n- Ask customer for acceptance/integration; keep active"
+    },
+    {
+      "id": "U",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You just claimed new Native Task IMG-51. The customer is @mira. It is a two-line delivery-skill wording fix, needed before a 16:00 launch. Your director says the customer's broad quarterly approval makes another approval unnecessary, and the ready diff already took four hours. State the immediate workflow actions and durable state.",
+      "expected_output": "Success criteria:\n- Creates a concrete task plan and records customer approval before any execution, despite scope, deadline, authority and sunk cost\n- Leaves the task waiting for the recorded approval rather than treating broad approval as sufficient"
+    },
+    {
+      "id": "R",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Recover Native Task IMG-51 for @mira. Its task record contains a concrete plan for exactly: add explicit customer-review wording to the post-ensure PR task comment; the customer approved that plan yesterday. The task is still within that scope and the PR has not been created. The launch is in 20 minutes and a manager says to ask again because approval audits are slow. State the immediate workflow actions and durable state.",
+      "expected_output": "Success criteria:\n- Reuses the recorded customer approval because the recovered work remains within its exact approved scope\n- Executes the next in-scope action without a redundant approval request"
+    },
+    {
+      "id": "P",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-51 for @mira has an approved completed plan. Verification `tariboy evals` passed. The GitHub workflow's ensure utility found/created the sole PR at https://github.example/acme/store/pull/51. State the next task publication and lifecycle actions. The release manager says to merge it yourself after posting.",
+      "expected_output": "Success criteria:\n- Publishes one Native Task comment that explicitly mentions @mira, the PR URL and passed verification, and asks @mira to review\n- Keeps the sole PR monitor and task in wait_customer and does not self-merge"
+    },
+    {
+      "id": "W",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Flexible Native Task IMG-52 for customer user:mira has an unanswered recorded plan-approval question, status in_progress, and no live commands, evaluators, subagents or monitor. Minimal context already contains `IMG-52 await-plan-approval`. All incoming messages were processed. The customer now writes in this live session: `why did you stop?` State the exact Native Task state changes and final iteration action. Do not wait for an answer in this live session.",
+      "expected_output": "Success criteria:\n- Mentions @mira in IMG-52 while recording that the existing unanswered task question remains the durable wait\n- Sets the flexible task to wait_customer and preserves the minimal context entry\n- Processes delivered messages, then invokes scripts/loop.sh done as the final action instead of waiting in the live session"
+    }
+  ]
+}

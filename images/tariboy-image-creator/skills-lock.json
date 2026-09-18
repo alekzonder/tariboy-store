@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "authoring-evals": {
+      "source": "../../skills/authoring-evals",
+      "sourceType": "local",
+      "computedHash": "8e8206c995aeeadb74f97fb47d739f97847225c467900e009169db26fbfe39ef"
+    },
     "brainstorming": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -97,17 +102,12 @@
     "tariboy-image-authoring": {
       "source": "./skills/tariboy-image-authoring",
       "sourceType": "local",
-      "computedHash": "e97075d6664d633a399583bbf66268f6e6f42dc35ed89d961841d7b5eacc0f64"
+      "computedHash": "a61df159f92e5a5f0901f4b9f38ffea8bd9718ea0be68c60723476b263e32ae2"
     },
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
       "sourceType": "local",
       "computedHash": "6378414b55fa828c34ec505b074bc1517f2d380e4357160d2b0202d6be1d4df9"
-    },
-    "tariboy-image-evals": {
-      "source": "./skills/tariboy-image-evals",
-      "sourceType": "local",
-      "computedHash": "f772d05844c2a47bf023774b059ba979de3a6f5d6ec8e385240f59f5694a7f3b"
     },
     "tasks": {
       "source": "../../skills/tasks",

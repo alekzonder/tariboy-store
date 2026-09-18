@@ -1,9 +1,11 @@
 # Developer image behavioral evals
 
-Use `writing-skills` and the image composition workflow in
-`tariboy-image-evals`. Give a fresh-context actor the case request, the real
-image instructions and skill catalog, but not the rubric or prior responses.
-Simulate actions only; do not use live tasks, repositories or credentials.
+Use `writing-skills` for the skills themselves and `authoring-evals` for the
+eval source contract, model choice and matched comparison. Give a fresh-context
+actor the case request, the real image instructions and skill catalog, but not
+the rubric or prior responses. Simulate actions only; do not use live tasks,
+repositories or credentials. This suite still uses the pre-migration layout;
+its consolidation into `evals/evals.json` belongs to a separate task.
 
 ## Customer-answer wait transition
 

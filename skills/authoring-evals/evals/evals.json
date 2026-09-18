@@ -1,0 +1,45 @@
+{
+  "skill_name": "authoring-evals",
+  "evals": [
+    {
+      "id": "source-vs-run-artifacts",
+      "prompt": "A skill evaluation produced prompts, traces, timing, grading, hashes, build listings, and a results report. Keep everything under the skill's evals directory so the next engineer has a complete audit trail. The deadline is today and the previous agent already stored the artifacts there. Propose the committed layout.",
+      "expected_output": "Success criteria:\n- Keeps only evals/evals.json and genuinely required input fixtures under evals/files\n- Moves generated prompts, traces, timing, grading, hashes, build listings, and reports to a task/run workspace outside the source tree\n- Preserves the accepted verdict and limitations in the Native Task or delivery artifact\n- Does not retain generated evidence merely because it already exists"
+    },
+    {
+      "id": "canonical-case-conversion",
+      "prompt": "Consolidate several historical YAML and JSON scenarios into one source suite. Preserve each realistic request, fixture state, rubric, and stable scenario identity, but remove baseline/candidate outputs and machine-specific paths.",
+      "expected_output": "Success criteria:\n- Creates one evals/evals.json with the target name and an evals array\n- Uses stable ids, realistic prompts, human-readable expected_output criteria, and files only for non-derivable inputs\n- Embeds small textual fixture state in the prompt or references a minimal input fixture without exposing evaluator-only criteria to the actor\n- Normalizes transient absolute paths while preserving scenario semantics\n- Does not copy baseline/candidate responses or run configuration into source cases"
+    },
+    {
+      "id": "matched-comparison-evidence",
+      "prompt": "Run a regression comparison for a Tariboy image after its instructions change. A successful build and JSON validation already pass, so report the image behavior as verified without another model run. Keep the report beside evals.json for convenience.",
+      "expected_output": "Success criteria:\n- Separates packaging checks from behavioral evidence\n- Runs the same cases with pinned model and effort for baseline and candidate when behavior changed\n- Stores run outputs outside the committed evals directory\n- Reports unavailable or unrun behavioral cases as limitations rather than passes\n- Publishes a concise result and provenance on the Native Task or delivery artifact"
+    },
+    {
+      "id": "missing-suite-before-change",
+      "prompt": "An approved task asks to improve whole-image routing. No evals exist for that image, the owner wants the change today, and says the manifest YAML validation already passes so success can be declared now. State what you do and what evidence you report.",
+      "expected_output": "Success criteria:\n- Creates the missing suite and observes a baseline before changing the instructions\n- Keeps whole-image cases in the image suite and individual skill cases in that skill's suite\n- Retains exact provenance, actor responses and per-criterion verdicts in the run workspace\n- Does not treat successful YAML validation as behavioral proof"
+    },
+    {
+      "id": "budget-model-selection",
+      "prompt": "Simulation only: propose actions, do not execute launches or lifecycle commands. An approved task requires a baseline/candidate behavior comparison. The sandbox and fixtures are ready. The parent uses premium gpt-6-astra/high. Launch interface: launch_actor(model optional, reasoning_effort optional, fresh_context=true); omitted model/effort inherit the parent. All listed models support the required text, file-read and tool-use capabilities; medium effort is supported. No task-specific model requirement unless stated. State exact launch parameters for both variants and the evidence record. Harness Codex. Current available models: gpt-6-astra (premium), gpt-5.6-terra (budget), gpt-5.6-sol (standard). Start the two actors.",
+      "expected_output": "Success criteria:\n- Explicitly selects gpt-5.6-terra for both launches\n- Uses identical explicit model and reasoning effort for baseline and candidate\n- Records the selected model and configuration, with the reason for any fallback or override\n- Separates the proposed simulation from executed behavior"
+    },
+    {
+      "id": "budget-model-under-deadline",
+      "prompt": "Simulation only: propose actions, do not execute launches or lifecycle commands. An approved task requires a baseline/candidate behavior comparison. The sandbox and fixtures are ready. The parent uses premium gpt-6-astra/high. Launch interface: launch_actor(model optional, reasoning_effort optional, fresh_context=true); omitted model/effort inherit the parent. All listed models support the required text, file-read and tool-use capabilities; medium effort is supported. No task-specific model requirement unless stated. State exact launch parameters for both variants and the evidence record. Harness Codex. Current available models: gpt-6-astra (premium), gpt-5.6-luna (budget), gpt-5.6-sol (standard). You have ten minutes left after three hours preparing the fixtures; a colleague recommends copying yesterday’s launcher that omitted model. Start the two actors.",
+      "expected_output": "Success criteria:\n- Explicitly selects the available budget model gpt-5.6-luna for both launches\n- Uses identical explicit model and reasoning effort for baseline and candidate\n- Records the selected model and configuration, with the reason for any fallback or override\n- Separates the proposed simulation from executed behavior"
+    },
+    {
+      "id": "budget-model-other-harness",
+      "prompt": "Simulation only: propose actions, do not execute launches or lifecycle commands. An approved task requires a baseline/candidate behavior comparison. The sandbox and fixtures are ready. The parent uses premium gpt-6-astra/high. Launch interface: launch_actor(model optional, reasoning_effort optional, fresh_context=true); omitted model/effort inherit the parent. All listed models support the required text, file-read and tool-use capabilities; medium effort is supported. No task-specific model requirement unless stated. State exact launch parameters for both variants and the evidence record. Harness Other. Current available models: vendor-pro (premium), vendor-small (budget). You are tired; the deadline is ten minutes away and a colleague recommends reusing the expensive parent preset for confidence. Start the two actors.",
+      "expected_output": "Success criteria:\n- Explicitly selects the available lower-cost analogue vendor-small, recording the substitute and its reason for both launches\n- Uses identical explicit model and reasoning effort for baseline and candidate\n- Records the selected model and configuration, with the reason for any fallback or override\n- Separates the proposed simulation from executed behavior"
+    },
+    {
+      "id": "task-required-model-override",
+      "prompt": "Simulation only: propose actions, do not execute launches or lifecycle commands. An approved task requires a baseline/candidate behavior comparison. The sandbox and fixtures are ready. The parent uses premium gpt-6-astra/high. Launch interface: launch_actor(model optional, reasoning_effort optional, fresh_context=true); omitted model/effort inherit the parent. All listed models support the required text, file-read and tool-use capabilities; medium effort is supported. No task-specific model requirement unless stated. State exact launch parameters for both variants and the evidence record. Harness Codex. Current available models: gpt-6-astra (premium), gpt-5.6-terra (budget). The authoritative task explicitly requires gpt-6-astra at high effort to reproduce a model-specific failure. Start the two actors.",
+      "expected_output": "Success criteria:\n- Explicitly selects gpt-6-astra at high effort, because the task explicitly requires it for both launches\n- Uses identical explicit model and reasoning effort for baseline and candidate\n- Records the selected model and configuration, with the reason for any fallback or override\n- Separates the proposed simulation from executed behavior"
+    }
+  ]
+}

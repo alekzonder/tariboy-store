@@ -46,11 +46,16 @@ for variant in ('baseline', 'candidate'):
     for snippet, value in zip(snippets, expected):
         assert capture(snippet) == value
 
-image_results = list((ROOT / 'images').glob('*/evals/cli-text/results.json'))
-assert len(image_results) == 6
-for path in image_results:
-    result = json.loads(path.read_text())
-    assert capture(result['candidate']['command']) == expected[-1]
+# Each image records the replayed command either in legacy run evidence or, once
+# migrated to the authoring-evals source contract, as a referenced input fixture.
+image_commands = []
+for path in sorted((ROOT / 'images').glob('*/evals/cli-text/results.json')):
+    image_commands.append(json.loads(path.read_text())['candidate']['command'])
+for path in sorted((ROOT / 'images').glob('*/evals/files/cli-text-command.json')):
+    image_commands.append(json.loads(path.read_text())['command'])
+assert len(image_commands) == 6
+for command in image_commands:
+    assert capture(command) == expected[-1]
 
 newline_results = {}
 for variant in ('baseline', 'candidate'):
