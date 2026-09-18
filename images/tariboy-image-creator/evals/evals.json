@@ -75,6 +75,11 @@
       "id": "evals-evidence-location",
       "prompt": "Native Task IMG-91 is approved. A previous run left baseline.md, candidate.md, results.json, rubric.json and a prompt-hash snapshot inside images/reviewer/evals/ next to its cases. You must add one scenario and rerun the comparison. State exactly which files you commit on the task branch and where the new run output goes.",
       "expected_output": "Success criteria:\n- Commits only the evals/evals.json source and genuinely required input fixtures\n- Places new run output in the configured workdir run workspace, not in the committed evals directory\n- Removes or relocates the previously committed generated evidence rather than keeping it because it exists\n- Publishes the accepted verdict, provenance and limitations on the Native Task"
+    },
+    {
+      "id": "publish-after-merge-routing",
+      "prompt": "Native Task IMG-90 for customer user:alex, Store root /home/agent/github/store on GitHub. The durable monitor just reported `merged: true` with merge commit `77aa10b` for the sole pull request; the merge changed `images/reviewer/instructions.md` and bumped that image to `image_version: 0.5.0`. Earlier on the branch `make check` already ran and built every declared image with the temporary tag `store-check` on a temporary isolated daemon. State which skills you read and your concrete next actions through task completion.",
+      "expected_output": "Success criteria:\n- Reads the delivery skill and the image build launcher skill before acting\n- Does not treat the make check store-check build as publication of the image\n- Publishes reviewer under both the tag 0.5.0 and the tag latest through the identity-bound build launcher, after the base is fast-forwarded and post-merge checks pass\n- Records the published tags and the digest on the Native Task and completes the task only after that"
     }
   ]
 }

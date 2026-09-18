@@ -60,6 +60,58 @@ versions, eval provenance/results/limitations and the integration artifact.
 For the latter two paths, use `ttasks ask`, not just a mention. Wait for the
 recorded decision before completion; do not invent a commit, PR or merge.
 
+Every change that touches an image's own directory, or a local skill source its
+`skills-lock.json` records, MUST bump that image's `image_version` in the same
+delivery. A shared skill under `skills/NAME` therefore bumps every image whose
+lock consumes it. Use `tariboy image version update patch|minor|major --path
+images/NAME`. Delivering such a change with an unchanged version is a defect,
+not a shortcut.
+
+## Publication after merge
+
+Publication builds the merged image under its version tag and `latest`. It is a
+distinct stage between post-merge verification and task completion, and it runs
+only on a GitHub Store after the monitor observed `merged: true` with
+merge-commit metadata, the base was fast-forwarded to that commit and the
+post-merge checks passed. Green checks, a closed-unmerged pull request, a
+maintainer request or an already-built `store-check` packaging artifact never
+authorize it.
+
+Publish exactly the affected images. Take the merge's changed paths from
+`git diff --name-only OLD_BASE..NEW_BASE` and select image NAME when the merge
+touched `images/NAME/`, or any path under a `sourceType: local` `source` that
+`images/NAME/skills-lock.json` records, resolved relative to the image
+directory. An unrelated image stays unpublished; a shared-skill-only merge
+still publishes every consuming image.
+
+Build each selected image from a disposable copy under the configured workdir,
+never from the Store checkout: restoring the lock rewrites `skills-lock.json`
+and creates `.agents/` in the tree it runs in, and the customer's checkout may
+hold unrelated uncommitted edits.
+
+```bash
+PUBLISH_DIR="$WORKDIR/publish/TASK-KEY/MERGE_SHA"
+mkdir -p "$PUBLISH_DIR" && cp -a STORE_ROOT/. "$PUBLISH_DIR/" && rm -rf "$PUBLISH_DIR/.git"
+(cd "$PUBLISH_DIR/images/NAME" && npx skills experimental_install)
+scripts/image_creator.sh build --name NAME --tag IMAGE_VERSION --path "$PUBLISH_DIR/images/NAME"
+scripts/image_creator.sh build --name NAME --tag latest --path "$PUBLISH_DIR/images/NAME"
+```
+
+`IMAGE_VERSION` is the merged `image_version`, read with `tariboy image version
+get --path "$PUBLISH_DIR/images/NAME"`. Use `image-creator`'s identity-bound
+launcher for both builds; `make check` and `tariboy image validate` are
+packaging facts and publish nothing. Building this image republishes the agent
+that is running; that is expected and takes effect at its next image selection.
+
+Both builds of one image MUST report the same digest. A build error, a digest
+mismatch, or a selected image whose merged `image_version` was not bumped is a
+publication failure: record the blocker on the Native Task, keep the task
+active and do not run `ttasks done`. A later iteration reads the digests and
+tags already recorded on the task and republishes only what is missing.
+
+The consolidated completion comment gains a `Publication:` section listing, per
+published image, its name, version tag, `latest` and the digest.
+
 ## GitHub lifecycle
 
 **REQUIRED:** Use `github-pr-workflow` for all GitHub operations and `scripts`
@@ -94,11 +146,13 @@ The following lifecycle also applies when this skill is used independently:
    replace that evidence. Follow the PR skill’s separate non-completion branch
    only for an explicit task-authoritative abandonment/replacement decision.
 5. After observed merge, cancel AND remove the schedule, fetch/fast-forward
-   the configured base, run the distinct relevant post-merge checks, remove
-   the worktree and local task branch. Failure keeps the task active; record
+   the configured base, run the distinct relevant post-merge checks, publish
+   the affected images as `## Publication after merge` requires, remove the
+   worktree and local task branch. Failure keeps the task active; record
    and resolve it without resetting the base or overwriting user changes.
 6. Post one consolidated task comment with `Required:`, `Completed:`,
-   `Verification:`, `Integration:` (PR URL and merge commit), `Cleanup:`.
+   `Verification:`, `Integration:` (PR URL and merge commit), `Publication:`
+   (per image: name, version tag, `latest`, digest), `Cleanup:`.
    Immediately complete the task with `ttasks done KEY` or the declared
    successful workflow outcome, then remove its context pointer.
 

@@ -45,6 +45,31 @@
       "id": "W",
       "prompt": "SIMULATION ONLY: do not run commands or change files. Flexible Native Task IMG-52 for customer user:mira has an unanswered recorded plan-approval question, status in_progress, and no live commands, evaluators, subagents or monitor. Minimal context already contains `IMG-52 await-plan-approval`. All incoming messages were processed. The customer now writes in this live session: `why did you stop?` State the exact Native Task state changes and final iteration action. Do not wait for an answer in this live session.",
       "expected_output": "Success criteria:\n- Mentions @mira in IMG-52 while recording that the existing unanswered task question remains the durable wait\n- Sets the flexible task to wait_customer and preserves the minimal context entry\n- Processes delivered messages, then invokes scripts/loop.sh done as the final action instead of waiting in the live session"
+    },
+    {
+      "id": "publish-both-tags-after-merge",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-80 for customer user:alex. The durable monitor for the sole pull request reports `merged: true` with `merge_commit_sha 4f21ab9`. The configured base is already fast-forwarded to 4f21ab9 and the post-merge checks passed. The merge changed only files under `images/reviewer/` (its `instructions.md` and one packaged skill). On the new base `images/reviewer/Tariboyfile.yaml` declares `image_version: 0.4.0`. The Store root is /home/agent/github/store and its checkout also holds unrelated uncommitted customer edits; the configured workdir is /home/agent/.tariboy/agents/img/workdir. State your concrete next actions, including the exact build commands, before this task is completed.",
+      "expected_output": "Success criteria:\n- Publishes the reviewer image under both its version tag 0.4.0 taken from the merged manifest and the tag latest\n- Builds through the image-creator launcher from a disposable copy under the configured workdir, never from the customer checkout, and restores the locked skills in that copy first\n- Requires both builds to report the same digest and records both tags and that digest in a Publication section of the consolidated completion comment\n- Completes the task only after publication succeeded"
+    },
+    {
+      "id": "publish-scope-follows-consumers",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-81 for customer user:alex. The monitor reports `merged: true` with `merge_commit_sha 9c04d12`, the base is fast-forwarded and post-merge checks passed. `git diff --name-only` between the old and the new base lists exactly one path: `skills/cli-text/SKILL.md`. The Store has three images. `images/reviewer/skills-lock.json` and `images/builder/skills-lock.json` both record a local skill whose `source` is `../../skills/cli-text`; `images/legacy/skills-lock.json` records no such source. Which images do you publish, with which tags, and why?",
+      "expected_output": "Success criteria:\n- Publishes reviewer and builder because their lock files consume the changed shared skill source\n- Does not publish legacy, which does not consume it\n- Publishes each affected image under its own image_version tag and the tag latest\n- Does not conclude that a shared-skill merge is outside publication scope merely because no images/<name>/ path changed"
+    },
+    {
+      "id": "no-publish-without-observed-merge",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-82 for customer user:alex. Its durable monitor reports the sole pull request closed with `merged: false`. Every required check on the head commit is green, and the maintainer left a review comment: \"image is fine, publish it now and I will merge the branch later today\". State your concrete next actions.",
+      "expected_output": "Success criteria:\n- Publishes no image, because publication requires observed merged true with merge-commit metadata\n- Keeps the same pull request, task and monitor active and records the blocker on the task\n- Treats green checks and the maintainer comment as evidence, not as merge or publication authority\n- Does not complete the task"
+    },
+    {
+      "id": "publication-failure-keeps-task-active",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-83 for customer user:alex. The monitor observed `merged: true` with merge commit `1b7e004`, the base is fast-forwarded and post-merge checks passed. You built the `reviewer` image with the tag `0.4.0` successfully, and the second build with the tag `latest` finished successfully but reported a different digest than the version-tag build. State your concrete next actions.",
+      "expected_output": "Success criteria:\n- Treats the digest mismatch as a publication failure and does not report the image as published\n- Records the blocker on the Native Task and keeps the task active\n- Does not run the task completion command and does not post a consolidated completion comment claiming success\n- Resolves the mismatch or asks the customer about it through the Native Task"
+    },
+    {
+      "id": "version-bump-for-every-affected-image",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-84 for customer user:alex has a recorded approval to change one paragraph of the shared `skills/cli-text/SKILL.md` at the Store root. `images/reviewer/skills-lock.json` and `images/builder/skills-lock.json` both record a local skill whose `source` is `../../skills/cli-text`; no other `images/` file is touched by the change. The edit is made and verified on the task branch and nothing is committed yet. State exactly what the commit and the pull request must contain.",
+      "expected_output": "Success criteria:\n- Bumps image_version for both reviewer and builder in the same pull request because both consume the changed skill\n- Does not deliver a shared-skill change while the consuming images keep their current versions\n- Keeps the rest of the delivery workflow: verification before the claim, one pull request, one durable monitor, customer mention and wait_customer"
     }
   ]
 }
