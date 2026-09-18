@@ -30,6 +30,26 @@
         "Does not invent an unsupported delete command.",
         "Identifies scripts/schedule.sh cancel sched-17 as the available removal action."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Every 10 minutes, run our local ./scripts/sync-index.sh in this repository and let me inspect the output of each run afterwards. Set that up now.",
+      "expected_output": "Chooses the scripts skill for a recurring local command and does not create an agent schedule.",
+      "files": [],
+      "expectations": [
+        "Routes the request to the scripts skill because the recurring work is a local command with run history.",
+        "Does not use scripts/schedule.sh for it, and explains that agent schedules run no local command."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Assume the current time is 2026-09-07T09:00:00Z. At 06:00 on the first day of every month, wake me up to review the budget. There is no local command to run. Somebody said durable scripts can do this, so use them.",
+      "expected_output": "Keeps the request in the schedule skill: a cron wake-up with no local command cannot be expressed as a durable script.",
+      "files": [],
+      "expectations": [
+        "Uses scripts/schedule.sh add with kind cron and a monthly 06:00 expression.",
+        "States that durable scripts support only a fixed interval and require a command, so they cannot express this request."
+      ]
     }
   ]
 }
