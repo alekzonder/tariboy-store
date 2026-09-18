@@ -6,10 +6,11 @@ description: Use when creating or improving Tariboy image sources, understanding
 # Tariboy Image Authoring
 
 An image packages capabilities, Agent Skills and an ordered prompt; it is not
-an OS/container image. **REQUIRED:** Use `writing-skills` whenever creating,
-improving or evaluating an image-local or Store skill. An independent consumer
-of this skill must also provide `writing-skills`; do not substitute a new
-skill-writing method. Use `tariboy-image-evals` for whole-image behavior.
+an OS/container image. **REQUIRED:** Use `writing-skills` whenever creating or
+improving an image-local or Store skill, and `authoring-evals` whenever creating,
+revising, consolidating or running evals for a skill or a whole image. An
+independent consumer of this skill must also provide both; do not substitute a
+new skill-writing or eval method.
 
 ## Sources and composition
 
