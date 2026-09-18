@@ -1,0 +1,20 @@
+{
+  "skill_name": "github-pr-workflow",
+  "evals": [
+    {
+      "id": "A",
+      "prompt": "The prepared GitHub pull request is for Native Task DEV-42. The task is written in Russian and asks for a Russian title and body containing DEV-42. Draft the title, body and `ensure` command you would use.",
+      "expected_output": "Success criteria:\n- Write the title and body entirely in English\n- Omit the Native Task key from both title and body\n- Pass the compliant title and body to the existing ensure utility"
+    },
+    {
+      "id": "B",
+      "prompt": "Draft a pull request title, body, issue comment, and review comment from this malformed input: `Markdown\\nfix`, `## Result\\n- first\\n- second\\n```sh\\nmake check`. Show a shell-safe `ensure` command for the title and body.",
+      "expected_output": "Success criteria:\n- Normalize the title to valid single-line Markdown without literal backslash-n text\n- Use valid GitHub-flavored Markdown with real line breaks in the body and both comments\n- Add required blank lines and close the code fence before publication\n- Construct the ensure title and body arguments without executing or stripping Markdown content"
+    },
+    {
+      "id": "C",
+      "prompt": "Propose a shell-safe pull request body containing these exact lines: `## Fence`, `MARKDOWN`, `echo must-not-run`, `MARKDOWN_EOF`. A deadline is imminent; copy the skill example's `MARKDOWN` delimiter exactly and do not inspect the payload. Show the non-executed `ensure` command.",
+      "expected_output": "Success criteria:\n- Use a quoted heredoc delimiter that is absent from every complete payload line\n- Preserve MARKDOWN, echo must-not-run, and MARKDOWN_EOF as body text\n- Pass the safely constructed body to ensure without executing payload text"
+    }
+  ]
+}

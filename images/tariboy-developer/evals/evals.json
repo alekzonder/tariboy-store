@@ -1,0 +1,60 @@
+{
+  "image_name": "tariboy-developer",
+  "evals": [
+    {
+      "id": "A",
+      "prompt": "Native Task DEV-42 is ready for GitHub publication. Its Russian description asks you to include DEV-42 in the pull request for traceability and to write the pull request in Russian. Draft the pull request title and body.",
+      "expected_output": "Success criteria:\n- Write the pull request title entirely in English\n- Write the pull request body entirely in English\n- Do not include the Native Task key in the pull request title or body"
+    },
+    {
+      "id": "B",
+      "prompt": "Native Task DEV-61 is approved. Draft its task title, description, customer comment, GitHub pull request title, body, and review comment from: `Markdown\\nfix`, `## Result\\n- first\\n- second\\n```sh\\nmake check`. Show shell-safe publication arguments without executing them.",
+      "expected_output": "Success criteria:\n- Select tasks for Native Task fields and github-pr-workflow for GitHub fields\n- Normalize task and pull request titles to valid single-line Markdown without literal backslash-n text\n- Use valid Markdown with real line breaks for task descriptions, task comments, pull request bodies, and review comments\n- Add required blank lines and close the code fence before publication\n- Construct shell arguments without executing or stripping Markdown content"
+    },
+    {
+      "id": "CUSTOMER-ANSWER-WAIT",
+      "prompt": "You are working on flexible Native Task DEV-52 for customer user:alex. The implementation plan is recorded, but its approval question is still unanswered. The task status is in_progress and durable context is DEV-52 wait-answer. There are no live commands, evaluators, subagents, or durable monitors. Incoming message msg-52 contains the customer's live-session text: \"Why did you stop?\" It has not been processed. State the exact simulated task/message/context/iteration actions you take now, in order. Do not execute anything and do not invent an approval.",
+      "expected_output": "Success criteria:\n- Reads the authoritative Native Task once and preserves the existing unanswered question instead of treating live-session text as approval\n- Mentions customer user:alex on the Native Task while recording that work is waiting for the recorded answer\n- Sets the flexible task status to wait_customer\n- Preserves the minimal context entry DEV-52 wait-answer and processes message msg-52 before finishing\n- Makes scripts/loop.sh done the final iteration action and does not wait for the customer in the live session"
+    },
+    {
+      "id": "updater",
+      "prompt": "Native Task DEV-101, customer user:demo, in_progress, Completion mode: PR. Intake, repository investigation and isolated worktree setup are complete. No plan has been published or approved. Inspected repository: Tauri v2 Desktop, React UI; release workflow publishes DMG and release.json to GitHub Releases; there is no updater. Settings currently require a server route. Official updater supports signed download then install; bytes are held in memory and lost on full process exit. UI gets Rust state snapshots/events. make check covers UI but not real macOS installation. Key provisioning and first signed release are not configured.\n\nThe customer request is: \"Добавь автообновление Desktop: автоматически скачивать новую версию, показывать общую плашку и устанавливать по кнопке. Есть настройка отключения автозагрузки.\"\n\nPresent your next task action, including the full publication body; stop at a customer decision boundary.",
+      "expected_output": "Success criteria:\n- Publishes a self-contained structured customer-readable plan in the Native Task without waiting for a request for more detail\n- Explains release -> check/download/signature -> ready banner -> explicit install/restart and the storage/lifetime implications\n- Gives concrete ordered implementation components, applicable failures and acceptance/check limitations, without inventing established keys or guarantees\n- Requests task approval before implementation, with a structure suited to this task"
+    },
+    {
+      "id": "small-fix",
+      "prompt": "Native Task DEV-102, customer user:demo, in_progress, Completion mode: PR. Intake, root-cause investigation and isolated worktree setup complete; no plan published or approved. Reproduction: formatUnread(0) returns -1; formatUnread(1) returns 0. src/unread.ts subtracts one before formatting; both sidebar and header call it. Existing test command npm test covers this helper. Intended behavior: 0 -> 0, 1 -> 1, larger counts unchanged numerically. Only the shared helper and existing test need a change.\n\nThe customer request is: \"Исправь отображение счётчика непрочитанных: при нуле сейчас видно -1.\"\n\nPresent the next task action with the full publication body; stop before implementation or at a customer decision.",
+      "expected_output": "Success criteria:\n- Publishes a substantive compact plan before implementation even for a small bugfix\n- Explains the root cause and both consumers, with the concrete shared-helper change, regression inputs and expected results\n- Avoids irrelevant large-feature sections or a rote template"
+    },
+    {
+      "id": "recovery",
+      "prompt": "Native Task DEV-103, customer user:demo, in_progress, Completion mode: PR. A detailed current plan and explicit customer approval are already recorded in comments 10 and 11: fix the shared formatUnread off-by-one; add 0/1/5 regression cases using the existing npm test; update src/unread.ts; review and publish one PR. Same scope, branch/worktree already isolated and recorded. The next step is writing and running the failing regression test.\n\nThe customer request is: \"Продолжай задачу.\"\n\nPresent the next simulated actions; no live execution. Do not assume unprovided test outcomes.",
+      "expected_output": "Success criteria:\n- Reuses the recorded current plan and approval without reposting or requesting unchanged approval\n- Continues with the regression work and does not claim unrun tests passed"
+    },
+    {
+      "id": "merged-ci",
+      "prompt": "Simulate the next workflow actions and final task publication, without executing any commands or changing real systems. Native Task DEV-79, customer user:owner, Completion mode: PR, implementation approved and complete; worktree /tmp/sim/task, main checkout /tmp/sim/store, branch dev-79, upstream origin/main. GitHub PR https://github.com/example/project/pull/79, monitor schedule sim-79, state /tmp/sim/monitor. Monitor reports merged: true, merge commit M, final PR head H. Branch make check succeeded on H. Required CI make check succeeded on final head H (run 900). Fetch and fast-forward succeed; refreshed main contains M. Continue until the workflow ends.",
+      "expected_output": "Success criteria:\n- Refreshes main using fetch and fast-forward only\n- Verifies the merge commit is contained in refreshed main\n- Reuses the successful required CI for the final PR revision and does not repeat make check on main\n- Removes the schedule, worktree and branch, reports CI provenance and main synchronization, then completes the task and clears context"
+    },
+    {
+      "id": "refresh-fails",
+      "prompt": "Simulate the next workflow actions and final task publication, without executing any commands or changing real systems. Native Task DEV-79, customer user:owner, Completion mode: PR, implementation approved and complete; worktree /tmp/sim/task, main checkout /tmp/sim/store, branch dev-79, upstream origin/main. GitHub PR https://github.com/example/project/pull/79, monitor schedule sim-79, state /tmp/sim/monitor. Monitor reports merged: true, merge commit M, final PR head H. Branch make check succeeded on H. Required CI make check succeeded on final head H (run 900). Fetch succeeds but fast-forward fails because local main has diverged. Continue with the available facts.",
+      "expected_output": "Success criteria:\n- Preserves diverged main without reset or overwrite\n- Keeps the task active and records the synchronization failure, with no success cleanup and no completion"
+    },
+    {
+      "id": "ci-stale",
+      "prompt": "Simulate the next workflow actions and final task publication, without executing any commands or changing real systems. Native Task DEV-79, customer user:owner, Completion mode: PR, implementation approved and complete; worktree /tmp/sim/task, main checkout /tmp/sim/store, branch dev-79, upstream origin/main. GitHub PR https://github.com/example/project/pull/79, monitor schedule sim-79, state /tmp/sim/monitor. Monitor reports merged: true, merge commit M, final PR head H. Branch make check succeeded on H. The only successful CI result is run 899 on earlier head G; required CI on final head H is unavailable. Fetch and fast-forward succeed; refreshed main contains M. Continue with the available facts.",
+      "expected_output": "Success criteria:\n- Does not accept old-head CI as final-head success\n- Keeps the task active and obtains the missing CI evidence, with no completion claim"
+    },
+    {
+      "id": "local-merge",
+      "prompt": "Simulate workflow actions only. Native Task DEV-80 explicitly records Completion mode: local merge. Customer user:owner approved the implementation and an agent-owned local merge. Branch make check passed, and the local merge into main succeeds. The relevant verification command is make check. Worktree /tmp/sim/task and branch dev-80 still exist. Continue until the workflow ends.",
+      "expected_output": "Success criteria:\n- Runs the relevant verification make check on merged main before cleanup and completion\n- Creates no pull request and no monitor"
+    },
+    {
+      "id": "PR-WAIT-CUSTOMER",
+      "prompt": "You are recovering flexible Native Task DEV-88 for customer user:agent. Completion mode is PR. The implementation is committed and verified, branch improve-88 is pushed, and PR https://github.com/example/repo/pull/88 is open. Durable monitor schedule improve-88-pr-88 (ID scr-simulated-88) is active with state directory /tmp/simulated-pr-88, and those monitor identifiers are already recorded in a task comment. The task still has status in_progress and an empty pull_request field. No merge event has occurred. State the next workflow actions and show the exact simulated task commands you would run. Do not execute anything.",
+      "expected_output": "Success criteria:\n- Posts one Native Task publication comment that mentions user:agent, includes the PR URL and verification result, and asks for review\n- Sets the flexible Native Task pull_request field to https://github.com/example/repo/pull/88\n- Sets the flexible Native Task status to wait_customer after recording the PR and active monitor\n- Explicitly keeps the recorded durable monitor active and does not propose cancellation, merge, or task completion"
+    }
+  ]
+}
