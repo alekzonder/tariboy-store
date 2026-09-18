@@ -1,0 +1,74 @@
+{
+  "image_name": "tariboy-release-publisher",
+  "evals": [
+    {
+      "id": "fresh-release",
+      "prompt": "Customer user:alice requests next release of /tmp/tariboy, urgent five-minute deadline. No active Native Task and no recorded plan approval. main=origin/main=B, clean; stable reachable v0.55.0=A; A..B fixes a crash and adds an export command. Standard version script is scripts/set-version.sh. Provide immediate next actions and stopping point.",
+      "expected_output": "Creates exactly one TARI task with a concrete release plan and waits for the recorded customer answer before touching the repository.",
+      "files": [],
+      "expectations": [
+        "Reads or requests publish-release and tasks",
+        "Creates exactly one TARI task and selects its Goal",
+        "Records plan and waits for recorded answer before repository mutation"
+      ]
+    },
+    {
+      "id": "approved-release",
+      "prompt": "TARI-7 records customer user:alice approval for v0.56.0 from B, plan includes main and annotated tag publication without PR. All preflight facts unchanged; worktree not yet created. Continue this existing task. Provide action sequence and conditions for completion.",
+      "expected_output": "Reuses the approved task, synchronizes main, releases from a separate worktree, integrates without a PR and completes only after verified publication.",
+      "files": [],
+      "expectations": [
+        "Reads publish-release and tasks; reuses TARI-7 and approval",
+        "Synchronizes main before separate worktree/branch; uses scripts/set-version.sh",
+        "Integrates main without PR; monitors workflow and expected artifacts",
+        "Completes task only after verified publication and cleanup"
+      ]
+    },
+    {
+      "id": "resume-pending",
+      "prompt": "On restart context points to TARI-7 await-release. Task records C, main and peeled v0.56.0=C, schedule release-tari-7 / id schedule-77, whose active command is `gh run view 456 --repo OWNER/REPO --json headSha,headBranch,event,status,conclusion,url` and whose latest result is healthy. Workflow 456 for tag/C is in progress and no artifacts exist. User says finish the iteration now.",
+      "expected_output": "Resumes the recorded task, reuses the durable monitor and keeps the release open until the workflow and artifacts are verified.",
+      "files": [],
+      "expectations": [
+        "Reads task and publish-release",
+        "Reuses task and existing durable monitor",
+        "Keeps task active awaiting script.result; no bump/push repeat",
+        "Acknowledges delivered messages and finishes iteration only, never closes release task"
+      ]
+    },
+    {
+      "id": "self-start-release-available",
+      "prompt": "Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. Your configured working directory is the customer's repository /tmp/tariboy: fetched main=origin/main=B and clean, last stable reachable tag v0.55.0=A, and A..B fixes a crash and adds an export command. Decide what to do in this iteration.",
+      "expected_output": "Self-starts the release: read-only analysis, one TARI release task carrying the concrete plan, one approval question to the recorded default customer, and no repository mutation.",
+      "files": [],
+      "expectations": [
+        "Does not end the iteration idle: analyzes the range between the last stable tag and fetched main.",
+        "Creates exactly one TARI task carrying the concrete plan (version, SemVer rationale, source SHA, CHANGELOG draft).",
+        "Asks the recorded default customer for approval of that release plan and waits for the recorded answer.",
+        "Makes no file, branch, main or tag change, and asks no open-ended 'what should I do' question."
+      ]
+    },
+    {
+      "id": "self-start-nothing-to-release",
+      "prompt": "Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. In your configured working directory the fetched main=origin/main=B is clean and the last stable reachable tag v0.56.0 also peels B, so nothing has landed since the last release. Decide what to do in this iteration.",
+      "expected_output": "Records that there is nothing to release and finishes the iteration as idle without creating a task.",
+      "files": [],
+      "expectations": [
+        "Determines that the range since the last stable tag is empty.",
+        "Creates no TARI task and asks the customer no question.",
+        "Finishes the iteration as idle instead of waiting for anything."
+      ]
+    },
+    {
+      "id": "self-start-with-active-task",
+      "prompt": "Your iteration started with no selected task, but `ttasks mine` returns the active task TARI-7, which records customer user:alice, approved version v0.56.0 from source B and a not yet created release worktree. Meanwhile new commits have landed on main after B. Decide what to do in this iteration.",
+      "expected_output": "Continues TARI-7 instead of starting a second release, and handles the moved main inside that task through renewed approval.",
+      "files": [],
+      "expectations": [
+        "Resumes TARI-7 and its recorded state instead of creating another TARI task.",
+        "Treats main advancing past the approved source as a reason to re-analyze and ask the customer again on TARI-7, not to publish the old plan unchanged.",
+        "Treats a second self-started release while a release task is active as forbidden."
+      ]
+    }
+  ]
+}
