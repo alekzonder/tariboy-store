@@ -60,6 +60,18 @@
         "Preserves every payload line as comment text.",
         "Does not execute or expose any payload line as shell syntax."
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "A Native Task has an active durable schedule `release-42-monitor` that is waiting for the next script.result. The current task is still in_progress. Finish this iteration without polling or doing more work.",
+      "expected_output": "An executable Native Tasks command sequence that sets the flexible task status to wait_customer and identifies the durable schedule's next script.result or tracked state change as the sole resume event.",
+      "files": [],
+      "expectations": [
+        "Uses ttasks update to set the flexible task status to wait_customer.",
+        "Keeps the named durable schedule active rather than cancelling or replacing it.",
+        "Identifies the next script.result or monitored state change as the sole resume event.",
+        "Does not poll or claim that the task is complete."
+      ]
     }
   ]
 }
