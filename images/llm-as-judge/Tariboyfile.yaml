@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 1.5.4
+image_version: 1.5.5
 
 plugins:
   - name: whoami
@@ -11,7 +11,6 @@ plugins:
   - name: schedule
   - name: tasks
   - name: goal
-  - name: llm-as-judge
 
 skills:
   - dir: ../../skills/cli-text
