@@ -1,0 +1,4 @@
+{
+  "description": "Non-derivable fixture: the recorded candidate Bash command replayed by skills/cli-text/evals/check-consumers.py.",
+  "command": "CLI_TEXT=$(cat <<'CLI_TEXT_84_END'\nChecking O'Reilly's `parser` with literal $HOME.\nCLI_TEXT_84_END\n)\n/home/agent/.tariboy/agents/tariboy-image-creator/workdir/improve-84/skills/status/scripts/status.sh set \"$CLI_TEXT\""
+}
