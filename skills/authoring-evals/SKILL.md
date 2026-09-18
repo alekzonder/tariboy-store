@@ -75,8 +75,9 @@ before launching:
 | Observed condition | Model selection |
 | --- | --- |
 | Task explicitly requires a model or configuration | Use that requirement; record it |
-| Codex offers `gpt-5.6-terra` with the required capabilities | Use `gpt-5.6-terra` |
-| Terra is unavailable, or another harness is used | Choose an available smaller, lower-cost capable analogue; record the substitute and reason |
+| Codex offers `gpt-5.6-luna` with the required capabilities | Use `gpt-5.6-luna` |
+| Claude offers a Haiku model with the required capabilities | Use that Haiku model |
+| Required model is unavailable, or another harness is used | Choose an available smaller, lower-cost capable analogue; record the substitute and reason |
 
 Use current availability and cost information, not guessed model names or
 prices. If no suitable choice can be established, record the limitation and ask
@@ -86,7 +87,7 @@ Pass the selected model and reasoning effort explicitly; use `medium` when
 supported and not specified by the task. Keep model, effort and other sampling
 settings identical across each baseline/candidate pair. Record the actual
 configuration and any unavailable controls. For Codex, for example:
-`spawn_agent(model="gpt-5.6-terra", reasoning_effort="medium", fork_turns="none", ...)`.
+`spawn_agent(model="gpt-5.6-luna", reasoning_effort="medium", fork_turns="none", ...)`.
 
 Omitted model or effort and copied launchers that inherit a premium parent are
 red flags: identical inherited settings do not satisfy budget selection. Select
