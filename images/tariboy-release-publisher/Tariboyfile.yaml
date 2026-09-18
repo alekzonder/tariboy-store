@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.1.3
+image_version: 0.2.0
 
 plugins:
   - name: whoami
@@ -13,20 +13,20 @@ plugins:
   - name: loop
 
 skills:
-  - dir: ../../skills/cli-text
-  - dir: ./skills/publish-release
-  - dir: ../../skills/whoami
-  - dir: ../../skills/context
-  - dir: ../../skills/status
-  - dir: ../../skills/workdir
-  - dir: ../../skills/scripts
-  - dir: ../../skills/tasks
-  - dir: ../../skills/goal
-  - dir: ../../skills/messages
-  - dir: ../../skills/loop
+  - dir: ./.agents/skills/cli-text
+  - dir: ./.agents/skills/publish-release
+  - dir: ./.agents/skills/whoami
+  - dir: ./.agents/skills/context
+  - dir: ./.agents/skills/status
+  - dir: ./.agents/skills/workdir
+  - dir: ./.agents/skills/scripts
+  - dir: ./.agents/skills/tasks
+  - dir: ./.agents/skills/goal
+  - dir: ./.agents/skills/messages
+  - dir: ./.agents/skills/loop
 
 prompts:
-  - file: ../../skills/cli-text/cli-text.md
+  - file: ./.agents/skills/cli-text/cli-text.md
   - runtime: identity
   - runtime: one-shot
   - runtime: messages
@@ -35,4 +35,4 @@ prompts:
   - runtime: workdir
   - file: ./instructions.md
   - runtime: user-prompt
-  - file: ../../skills/loop/finish-iteration.md
+  - file: ./.agents/skills/loop/finish-iteration.md

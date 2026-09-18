@@ -21,6 +21,17 @@ Record the supplied customer and repository, mark it `in_progress`, and use
 runtime/context, read it and resume it. Never create another task for a restart.
 Ask on that task for any missing customer/repository information.
 
+A release may also start without a request, when the role has no other work and
+no release task is active. Starting it alone authorizes exactly two things:
+fetching plus read-only analysis, and creating that one task with its concrete
+plan. It is never its own approval, so no file, branch, `main` or tag change may
+follow until the customer's answer is recorded on that task. Use the customer
+recorded by the role when the request names none. When the range since the last
+stable tag is empty, or tags and upstream contradict each other, record that
+finding and stop: do not create a task that merely asks what to do. When a
+release task is already active, resume it instead of starting a second release,
+however much newer main has become.
+
 Resolve launchers from their packaged skill directories: `whoami/scripts/whoami.sh`
 returns five fields: take only its `agent` field; `goal/scripts/goal.sh set KEY`
 selects the Goal. There is

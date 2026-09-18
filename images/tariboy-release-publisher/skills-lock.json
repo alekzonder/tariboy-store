@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "skills": {
+    "cli-text": {
+      "source": "../../skills/cli-text",
+      "sourceType": "local",
+      "computedHash": "d8c8c0953cb00ae6cd9450b6f5c9f4a1d9115eca2a55ecbdaf72450c47947395"
+    },
+    "context": {
+      "source": "../../skills/context",
+      "sourceType": "local",
+      "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
+    },
+    "goal": {
+      "source": "../../skills/goal",
+      "sourceType": "local",
+      "computedHash": "4efbf128f2b6950aff3901a58f03cd50cd867c57791843a6a00563e8f8afdf60"
+    },
+    "loop": {
+      "source": "../../skills/loop",
+      "sourceType": "local",
+      "computedHash": "d035ef2a1a8985e98f228220d1626a5521b7a608f08ede75e956cf01270d3ef6"
+    },
+    "messages": {
+      "source": "../../skills/messages",
+      "sourceType": "local",
+      "computedHash": "382b513875790010923860d342b66271c84c2d3133cfe6e50c315d73a1701a4b"
+    },
+    "publish-release": {
+      "source": "./skills/publish-release",
+      "sourceType": "local",
+      "computedHash": "745e1849788a23355c70a662a15b91d4201a004fc410c946663071cb66e3fbf9"
+    },
+    "scripts": {
+      "source": "../../skills/scripts",
+      "sourceType": "local",
+      "computedHash": "61ec9dab9d5c75a30f7f1b7ecaa4ef33ab2065a41c45b849019eb075d6903d56"
+    },
+    "status": {
+      "source": "../../skills/status",
+      "sourceType": "local",
+      "computedHash": "437187bede4b07301069ea76662126deb0b74b14cd74240a60ee3f8aafee6591"
+    },
+    "tasks": {
+      "source": "../../skills/tasks",
+      "sourceType": "local",
+      "computedHash": "2baac9f03fc65e3c23504a6e78e22309566d35b309c96620dc83da136a672150"
+    },
+    "whoami": {
+      "source": "../../skills/whoami",
+      "sourceType": "local",
+      "computedHash": "1233f523b6296292af951b76a2d947d09f47fb83f57bb61a7d192ae2c1aa24e4"
+    },
+    "workdir": {
+      "source": "../../skills/workdir",
+      "sourceType": "local",
+      "computedHash": "0a7594d6122814a9ed98b391ac2e8d943a9689985ceb32a2bd050f24b4fb6943"
+    }
+  }
+}
