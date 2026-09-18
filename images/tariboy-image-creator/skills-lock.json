@@ -15,7 +15,7 @@
     "cli-text": {
       "source": "../../skills/cli-text",
       "sourceType": "local",
-      "computedHash": "c5d2c5472b163fd8a7d5ef9d036e7889f5c850e5fe41a63241b535190ddc0a07"
+      "computedHash": "d8c8c0953cb00ae6cd9450b6f5c9f4a1d9115eca2a55ecbdaf72450c47947395"
     },
     "context": {
       "source": "../../skills/context",
@@ -43,7 +43,7 @@
     "github-pr-workflow": {
       "source": "../tariboy-developer/skills/github-pr-workflow",
       "sourceType": "local",
-      "computedHash": "fc2658e782ada343ee4086487213bf83cc0159e03de5850eeb812ca9eda421e1"
+      "computedHash": "621d12871d292ce1a98b72b90bbfe60c1be4885b830a728d51d560124fda589b"
     },
     "goal": {
       "source": "../../skills/goal",
@@ -102,12 +102,12 @@
     "tariboy-image-authoring": {
       "source": "./skills/tariboy-image-authoring",
       "sourceType": "local",
-      "computedHash": "a61df159f92e5a5f0901f4b9f38ffea8bd9718ea0be68c60723476b263e32ae2"
+      "computedHash": "ac9478f1219b138cfbc88501333a5c7d3ea6867ce1717a84eb7e8bc636691102"
     },
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
       "sourceType": "local",
-      "computedHash": "6378414b55fa828c34ec505b074bc1517f2d380e4357160d2b0202d6be1d4df9"
+      "computedHash": "353f14876ab04526408611de13fdc79761341df690f3e320f29b0afc7ed0996d"
     },
     "tasks": {
       "source": "../../skills/tasks",
