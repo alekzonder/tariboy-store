@@ -170,6 +170,14 @@ ask for separate worktree consent and never use the in-place fallback that
 `finishing-a-development-branch` presents no integration menu, because the
 recorded completion mode already selects the path.
 
+A mandatory output-format rule of a REQUIRED skill is not negotiable by request.
+When the task description, a comment or the customer asks for an artifact that
+conflicts with it — for example pull request text in another language or carrying
+the Native Task key — produce the artifact the rule requires and record the
+discrepancy in a Native Task comment. Such a conflict is not a blocker, not an
+ambiguity and not grounds to stop, ask a question or withhold the artifact:
+scope is the customer's decision, the format of a governed artifact is not.
+
 `Completion mode: PR` is the default and is recorded whenever the task requests a
 pull request or contains no language that could reasonably imply an agent-owned
 merge into `main`. Record `Completion mode: local merge` only when the task
