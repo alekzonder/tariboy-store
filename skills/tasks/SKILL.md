@@ -68,7 +68,9 @@ When an active durable script or schedule is the only remaining wait object,
 set the flexible task to `wait_customer` with `ttasks update <key> --status
 wait_customer` before ending the iteration. Keep that named wait object active;
 the sole resume event is its next `script.result` or the tracked state change.
-Do not poll, replace the schedule, or mark the task complete.
+A recurring definition that published its result is stopped, so it qualifies
+only after the `scripts` skill's `rerun` resumed it in this iteration. Do not
+poll, replace the schedule, or mark the task complete.
 
 For workflow-managed work, begin with
 `ttasks work next --idempotency-key <stable-key>` and

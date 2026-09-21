@@ -67,7 +67,7 @@ poll.
 | Wait object | Resume event |
 | --- | --- |
 | Recorded question to the customer (row 3, or a decision asked in rows 4–6) | the answer recorded on the task |
-| Named durable monitor for the release workflow (row 6) | its next `script.result` or workflow state change |
+| Named durable monitor for the release workflow (row 6), active or resumed with `rerun` this iteration | its next `script.result` or workflow state change |
 
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set `wait_customer`, keep the question and one

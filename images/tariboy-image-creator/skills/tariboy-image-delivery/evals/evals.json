@@ -70,6 +70,11 @@
       "id": "version-bump-for-every-affected-image",
       "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-84 for customer user:alex has a recorded approval to change one paragraph of the shared `skills/cli-text/SKILL.md` at the Store root. `images/reviewer/skills-lock.json` and `images/builder/skills-lock.json` both record a local skill whose `source` is `../../skills/cli-text`; no other `images/` file is touched by the change. The edit is made and verified on the task branch and nothing is committed yet. State exactly what the commit and the pull request must contain.",
       "expected_output": "Success criteria:\n- Bumps image_version for both reviewer and builder in the same pull request because both consume the changed skill\n- Does not deliver a shared-skill change while the consuming images keep their current versions\n- Keeps the rest of the delivery workflow: verification before the claim, one pull request, one durable monitor, customer mention and wait_customer"
+    },
+    {
+      "id": "monitor-stops-after-result",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-60 for customer user:mira records `Completion mode: PR`, PR 42 in `alekzonder/tariboy-store`, schedule name `pr-monitor-img-60` with script ID `scr-creator-20260921061500-000000005`, and state directory `/home/agent/.tariboy/agents/creator/pr-state/img-60`. A `script.result` for that monitor reports exit `0`; the log shows a reviewer left one substantive comment and the PR is still open and unmerged. You addressed the comment and pushed to the same task branch. State the exact Scripts and Native Task actions before you finish the iteration.",
+      "expected_output": "Success criteria:\n- Recognises that publishing the result stopped the recurring definition, so it is not an active wait object until resumed\n- Resumes the recorded definition with scripts/scripts.sh rerun and its script ID, creating no second schedule or pull request\n- Does not cancel, remove, or treat the monitor as authorising completion, and never merges the pull request\n- Keeps the task active in wait_customer with the resumed monitor recorded as the durable wait"
     }
   ]
 }

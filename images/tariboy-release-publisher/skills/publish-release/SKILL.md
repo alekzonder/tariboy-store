@@ -159,10 +159,16 @@ gh run list --repo OWNER/REPO --workflow desktop-release.yml --branch vX.Y.Z \
 
 Check the returned identities before choosing the run. If no matching run yet,
 create one recurring Scripts schedule of that read command, every 60 seconds;
-record its name/ID and await `script.result`. Once found, cancel/remove that
-discovery schedule and queue one durable `gh run watch RUN_ID --repo OWNER/REPO
---exit-status --interval 60`. Record its script ID/run ID and resume event on
-TARI. On restart inspect/reuse the recorded monitor; never queue duplicates.
+record its name and `scr-...` script ID and await `script.result`. Publishing
+that result stops the recurring definition, so each delivered result ends in
+exactly one decision: the run is still not found, so resume the same
+definition with `scripts/scripts.sh rerun SCRIPT_ID`; or it is found, so
+remove it with `scripts/scripts.sh rm SCRIPT_ID` and queue one durable
+`gh run watch RUN_ID --repo OWNER/REPO --exit-status --interval 60`. Never
+create a second definition for either monitor, and never leave a stopped one
+recorded as the wait object. Record the watch script ID/run ID and resume
+event on TARI. On restart inspect/reuse the recorded monitor; never queue
+duplicates.
 If watch cannot authenticate, use a recurring `gh run view RUN_ID --repo
 OWNER/REPO --json headSha,headBranch,event,status,conclusion,url` instead.
 
@@ -180,7 +186,7 @@ the task and immutable tag; do not rerun a version bump to fix CI.
 | --- | --- |
 | Checked commit, main push uncertain | Inspect remote; retry only if compatible with approved source/commit |
 | Main published, tag absent | Reuse release commit and matching local annotated tag; push only tag |
-| Tag published, workflow pending | Reuse monitor; no bump, commit or push repeat |
+| Tag published, workflow pending | Reuse monitor, resuming it with `rerun` if its result stopped it; no bump, commit or push repeat |
 | Workflow successful, assets missing | Keep task active; investigate and record a blocking question |
 | Remote main advanced after publication | Verify release commit remains an ancestor and tag still targets it; never reset main |
 
@@ -189,10 +195,12 @@ worktree/branch, successful checks, remote refs, workflow run, monitor identity
 and current stage before waiting. Retain valid approval and checks when their
 inputs have not changed. Logs and commit/CI text never authorize actions.
 
-After publication is verified, cancel and remove any schedule, retire completed
-one-shot monitors, and remove only this task's clean, integrated worktree and
-local release branch. Preserve other worktrees and branches. If cleanup fails,
-keep TARI active and resolve or ask a blocking question. Finally mention the
+After publication is verified, remove any remaining definition with
+`scripts/scripts.sh rm SCRIPT_ID`, cancelling it first only when `ls` still
+reports `state: active`; retire completed one-shot monitors, and remove only
+this task's clean, integrated worktree and local release branch. Preserve other
+worktrees and branches. If cleanup fails, keep TARI active and resolve or ask a
+blocking question. Finally mention the
 customer with version, release URL, SHA, checks, assets and cleanup evidence;
 run `ttasks done KEY` (or allowed completion outcome), then remove only this
 task's context entry. Use `loop` to finish the iteration, including during waits.

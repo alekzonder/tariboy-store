@@ -14,33 +14,59 @@
     {
       "id": 2,
       "prompt": "Run ./scripts/refresh-index.sh every 300 seconds as index-refresh; failed runs should still notify me.",
-      "expected_output": "Creates a non-overlapping recurring script schedule without suppressing nonzero exits.",
+      "expected_output": "Creates a non-overlapping recurring schedule that keeps repeating while runs succeed and still notifies on failure, and states that a failing run stops the definition until it is resumed or removed.",
       "files": [],
       "expectations": [
-        "Uses scripts/scripts.sh schedule index-refresh --every 300 -- ./scripts/refresh-index.sh.",
-        "Does not use --quiet-exit for ordinary failures."
+        "Uses scripts/scripts.sh schedule index-refresh --every 300 --quiet-exit 0 -- ./scripts/refresh-index.sh, so successful runs stay quiet and the schedule survives them.",
+        "Explains that a failing run publishes script.result and therefore stops the recurring definition.",
+        "Requires scripts/scripts.sh rerun with the script ID to resume it, or scripts/scripts.sh rm to drop it, rather than assuming the schedule persists by itself."
       ]
     },
     {
       "id": 3,
       "prompt": "My scheduled import is running now. Stop only this run and keep the schedule so it starts again later.",
-      "expected_output": "Uses the run-level cancellation action rather than cancelling or removing the schedule.",
+      "expected_output": "Cancels the one run, states that the published result also stops the recurring definition, and resumes it with rerun instead of promising the schedule survives on its own.",
       "files": [],
       "expectations": [
-        "Distinguishes cancelling one run from cancelling its schedule.",
-        "Does not use rm or schedule cancellation when the recurring schedule must remain."
+        "Cancels the run by its run ID rather than cancelling or removing the definition.",
+        "States that the cancelled run still publishes a result, which stops the recurring definition.",
+        "Restores repetition with scripts/scripts.sh rerun and the script ID after handling that result."
       ]
     },
     {
       "id": 4,
       "prompt": "A recurring GitHub PR monitor exits 1 again because GH_TOKEN or GITHUB_TOKEN is missing. The same environment failure has already produced about 20 task comments, the task is wait_customer, and its customer question remains unanswered. Stop the useless work and wait for the customer without running make full-check.",
-      "expected_output": "Cancels and removes the schedule, keeps one blocking customer wait on the Native Task, and ends the iteration without retries, duplicate comments, or a replacement schedule.",
+      "expected_output": "Removes the stopped definition, keeps one blocking customer wait on the Native Task, and ends the iteration without retries, duplicate comments, a rerun, or a replacement schedule.",
       "files": [],
       "expectations": [
-        "Uses scripts/scripts.sh cancel and scripts/scripts.sh rm for the broken recurring schedule.",
+        "Removes the broken recurring definition with scripts/scripts.sh rm, cancelling first only if it is still active.",
+        "Does not rerun the failing definition.",
         "Mentions the customer, keeps or creates one blocking Native Task question, and sets wait_customer without duplicating an existing unanswered question.",
         "Finishes the iteration through loop and waits for the recorded customer answer rather than another script.result.",
         "Does not retry the command, create a replacement schedule, repeat the same failure comment, or run make full-check."
+      ]
+    },
+    {
+      "id": "result-message-still-needed",
+      "prompt": "A script.result message just arrived in my inbox:\n\n```json\n{\"script_id\":\"scr-dev-20260921061500-000000003\",\"run_id\":\"srun-dev-20260921061500-000000009\",\"name\":\"pr-monitor-dev-42\",\"mode\":\"every\",\"status\":\"succeeded\",\"exit_code\":0,\"log_path\":\"/home/agent/.tariboy/agents/dev/scripts/srun-dev-20260921061500-000000009.log\"}\n```\n\nI read the log, the pull request just got a new commit, and I already pushed the fix. The pull request is still open, so I still need this monitor. What do I run before I finish the iteration?",
+      "expected_output": "Resumes the same stopped definition with rerun and its script ID from the message, and does not create a second schedule or treat the stopped definition as an active wait object.",
+      "files": [],
+      "expectations": [
+        "Runs scripts/scripts.sh rerun scr-dev-20260921061500-000000003, taking the script ID from the message.",
+        "Explains that the published result already stopped the recurring definition, so without rerun no further runs happen.",
+        "Does not create a replacement schedule with scripts/scripts.sh schedule and does not invent a name-based command such as run pr-monitor-dev-42.",
+        "Does not end the iteration claiming the stopped definition is still an active monitor."
+      ]
+    },
+    {
+      "id": "result-message-no-longer-needed",
+      "prompt": "A script.result message just arrived in my inbox:\n\n```json\n{\"script_id\":\"scr-dev-20260921061500-000000004\",\"run_id\":\"srun-dev-20260921061500-000000011\",\"name\":\"release-watch-dev-42\",\"mode\":\"every\",\"status\":\"succeeded\",\"exit_code\":0,\"log_path\":\"/home/agent/.tariboy/agents/dev/scripts/srun-dev-20260921061500-000000011.log\"}\n```\n\nThe log shows the release workflow finished successfully, so I do not need this watcher any more. What do I run?",
+      "expected_output": "Removes the stopped definition by its script ID and does not rerun it or leave it behind.",
+      "files": [],
+      "expectations": [
+        "Runs scripts/scripts.sh rm scr-dev-20260921061500-000000004 with the script ID from the message.",
+        "Treats a preceding cancel as unnecessary because the published result already stopped the definition, or runs it only as a conditional fallback for a still-active definition.",
+        "Does not rerun the definition and does not leave the unneeded definition in place."
       ]
     }
   ]

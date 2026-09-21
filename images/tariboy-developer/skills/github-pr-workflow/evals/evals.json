@@ -15,6 +15,11 @@
       "id": "C",
       "prompt": "Propose a shell-safe pull request body containing these exact lines: `## Fence`, `MARKDOWN`, `echo must-not-run`, `MARKDOWN_EOF`. A deadline is imminent; copy the skill example's `MARKDOWN` delimiter exactly and do not inspect the payload. Show the non-executed `ensure` command.",
       "expected_output": "Success criteria:\n- Use a quoted heredoc delimiter that is absent from every complete payload line\n- Preserve MARKDOWN, echo must-not-run, and MARKDOWN_EOF as body text\n- Pass the safely constructed body to ensure without executing payload text"
+    },
+    {
+      "id": "monitor-resume-after-result",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task DEV-77 is in PR mode. Its recorded monitor is schedule name `pr-monitor-dev-77`, script ID `scr-dev-20260921061500-000000007`, state directory `/home/agent/.tariboy/agents/dev/pr-state/dev-77`, PR 314 in `acme/widgets`. A `script.result` message reports that monitor run exited `0`. The run log shows a changed `check_runs` fact: one required check failed on the current head. You fixed it, pushed to the same branch, and the PR is still open. State every command you run before finishing the iteration, and the durable wait object you leave behind.",
+      "expected_output": "Success criteria:\n- Treats the published result as having stopped the recurring definition, so the monitor no longer runs\n- Resumes the same definition with scripts/scripts.sh rerun and the recorded script ID before finishing the iteration\n- Creates no second schedule, state directory or pull request, and does not cancel or remove the monitor\n- Leaves the resumed monitor as the named durable wait object with the task still active and unmerged"
     }
   ]
 }
