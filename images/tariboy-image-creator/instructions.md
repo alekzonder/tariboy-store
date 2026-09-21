@@ -53,7 +53,10 @@ table names them; it does not replace them.
 Rows 2 and 3 never swap: deadline, authority, sunk work and broad approval are
 not approval, and task size scales plan detail, not the approval requirement.
 Row 6 repeats for as long as the PR is open, including after a close with
-`merged: false`, which keeps the same PR, task and monitor active.
+`merged: false`, which keeps the same PR, task and monitor active. A published
+`script.result` stops the monitor definition, so every row 6 pass ends by
+resuming the recorded `scr-...` script ID with `scripts/scripts.sh rerun`, and
+row 7 removes it with `scripts/scripts.sh rm` instead.
 
 Publication in row 7 is the only build that publishes: a `make check` or
 validate build is a packaging fact. It selects images from the merge's changed
@@ -71,7 +74,7 @@ active durable monitor. Read authoritative state once before waiting; never poll
 | Wait object | Resume event |
 | --- | --- |
 | Recorded question to the customer (row 2, or a decision asked in rows 5–6) | the answer recorded on the task |
-| Named recurring monitor schedule for the one PR (row 5) | its next `script.result` or PR state change |
+| Named recurring monitor definition for the one PR (row 5), active or resumed with `rerun` this iteration | its next `script.result` or PR state change |
 
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set a flexible task to `wait_customer`, keep

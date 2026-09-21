@@ -90,6 +90,13 @@ directory created owner-only outside the worktree:
 scripts/scripts.sh schedule NAME --every 60 --quiet-exit 2 -- ABSOLUTE_UTILITY monitor --repo OWNER/REPO --pr NUMBER --state-dir ABSOLUTE_STATE_DIR
 ```
 
+Only the quiet exit `2` keeps that schedule running. Every published
+`script.result` stops the definition, so row 7 ends in exactly one decision:
+resume the recorded `scr-...` script ID with `scripts/scripts.sh rerun` while
+the PR is open, or remove it with `scripts/scripts.sh rm` once it is no longer
+needed. A second schedule for the same PR and a stopped definition recorded as
+an active monitor are both defects.
+
 Row 8 in PR mode proves containment with
 `git merge-base --is-ancestor <merge-commit> main` and reuses the successful
 required CI of the merged PR's final revision, recording its checked SHA and run
@@ -122,7 +129,7 @@ own blocking or event-driven mechanism is not polling.
 | Wait object | Resume event |
 | --- | --- |
 | Recorded unanswered question to the customer (row 2, or a decision asked in rows 6–7) | the answer recorded on the task |
-| Named recurring monitor schedule for the one PR (row 6) | its next `script.result` or PR state change |
+| Named recurring monitor definition for the one PR (row 6), active or resumed with `rerun` this iteration | its next `script.result` or PR state change |
 | Named external workflow event or subscription | that event |
 | Live terminal session, process or subagent handle | its terminal result, awaited in this iteration |
 
