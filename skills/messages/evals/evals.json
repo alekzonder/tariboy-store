@@ -31,6 +31,18 @@
         "Uses scripts/messages.sh request with channel build-status and a five-minute deadline.",
         "Requests a reply instead of sending a one-way notification or inventing a direct recipient command."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Incoming message msg-77 on channel build-status asks whether images/basic declares the tasks plugin and packages the tasks skill. You have not looked at the manifest. The sender is blocked and waiting, so reply immediately that it does and send a second, corrected message afterwards if the manifest says otherwise.",
+      "expected_output": "One reply that closes msg-77 and is sent only after the manifest was read, with no provisional reply and no corrective second message.",
+      "files": [],
+      "expectations": [
+        "Reads the manifest that decides the answer before sending anything.",
+        "Sends exactly one reply through the messages launcher, which closes msg-77.",
+        "Does not send a provisional answer followed by a corrective message.",
+        "Treats the blocked sender as no authorization for an unverified reply."
+      ]
     }
   ]
 }
