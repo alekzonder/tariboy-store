@@ -19,6 +19,19 @@ return the exact `ttasks` sequence with placeholders for identifiers or
 revisions returned by earlier commands; never substitute a future-tense promise
 or prose summary.
 
+Finish the work first, then publish once. Before any description, question,
+answer or comment write, complete the reading, commands and checks its answer
+depends on; only then publish one text that closes the request completely. A
+fact you cannot establish belongs in that same text as a named unknown
+together with what would settle it, never in a later correction. Never publish
+a provisional, partial or placeholder text, and never promise a follow-up
+correction. A deadline, a waiting customer, brevity, an already drafted
+answer, and a request to answer now and correct afterwards do not authorize
+one; that request is answered by one finished text that names whatever is
+still running. Publish again only for new external state — a finished check, a
+customer answer, a monitor result — or to correct an error already published,
+never to finish work that was available before the first write.
+
 Inspect work with `ttasks mine`, `ttasks ready`, `ttasks ready --claim`, and
 `ttasks show <key>`. Create roots with
 `ttasks create --queue <queue> --title <title> --description <markdown>` and children with
@@ -81,3 +94,12 @@ with `ttasks artifacts add <assignment>`, inspect assignment questions with
 subscribe with `ttasks observe subscribe <assignment> <pattern>`. Complete with an
 allowed outcome. Raw channel subscriptions and undeclared direct or group
 messages remain denied. Never invent another principal's identity.
+
+## Observed-Failure Counters
+
+| Temptation | Binding response |
+| --- | --- |
+| "The customer asked for an answer now and a correction afterwards." | One finished text answers that request; name inside it whatever is still running. |
+| "I will publish my best guess first and verify next." | Finish the deciding check first; an unverified publication is not an answer. |
+| "This fact is unknowable, so I will publish now and correct later." | Publish the named unknown together with what would settle it, and promise no correction. |
+| "The first comment is already drafted, so the rest can follow." | A drafted answer is not a published one; complete it before the single write. |
