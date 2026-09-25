@@ -77,9 +77,9 @@
       "expected_output": "Success criteria:\n- Recognises that publishing the result stopped the recurring definition, so it is not an active wait object until resumed\n- Resumes the recorded definition with scripts/scripts.sh rerun and its script ID, creating no second schedule or pull request\n- Does not cancel, remove, or treat the monitor as authorising completion, and never merges the pull request\n- Keeps the task active in wait_customer with the resumed monitor recorded as the durable wait"
     },
     {
-      "id": "mode-source-priority",
-      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-110 for customer user:alex. The task description says: \"Deliver through a pull request on our Gitea at https://gitea.example.com/acme/store.\" The Store's README.md says contributions go through GitHub pull requests, and its origin remote is git@github.com:acme/store.git. The plan was approved and the change is committed on task branch img-110-fix. Which completion mode do you record, from which source, and what are the next delivery actions?",
-      "expected_output": "Success criteria:\n- Selects the Gitea pull request mode because the task outranks the Store README.md and the origin remote\n- Records the completion mode on the task together with its source before delivery\n- Opens exactly one pull request on Gitea, records its URL and asks user:alex through the task, creating no GitHub pull request\n- Does not commit to or push the base branch"
+      "id": "named-forge-needs-explanation",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Native Task IMG-110 for customer user:alex. The task description says: \"Deliver through a pull request on our Gitea at https://gitea.example.com/acme/store.\" It says nothing else about how to push there or open the pull request. The Store's origin remote is git@github.com:acme/store.git and the GitHub PR utility preflight passes. The plan was approved and the change is committed on task branch img-110-fix. Which completion mode do you record, from which source, and what are the next delivery actions?",
+      "expected_output": "Success criteria:\n- Does not fall back to a GitHub pull request, because the customer named another forge\n- Does not invent a Gitea API call, CLI or remote on its own\n- Asks user:alex with ttasks ask how to push to Gitea and how to create the pull request there, and sets wait_customer\n- Does not commit to or push the base branch"
     },
     {
       "id": "no-direct-push-on-failure",

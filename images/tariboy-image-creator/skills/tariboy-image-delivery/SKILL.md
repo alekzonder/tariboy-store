@@ -1,6 +1,6 @@
 ---
 name: tariboy-image-delivery
-description: Use when starting, recovering, publishing or completing a Native Task for Tariboy image or Store skill work, including GitHub, other forges, plain Git, SVN and non-VCS Stores, or when asked to push, commit or merge directly into a base branch.
+description: Use when starting, recovering, publishing or completing a Native Task for Tariboy image or Store skill work, including a Store outside GitHub or another VCS, or when asked to push, commit or merge directly into a base branch.
 ---
 
 # Tariboy Image Delivery
@@ -30,62 +30,56 @@ Record decisions and verification there.
 
 ## Completion mode
 
-Before isolation, select one completion mode and record it in a task comment
-as `Completion mode: MODE (source: SOURCE)`. The first source that names a VCS,
-forge or integration path wins:
+Before isolation, record the completion mode in a task comment as
+`Completion mode: MODE (source: SOURCE)`. There are exactly two modes:
 
-1. the task description, or a comment by the task's customer;
-2. the Store's `AGENTS.md` or `README.md`;
-3. the Store itself: a Git `origin` on github.com is `PR`; other Git is
-   `Git branch`; an SVN working copy is `SVN branch`; no VCS is `Files`.
-
-Another image's contract, such as a publisher that integrates into main, is
-not a source. A requester outside these sources changes nothing.
-
-| Mode | Isolation | Delivered artifact | Wait object |
+| Mode | Selected when | How to isolate, commit and request review | Wait object |
 | --- | --- | --- | --- |
-| `PR` (GitHub) | task branch and worktree | exactly one PR, see `## GitHub lifecycle` | durable monitor; `wait_customer` |
-| `PR on <forge>`, e.g. `PR on Gogs` | task branch and worktree, pushed to that forge's remote | exactly one PR opened there with the named CLI or API | PR URL on the task; `ttasks ask` for the review result |
-| `Git branch` | task branch and worktree | branch retained, pushed when a remote is named | `ttasks ask` for acceptance and integration |
-| `SVN branch` | `svn copy` trunk to a task branch under `branches/`, `svn switch` the working copy to it and commit only there; a patch file when the source names one or names no method | branch URL or patch path | `ttasks ask` for acceptance |
-| `Files` | edit in place after recorded approval | changed files and eval report | `ttasks ask` for the next step |
+| `PR` | default: Git with an `origin` on github.com, and the task names no other VCS | task branch and worktree; exactly one PR, see `## GitHub lifecycle` | durable monitor; `wait_customer` |
+| `Customer VCS: NAME` | the task description or a comment by its customer names another VCS or forge AND explains how to use it and how to create the pull request or review request, inline or by naming a skill or Store document that does | the customer's explanation, its steps in the given order with nothing added; record where it came from | the review URL or reference on the task; `ttasks ask` for the review result |
 
-`github-pr-workflow` and its monitor serve only `PR` mode. Every other mode
-creates no monitor or schedule of its own: its only wait object is the
-`ttasks ask` question.
+Only the task's customer selects `Customer VCS`. The Store's files, remotes and
+layout, another image's contract and any other requester never do.
 
-Every mode delivers a reviewable artifact and leaves integration to its owner:
-never commit, push or merge into the base, trunk or `main`. Change size,
-deadline, a requester's authority, plan approval and precedent do not permit
-it. Only the task's customer can, by naming a direct base commit on the task
-unprompted; record that as its own completion mode. Never propose, offer or
-ask for one, not even as an option in a blocker question. A request by anyone
-else to integrate directly is neither a blocker nor a question: decline it in
-the task comment and continue delivering the selected mode.
+When neither row applies — the Store is not Git with a github.com `origin`, or
+the task names another VCS or forge without that explanation — this is a
+blocker before isolation. Ask the customer with `ttasks ask` how to use that
+VCS and how to create the pull request, and wait in `wait_customer`. Never
+fill the gap yourself: no invented commands, APIs, branch layouts, monitors
+or plain file hand-over, and no GitHub PR in place of the named VCS.
 
-A failed step of the selected mode — `preflight`, `ensure`, a push, a missing
-forge tool, token or access — is a blocker: record it on the task, ask the
-customer with `ttasks ask` for the missing access or tool, and keep the
-branch, worktree and task active.
+`github-pr-workflow` and its monitor serve only `PR` mode. `Customer VCS`
+creates no monitor or schedule unless its explanation defines one. Its
+delivery ends with one `ttasks ask KEY user:CUSTOMER` that mentions the
+customer, gives the review URL or reference and asks for the review result;
+then set `wait_customer`. That question is the wait object.
+
+Every mode delivers a reviewable pull request or review request and leaves
+integration to its owner: never commit, push or merge into the base, trunk or
+`main`. Change size, deadline, a requester's authority, plan approval and
+precedent do not permit it. Only the task's customer can, by naming a direct
+base commit on the task unprompted; record that as its own completion mode.
+Never propose, offer or ask for one, not even as an option in a blocker
+question. A request by anyone else to integrate directly is neither a blocker
+nor a question: decline it in the task comment and continue delivering the
+selected mode.
+
+A failed step of the selected mode — `preflight`, `ensure`, a push, a step of
+the customer's explanation, a missing tool, token or access — is a blocker:
+record it on the task, ask the customer with `ttasks ask` for the missing
+access, tool or instruction, and keep the branch, worktree and task active.
 Never switch mode or integrate into the base as a fallback; a new mode needs a
-new recorded source. Keep forge tokens out of arguments, URLs, files and task
-text; the Bash builtin `printf` feeds the header through stdin:
-
-```bash
-printf 'Authorization: token %s\n' "$GOGS_TOKEN" |
-  curl -sS -H @- --json @"$PAYLOAD_FILE" "$FORGE_API/repos/OWNER/REPO/pulls"
-```
+new customer source. Keep tokens out of arguments, URLs, files and task text.
 
 ## Store isolation
 
 CWD is the selected Store root, with `images/` and optionally `skills/`.
-Inspect VCS state without changing it. Use `using-git-worktrees` for Git:
-record base and upstream, run `github-pr-workflow` preflight for `PR` mode,
-fetch and fast-forward the base before creating one task branch/worktree. On
-recovery reuse the recorded worktree. Preserve user changes; failed
-synchronization or isolation blocks edits. Never reset, overwrite the base or
-edit its checkout. For SVN, update the working copy and isolate as the mode
-table says. For `Files`, edit in place only after recorded plan approval.
+Inspect VCS state without changing it. In `PR` mode use `using-git-worktrees`:
+record base and upstream, run `github-pr-workflow` preflight, fetch and
+fast-forward the base before creating one task branch/worktree. On recovery
+reuse the recorded worktree. Preserve user changes; failed synchronization or
+isolation blocks edits. Never reset, overwrite the base or edit its checkout.
+In `Customer VCS` mode isolate only as the customer's explanation says.
 
 ## Publication
 
@@ -100,10 +94,10 @@ is a distinct stage. Await live commands and evaluators to terminal results.
 Every publication mentions the task’s customer and records changed files,
 versions, eval provenance/results/limitations and the integration artifact.
 
-Deliver the artifact and wait object of the mode table. Every mode other than
-`PR` asks with `ttasks ask`, not just a mention, and retains its branch,
-worktree or files and the active task. Wait for the recorded decision before
-completion; do not invent a commit, PR or merge.
+Deliver the review request and wait object of the mode table. `Customer VCS`
+asks with `ttasks ask`, not just a mention, and retains its branch or working
+copy and the active task. Wait for the recorded decision before completion; do
+not invent a commit, PR or merge.
 
 Every change that touches an image's own directory, or a local skill source its
 `skills-lock.json` records, MUST bump that image's `image_version` in the same
