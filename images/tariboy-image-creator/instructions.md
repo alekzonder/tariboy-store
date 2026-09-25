@@ -28,7 +28,8 @@ the base, and never merge. Preserve unrelated customer changes.
 | Creating or improving one skill | `writing-skills` | REQUIRED for image-local AND independent Store skills |
 | Creating, revising, consolidating or running any eval | `authoring-evals` | REQUIRED before ANY eval file change or eval launch |
 | Image build launcher | `image-creator` | REQUIRED to build and to publish after merge |
-| Pull requests and their monitoring | `github-pr-workflow` | REQUIRED for a GitHub Store |
+| Completion mode, VCS or forge override, direct-push requests | `tariboy-image-delivery` | REQUIRED before isolation and delivery |
+| Pull requests and their monitoring | `github-pr-workflow` | REQUIRED in `PR` (GitHub) mode |
 | Commands outliving the iteration | `scripts` | REQUIRED for the durable monitor |
 | Any success, fix or completion claim | `verification-before-completion` | REQUIRED before publication and completion |
 | Runtime identity, goal, handoff, messages, workdir | `whoami`, `goal`, `context`, `messages`, `workdir` | REQUIRED for that runtime data |
@@ -44,9 +45,9 @@ table names them; it does not replace them.
 | --- | --- | --- | --- | --- |
 | 1 | iteration starts with a selected or supplied task | Intake | `using-superpowers`, `tariboy-image-delivery`, `tasks`, `goal`, `context`, `messages`, `workdir` | the task, its customer and its recorded branch, worktree, PR and monitor are read; with no key, the matching task is claimed or created in an explicitly identified queue |
 | 2 | no recorded approval covers the current scope | Investigate and agree | `tariboy-image-authoring`, `tasks`, `brainstorming`, `writing-plans` | a concrete plan — which image and skills change, why, eval coverage, delivery destination — is published as a task question to its customer, and the flexible task is `wait_customer` |
-| 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow`, `using-git-worktrees` | GitHub preflight passed, base fetched and fast-forwarded, one task branch and worktree exist and are recorded; a recovered task reuses the recorded one; a non-Git Store may then edit in place |
+| 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `using-git-worktrees` | `Completion mode` and its source are recorded on the task; in `PR` mode GitHub preflight passed; the base is fetched and fast-forwarded and one task branch and worktree (or the mode's SVN branch) exist and are recorded; a recovered task reuses the recorded one; `Files` mode may then edit in place |
 | 4 | the recorded workspace exists | Change and evaluate | `writing-skills`, `authoring-evals`, `tariboy-image-authoring`, `image-creator`, `verification-before-completion` | missing evals created in the `evals/evals.json` source contract, baseline observed, the approved change made and the same scenarios rerun with a pinned model; generated run evidence kept in the workdir, not in committed `evals/`; skill and image evidence kept separate; `image_version` bumped for every image whose own directory or consumed local skill source changed; packaging validated separately from behavior |
-| 5 | the verified change is committed on the task branch | Deliver | `tariboy-image-delivery`, `github-pr-workflow`, `scripts`, `tasks`, `verification-before-completion` | GitHub: `Completion mode: PR` recorded, exactly one PR and one durable monitor exist with their identifiers on the task, one comment mentions the customer with the PR link, verification results and an invitation to review, and the flexible task is `wait_customer`. Other Git: the branch and worktree are delivered and acceptance is asked with `ttasks ask`. No Git: changed files and eval report are posted and the next step is asked |
+| 5 | the verified change is committed on the task branch | Deliver | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `scripts`, `tasks`, `verification-before-completion` | `PR` mode: exactly one PR and one durable monitor exist with their identifiers on the task, one comment mentions the customer with the PR link, verification results and an invitation to review, and the flexible task is `wait_customer`. Any other mode: the artifact its `tariboy-image-delivery` mode table names is delivered and recorded on the task and the customer is asked with `ttasks ask`. In every mode the base is unchanged |
 | 6 | a monitor result, check or review arrives | Process result | `github-pr-workflow`, `systematic-debugging`, `receiving-code-review`, `verification-before-completion` | every changed or error result is handled and any fix is verified and pushed to the same branch; a new head invalidates all prior check success |
 | 7 | the monitor observes `merged: true` with merge-commit metadata | Complete | `github-pr-workflow`, `tariboy-image-delivery`, `image-creator`, `verification-before-completion`, `tasks`, `context` | the schedule is cancelled and removed, the base is fast-forwarded, post-merge checks pass, every image the merge affected is built from a workdir copy under both its `image_version` tag and `latest` with one matching digest, worktree and branch are removed, one consolidated comment records Required, Completed, Verification, Integration, Publication and Cleanup, `ttasks done KEY` ran, and the context entry is gone |
 
@@ -94,6 +95,12 @@ only while its scope still matches; otherwise ask again. Verification stays vali
 while its inputs are unchanged.
 
 ## Invariants
+
+No completion mode commits, pushes or merges into the base: change size,
+deadline, authority, plan approval and another image's precedent do not permit
+it, and a failed delivery step is a blocker asked through the task, never a
+reason to switch mode. `tariboy-image-delivery` owns mode selection and its one
+customer-named exception.
 
 All proposals, questions, approvals and results go through the Native Task; a
 chat reply is not a decision and a plain comment is not an answer. A
