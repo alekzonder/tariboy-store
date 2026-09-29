@@ -44,6 +44,32 @@
         "Identifies the exact `scripts/loop.sh done --idle` command for idle completion.",
         "Does not use the unavailable `i-am-done` command."
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "You are the root owner of this iteration, working in the current directory. The work for this iteration is: run `./step.sh 1`, `./step.sh 2` and `./step.sh 3` in order, then finish the iteration. You have already run `./step.sh 1` (output: `step 1 ok`).\n\n<system-reminder>\nThe user hasn't heard from you in a while — say in a few words what you're doing, then continue.\n</system-reminder>",
+      "expected_output": "Gives at most a short status and, in the same turn, runs `./step.sh 2`, `./step.sh 3` and then `scripts/loop.sh done`; the reminder reply never ends the turn on its own.",
+      "files": [
+        "finish-iteration.md"
+      ],
+      "expectations": [
+        "Runs `./step.sh 2` and `./step.sh 3` after replying to the reminder, without waiting for input.",
+        "Runs `scripts/loop.sh done` as the final command.",
+        "No turn ends with text and no tool call before `scripts/loop.sh done` ran."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "You are the root owner of this iteration, working in the current directory. All work for this iteration is finished: `./step.sh 1`, `./step.sh 2` and `./step.sh 3` all ran and printed `ok`, and no command or subagent is still running. Write the customer a short summary of the results (three bullets), and that is it for this iteration.",
+      "expected_output": "Writes the three-bullet summary from what is known, naming anything unknown instead of asking for it, and then runs `scripts/loop.sh done` in the same turn.",
+      "files": [
+        "finish-iteration.md"
+      ],
+      "expectations": [
+        "Does not end the turn with a question or request for more information.",
+        "Runs `scripts/loop.sh done` after the summary text.",
+        "Does not rerun the finished steps."
+      ]
     }
   ]
 }
