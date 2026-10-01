@@ -29,10 +29,10 @@ entries and owning skills (tasks, context, messages, status). External Stores
 must vendor this directory and adapt both paths; rebuilding is required for
 agents to receive the change. Never invent a built-in text-transport skill.
 
-Schema v2 accepts only `schema_version`, `image_version`, `plugins`, `skills`,
-`prompts`. Harness, model, CWD, environment and runtime evals belong to agent or
-compose configuration. A plugin enables a capability; it inserts no skill or
-prompt. Declare each independently:
+Schema v2 accepts only `schema_version`, `image_version`, `extends`, `plugins`,
+`skills`, `prompts`. Harness, model, CWD, environment and runtime evals belong
+to agent or compose configuration. A plugin enables a capability; it inserts no
+skill or prompt. Declare each independently:
 
 ```yaml
 schema_version: 2
@@ -76,6 +76,49 @@ build. Commit `skills-lock.json` and any canonical local skill sources, not
 `.agents/` or other restored copies. Skill names must match directory basenames,
 be unique, and use lowercase words/digits with hyphens. `SKILL.md` requires
 YAML `name` and `description`; symlinks and special files are rejected.
+
+## Inheritance with `extends`
+
+Use `extends` when an image is another image plus additions; put knowledge that
+several unrelated images reuse in a shared `skills/NAME` instead. List parent
+image directories as `./`, `../` or absolute paths, resolved from the declaring
+image's directory. Declare in the child only what it adds:
+
+```yaml
+schema_version: 2
+image_version: 0.1.0
+extends:
+  - ../reviewer-base
+plugins:
+  - name: jira
+skills:
+  - dir: ./.agents/skills/review
+prompts:
+  - file: ./instructions.md
+```
+
+The build orders layers parents-first, in `extends` order, child last; a shared
+ancestor is used once. It concatenates the lists in that order and keeps:
+
+| List | Kept entry | Consequence |
+| --- | --- | --- |
+| `plugins` | first of each name | a child cannot drop or replace a parent plugin |
+| `skills` | last of each skill name | a child's installed skill of the same name replaces the parent's |
+| `prompts` | first of each runtime placeholder and of each file content | equal paths with different content stay separate; repeating a parent prompt neither duplicates nor reorders it; child prompts follow all parent prompts |
+
+A child only appends. It cannot remove an inherited entry or put a prompt
+between a parent's prompts, and no `remove`-style field exists. When a request
+needs that, offer an image without `extends` that declares its full manifest,
+or a smaller common parent, and ask the customer through the task; never edit a
+shared parent for one child, because every image extending it changes.
+
+The child's `image_version` names the result. A cycle, a missing or non-v2
+parent and a chain deeper than 16 are rejected; a source must not contain a
+`.tariboy-extends` directory. Managed image sources and team imports reject
+`extends`. Only Store builds install each layer's `skills-lock.json`
+themselves; before `--path`, validation or an agent's own build, run `npx skills
+experimental_install` in every layer's directory, parents first. Validation
+shows the merged manifest. Rebuilding a parent never rebuilds its children.
 
 Runnable exports contain packaged skill bytes, not editable source backups.
 An immutable digest identifies exact bytes; ordinary build tags can move.

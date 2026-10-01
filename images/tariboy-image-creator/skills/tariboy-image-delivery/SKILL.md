@@ -102,9 +102,10 @@ not invent a commit, PR or merge.
 Every change that touches an image's own directory, or a local skill source its
 `skills-lock.json` records, MUST bump that image's `image_version` in the same
 delivery. A shared skill under `skills/NAME` therefore bumps every image whose
-lock consumes it. Use `tariboy image version update patch|minor|major --path
-images/NAME`. Delivering such a change with an unchanged version is a defect,
-not a shortcut.
+lock consumes it, and a change to an image that another image's `extends`
+chain reaches also bumps that descendant. Use `tariboy image version update
+patch|minor|major --path images/NAME`. Delivering such a change with an
+unchanged version is a defect, not a shortcut.
 
 ## Publication after merge
 
@@ -120,8 +121,10 @@ Publish exactly the affected images. Take the merge's changed paths from
 `git diff --name-only OLD_BASE..NEW_BASE` and select image NAME when the merge
 touched `images/NAME/`, or any path under a `sourceType: local` `source` that
 `images/NAME/skills-lock.json` records, resolved relative to the image
-directory. An unrelated image stays unpublished; a shared-skill-only merge
-still publishes every consuming image.
+directory, or when the `extends` chain of `images/NAME/Tariboyfile.yaml`
+reaches a selected image. An unrelated image stays unpublished; a
+shared-skill-only or parent-only merge still publishes every consuming image
+and every descendant.
 
 Build each selected image from a disposable copy under the configured workdir,
 never from the Store checkout: restoring the lock rewrites `skills-lock.json`
@@ -131,11 +134,14 @@ hold unrelated uncommitted edits.
 ```bash
 PUBLISH_DIR="$WORKDIR/publish/TASK-KEY/MERGE_SHA"
 mkdir -p "$PUBLISH_DIR" && cp -a STORE_ROOT/. "$PUBLISH_DIR/" && rm -rf "$PUBLISH_DIR/.git"
-(cd "$PUBLISH_DIR/images/NAME" && npx skills experimental_install)
+for LAYER in CHAIN_DIRS; do (cd "$PUBLISH_DIR/images/$LAYER" && npx skills experimental_install); done
 scripts/image_creator.sh build --name NAME --tag IMAGE_VERSION --path "$PUBLISH_DIR/images/NAME"
 scripts/image_creator.sh build --name NAME --tag latest --path "$PUBLISH_DIR/images/NAME"
 ```
 
+`CHAIN_DIRS` lists every image directory of NAME's `extends` chain that has a
+`skills-lock.json`, parents first, ending with NAME; an image without `extends`
+is a chain of one. A `--path` build installs no parent lock itself.
 `IMAGE_VERSION` is the merged `image_version`, read with `tariboy image version
 get --path "$PUBLISH_DIR/images/NAME"`. Use `image-creator`'s identity-bound
 launcher for both builds; `make check` and `tariboy image validate` are
@@ -145,7 +151,10 @@ that is running; that is expected and takes effect at its next image selection.
 Both builds of one image MUST report the same digest. A build error, a digest
 mismatch, or a selected image whose merged `image_version` was not bumped is a
 publication failure: record the blocker on the Native Task, keep the task
-active and do not run `ttasks done`. A later iteration reads the digests and
+active and do not run `ttasks done`. This holds for a descendant selected only
+through `extends`: publish no tag of it, not its old version and not `latest`,
+and do not bump or commit it after the merge yourself; the blocker asks the
+customer for a follow-up change. A later iteration reads the digests and
 tags already recorded on the task and republishes only what is missing.
 
 The consolidated completion comment gains a `Publication:` section listing, per

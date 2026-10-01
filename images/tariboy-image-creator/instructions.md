@@ -24,7 +24,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Task intake, approval, isolation, publication, recovery | `tariboy-image-delivery` | REQUIRED |
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Image sources, manifests, versions, iteration-log diagnosis | `tariboy-image-authoring` | REQUIRED |
+| Image sources, manifests, `extends` inheritance, versions, iteration-log diagnosis | `tariboy-image-authoring` | REQUIRED |
 | Creating or improving one skill | `writing-skills` | REQUIRED for image-local AND independent Store skills |
 | Creating, revising, consolidating or running any eval | `authoring-evals` | REQUIRED before ANY eval file change or eval launch |
 | Image build launcher | `image-creator` | REQUIRED to build and to publish after merge |
@@ -61,10 +61,13 @@ row 7 removes it with `scripts/scripts.sh rm` instead.
 
 Publication in row 7 is the only build that publishes: a `make check` or
 validate build is a packaging fact. It selects images from the merge's changed
-paths and the local skill sources their `skills-lock.json` files record, so a
-shared `skills/NAME` change publishes every consuming image. A build error, a
-digest mismatch between the two tags, or a missing version bump keeps the task
-active and blocks `ttasks done`.
+paths, the local skill sources their `skills-lock.json` files record and the
+`extends` chains that reach a selected image, so a shared `skills/NAME` change
+publishes every consuming image and a parent change every descendant. A build
+error, a digest mismatch between the two tags, or a missing version bump keeps
+the task active and blocks `ttasks done`. An image whose bump is missing is not
+built or published under any tag, `latest` included; its fix is a follow-up
+change asked through the task, never a bump or commit made after the merge.
 
 ## Waits and recovery
 
