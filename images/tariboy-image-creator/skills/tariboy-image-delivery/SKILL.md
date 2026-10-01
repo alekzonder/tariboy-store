@@ -35,8 +35,8 @@ Before isolation, record the completion mode in a task comment as
 
 | Mode | Selected when | How to isolate, commit and request review | Wait object |
 | --- | --- | --- | --- |
-| `PR` | default: Git with an `origin` on github.com, and the task names no other VCS | task branch and worktree; exactly one PR, see `## GitHub lifecycle` | durable monitor; `wait_customer` |
-| `Customer VCS: NAME` | the task description or a comment by its customer names another VCS or forge AND explains how to use it and how to create the pull request or review request, inline or by naming a skill or Store document that does | the customer's explanation, its steps in the given order with nothing added; record where it came from | the review URL or reference on the task; `ttasks ask` for the review result |
+| `PR` | default: Git with an `origin` on github.com, and the task names no other VCS | task branch and worktree; exactly one PR, see `## GitHub lifecycle` | closure monitor; `wait_customer` |
+| `Customer VCS: NAME` | the task description or a comment by its customer names another VCS or forge AND explains how to use it and how to create the pull request or review request, inline or by naming a skill or Store document that does | the customer's explanation, its steps in the given order with nothing added; record where it came from | closure monitor; `ttasks ask` for the review result; `wait_customer` |
 
 Only the task's customer selects `Customer VCS`. The Store's files, remotes and
 layout, another image's contract and any other requester never do.
@@ -48,11 +48,14 @@ VCS and how to create the pull request, and wait in `wait_customer`. Never
 fill the gap yourself: no invented commands, APIs, branch layouts, monitors
 or plain file hand-over, and no GitHub PR in place of the named VCS.
 
-`github-pr-workflow` and its monitor serve only `PR` mode. `Customer VCS`
-creates no monitor or schedule unless its explanation defines one. Its
-delivery ends with one `ttasks ask KEY user:CUSTOMER` that mentions the
-customer, gives the review URL or reference and asks for the review result;
-then set `wait_customer`. That question is the wait object.
+`github-pr-workflow` serves only `PR` mode. Every mode watches its pull
+request or review request with one closure monitor, see `## Closure monitor`.
+`Customer VCS` delivery records the review URL or reference on the task,
+establishes that monitor, then ends with one `ttasks ask KEY user:CUSTOMER`
+that mentions the customer, gives the review URL or reference and asks for the
+review result; then set `wait_customer`. The question and the monitor are
+independent wait objects: an answer never replaces closure observation, and an
+observed merge never waits for an answer.
 
 Every mode delivers a reviewable pull request or review request and leaves
 integration to its owner: never commit, push or merge into the base, trunk or
@@ -94,10 +97,10 @@ is a distinct stage. Await live commands and evaluators to terminal results.
 Every publication mentions the task’s customer and records changed files,
 versions, eval provenance/results/limitations and the integration artifact.
 
-Deliver the review request and wait object of the mode table. `Customer VCS`
+Deliver the review request and wait objects of the mode table. `Customer VCS`
 asks with `ttasks ask`, not just a mention, and retains its branch or working
-copy and the active task. Wait for the recorded decision before completion; do
-not invent a commit, PR or merge.
+copy and the active task. Complete only after the closure monitor observed the
+merge; do not invent a commit, PR or merge.
 
 Every change that touches an image's own directory, or a local skill source its
 `skills-lock.json` records, MUST bump that image's `image_version` in the same
@@ -111,14 +114,15 @@ unchanged version is a defect, not a shortcut.
 
 Publication builds the merged image under its version tag and `latest`. It is a
 distinct stage between post-merge verification and task completion, and it runs
-only in `PR` mode after the monitor observed `merged: true` with
-merge-commit metadata, the base was fast-forwarded to that commit and the
-post-merge checks passed. Green checks, a closed-unmerged pull request, a
+in either completion mode only after the closure monitor observed a merge with
+merge-commit metadata, an authoritative re-read confirmed it, the base was
+fast-forwarded to that commit and the post-merge checks passed. Green checks, a closed-unmerged pull request, a
 maintainer request or an already-built `store-check` packaging artifact never
 authorize it.
 
 Publish exactly the affected images. Take the merge's changed paths from
-`git diff --name-only OLD_BASE..NEW_BASE` and select image NAME when the merge
+`git diff --name-only OLD_BASE..NEW_BASE`, or the named VCS's equivalent
+listing between the same two revisions, and select image NAME when the merge
 touched `images/NAME/`, or any path under a `sourceType: local` `source` that
 `images/NAME/skills-lock.json` records, resolved relative to the image
 directory, or when the `extends` chain of `images/NAME/Tariboyfile.yaml`
@@ -163,10 +167,89 @@ tags already recorded on the task and republishes only what is missing.
 The consolidated completion comment gains a `Publication:` section listing, per
 published image, its name, version tag, `latest` and the digest.
 
+## Closure monitor
+
+After the pull request or review request is recorded on the task, and before
+the iteration ends, establish exactly one durable recurring monitor of its
+closure. This holds in every completion mode; the customer does not describe it
+for each task. It watches only that pull request or review request; watch an
+external ticket only when the task explicitly requires waiting for one.
+
+Take the poll command from the first source that defines it:
+
+| Mode | Poll source |
+| --- | --- |
+| `PR` | `github-pr-workflow`'s utility `monitor`, as `## GitHub lifecycle` shows |
+| `Customer VCS` | the customer's explanation, inline or through a skill or document it names; otherwise the Store's instructions in CWD (`AGENTS.md`, `README.md`, or a skill they name) |
+
+A usable source names a packaged command and gives its arguments for one
+review, exit `2` for an unchanged complete observation, a different exit for
+every error, the state paths it keeps, and an authoritative read reporting
+open, closed unmerged, or merged with merge-commit metadata. Resolve the
+command to the absolute path of its installed script at run time. Never write
+an inline shell poll, never point it into another task's worktree, and never
+use the GitHub utility for another VCS. When no source defines that interface,
+create no monitor and invent no command. The one delivery `ttasks ask` to the
+task's customer by login then gives the review URL, asks for the review result
+and also asks for the missing closure-observation interface.
+
+Register it once through the owning Scripts launcher, with an owner-only state
+directory outside the worktree when the command keeps state:
+
+```text
+scripts/scripts.sh schedule NAME --every 60 --quiet-exit 2 -- ABSOLUTE_POLL_COMMAND ARGS
+```
+
+Record on the task the PR or review URL and ID, branch and worktree, poll
+source, schedule name, `scr-...` script ID, exact command and state paths.
+Then check with `scripts/scripts.sh ls` that the saved command is identical
+and the state is `active`. The script ID is the only handle `rerun`, `cancel`
+and `rm` accept.
+
+| Recorded definition, on recovery or after a result | Action |
+| --- | --- |
+| `ls` reports `state: active` | reuse it; never schedule a second or ask again |
+| stopped by a published `script.result` | handle the result as below |
+| absent from `ls` while the review is open | schedule exactly one with the recorded command and record its new ID in place of the old |
+
+An iteration that leaves the monitor active, resumed or replaced ends with the
+`loop` skill's `scripts/loop.sh done` as its final action.
+
+After every `script.result`, re-read the pull request or review through the
+source's authoritative read before deciding. The event only wakes you; it never
+authorizes a merge or completion.
+
+| Result | Action |
+| --- | --- |
+| review open | process the facts, `rerun SCRIPT_ID` |
+| closed without merge | record the closed-unmerged blocker on the task, `rerun SCRIPT_ID` |
+| run interrupted, for example by a daemon restart | not quiet: re-read, then `rerun SCRIPT_ID` while open |
+| data, parse, API or state error | not quiet: diagnose with `systematic-debugging`, record it, repair it or confirm it transient, `rerun SCRIPT_ID` |
+| missing credential, tool or dependency | `rm SCRIPT_ID`, never `rerun` or reschedule; one blocking `ttasks ask` mentioning the customer by login, with no token in it; `wait_customer`; `scripts/loop.sh done` |
+| merged with merge-commit metadata | first run the authoritative read and confirm merged and the merge commit; then check `ls`, `rm SCRIPT_ID`, never `rerun`; continue with the completion steps |
+
+Run `scripts/scripts.sh cancel SCRIPT_ID` before `rm` only while `ls` still
+reports `state: active`. A closed-unmerged review is never an integration: no
+publication, completion comment or `ttasks done`. Only an explicit
+task-authoritative abandonment or replacement decision leaves it, through the
+separate non-completion branch of `github-pr-workflow`, which applies to a
+review request too.
+
+Completion after a confirmed merge needs no customer answer and never a merge
+of your own: update the base to the merge commit as the poll source or the
+customer's explanation describes (fetch and fast-forward in Git; never reset
+or overwrite the base, and when no source describes it, ask instead of
+inventing a command), run the
+post-merge checks, publish as `## Publication after merge` requires, remove
+the worktree and task branch, post the consolidated comment of
+`## GitHub lifecycle` step 6 with the review URL in `Integration:`, run
+`ttasks done KEY` and remove the context entry.
+
 ## GitHub lifecycle
 
 **REQUIRED:** Use `github-pr-workflow` for all GitHub operations and `scripts`
-for the durable monitor. Record `Completion mode: PR` before its preflight.
+for the durable monitor, which is the `PR` instance of `## Closure monitor`.
+Record `Completion mode: PR` before its preflight.
 The following lifecycle also applies when this skill is used independently:
 
 1. Commit, verify and push the one task branch. Use the PR skill’s `ensure`
@@ -226,8 +309,11 @@ read it and preserve other tasks; each line must match
 Continue any executable next action immediately. End an iteration with active
 work only for a recorded unanswered task question or a durable monitor that is
 still active, with stable identifier and resume event recorded. A definition
-that published its result is stopped, so it counts only after `rerun`. Read
-authoritative state once before waiting; do not poll. Use `messages` to handle
+that published its result is stopped, so it counts only after `rerun`. While a
+recorded pull request or review request is open and a closure monitor source
+exists, that monitor must be active before the iteration ends, even when a
+customer question is also open. Read authoritative state once before waiting;
+do not poll. Use `messages` to handle
 and acknowledge every delivered message. Use `loop` to finish only after live commands, evaluators and
 subagents finish.
 

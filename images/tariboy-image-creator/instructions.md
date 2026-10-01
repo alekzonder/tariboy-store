@@ -30,7 +30,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Image build launcher | `image-creator` | REQUIRED to build and to publish after merge |
 | Completion mode, a Store outside GitHub or another VCS, direct-push requests | `tariboy-image-delivery` | REQUIRED before isolation and delivery |
 | Pull requests and their monitoring | `github-pr-workflow` | REQUIRED in `PR` (GitHub) mode |
-| Commands outliving the iteration | `scripts` | REQUIRED for the durable monitor |
+| Commands outliving the iteration | `scripts` | REQUIRED for the closure monitor in every completion mode |
 | Any success, fix or completion claim | `verification-before-completion` | REQUIRED before publication and completion |
 | Runtime identity, goal, handoff, messages, workdir | `whoami`, `goal`, `context`, `messages`, `workdir` | REQUIRED for that runtime data |
 | Iteration finish | `loop` | REQUIRED as the last action |
@@ -47,17 +47,20 @@ table names them; it does not replace them.
 | 2 | no recorded approval covers the current scope | Investigate and agree | `tariboy-image-authoring`, `tasks`, `brainstorming`, `writing-plans` | a concrete plan — which image and skills change, why, eval coverage, delivery destination — is published as a task question to its customer, and the flexible task is `wait_customer` |
 | 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `using-git-worktrees` | `Completion mode` and its source are recorded on the task; in `PR` mode GitHub preflight passed, the base is fetched and fast-forwarded, and one task branch and worktree exist and are recorded; in `Customer VCS` mode isolation follows the customer's recorded explanation; a recovered task reuses the recorded one; without GitHub or that explanation the customer is asked with `ttasks ask` and the flexible task is `wait_customer` |
 | 4 | the recorded workspace exists | Change and evaluate | `writing-skills`, `authoring-evals`, `tariboy-image-authoring`, `image-creator`, `verification-before-completion` | missing evals created in the `evals/evals.json` source contract, baseline observed, the approved change made and the same scenarios rerun with a pinned model; generated run evidence kept in the workdir, not in committed `evals/`; skill and image evidence kept separate; `image_version` bumped for every image whose own directory or consumed local skill source changed; packaging validated separately from behavior |
-| 5 | the verified change is committed on the task branch | Deliver | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `scripts`, `tasks`, `verification-before-completion` | `PR` mode: exactly one PR and one durable monitor exist with their identifiers on the task, one comment mentions the customer with the PR link, verification results and an invitation to review, and the flexible task is `wait_customer`. `Customer VCS` mode: the pull request or review request the customer's explanation describes is created and recorded on the task and the customer is asked with `ttasks ask`. In every mode the base is unchanged |
-| 6 | a monitor result, check or review arrives | Process result | `github-pr-workflow`, `systematic-debugging`, `receiving-code-review`, `verification-before-completion` | every changed or error result is handled and any fix is verified and pushed to the same branch; a new head invalidates all prior check success |
-| 7 | the monitor observes `merged: true` with merge-commit metadata | Complete | `github-pr-workflow`, `tariboy-image-delivery`, `image-creator`, `verification-before-completion`, `tasks`, `context` | the schedule is cancelled and removed, the base is fast-forwarded, post-merge checks pass, every image the merge affected is built from a workdir copy under both its `image_version` tag and `latest` with one matching digest, worktree and branch are removed, one consolidated comment records Required, Completed, Verification, Integration, Publication and Cleanup, `ttasks done KEY` ran, and the context entry is gone |
+| 5 | the verified change is committed on the task branch | Deliver | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `scripts`, `tasks`, `verification-before-completion` | `PR` mode: exactly one PR and one durable monitor exist with their identifiers on the task, one comment mentions the customer with the PR link, verification results and an invitation to review, and the flexible task is `wait_customer`. `Customer VCS` mode: the pull request or review request the customer's explanation describes is created and recorded on the task; exactly one closure monitor from the poll source `tariboy-image-delivery` names is active, its saved command checked with `scripts/scripts.sh ls`, with its identifiers on the task, or with no such source none exists and the question also asks for that interface; the customer is asked with `ttasks ask` and the flexible task is `wait_customer`. In every mode the base is unchanged |
+| 6 | a monitor result, check or review arrives | Process result | `tariboy-image-delivery`, `scripts`, `github-pr-workflow` when applicable, `systematic-debugging`, `receiving-code-review`, `verification-before-completion` | the PR or review request is re-read authoritatively; every changed or error result is handled and any fix is verified and pushed to the same branch; a new head invalidates all prior check success; the definition is resumed with `rerun`, or removed with one blocking question when an external credential, tool or dependency is missing |
+| 7 | the closure monitor observes a merge with merge-commit metadata and an authoritative re-read confirms it | Complete | `tariboy-image-delivery`, `scripts`, `github-pr-workflow` when applicable, `image-creator`, `verification-before-completion`, `tasks`, `context` | the schedule is removed (cancelled first only while active), the base is fast-forwarded, post-merge checks pass, every image the merge affected is built from a workdir copy under both its `image_version` tag and `latest` with one matching digest, worktree and branch are removed, one consolidated comment records Required, Completed, Verification, Integration, Publication and Cleanup, `ttasks done KEY` ran, and the context entry is gone |
 
 Rows 2 and 3 never swap: deadline, authority, sunk work and broad approval are
 not approval, and task size scales plan detail, not the approval requirement.
-Row 6 repeats for as long as the PR is open, including after a close with
-`merged: false`, which keeps the same PR, task and monitor active. A published
-`script.result` stops the monitor definition, so every row 6 pass ends by
-resuming the recorded `scr-...` script ID with `scripts/scripts.sh rerun`, and
-row 7 removes it with `scripts/scripts.sh rm` instead.
+Row 6 repeats for as long as the PR or review request is open, including after
+a close without merge, which keeps the same request, task and monitor active
+and is never an integration. A published `script.result` stops the monitor
+definition, so every row 6 pass ends by resuming the recorded `scr-...` script
+ID with `scripts/scripts.sh rerun`, and row 7 removes it with
+`scripts/scripts.sh rm` instead. A customer answer and a closure event are
+independent: a review question never replaces the monitor, and row 7 never
+waits for an answer.
 
 Publication in row 7 is the only build that publishes: a `make check` or
 validate build is a packaging fact. It selects images from the merge's changed
@@ -78,7 +81,7 @@ active durable monitor. Read authoritative state once before waiting; never poll
 | Wait object | Resume event |
 | --- | --- |
 | Recorded question to the customer (row 2, or a decision asked in rows 5–6) | the answer recorded on the task |
-| Named recurring monitor definition for the one PR (row 5), active or resumed with `rerun` this iteration | its next `script.result` or PR state change |
+| Named recurring closure monitor for the one PR or review request (row 5), active or resumed with `rerun` this iteration | its next `script.result` or PR or review state change |
 
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set a flexible task to `wait_customer`, keep
@@ -92,8 +95,14 @@ When a recorded question is still unanswered, the flexible task must already be
 that transition in this iteration before finishing, however old the question is.
 A live-session message is never the answer and never a reason to skip it.
 
+While a recorded PR or review request is open and its poll source exists, the
+closure monitor must be active before the iteration ends, even when a question
+is also open.
+
 Recovery reads the task first and reuses what it records — customer, approval,
-branch, worktree, PR, schedule and state directory. Reuse a recorded approval
+branch, worktree, PR or review request, schedule and state directory: an
+active definition is reused, a stopped one resumed with `rerun`, and a missing
+one replaced by exactly one new schedule. Reuse a recorded approval
 only while its scope still matches; otherwise ask again. Verification stays valid
 while its inputs are unchanged.
 
