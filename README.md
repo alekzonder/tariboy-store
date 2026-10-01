@@ -77,7 +77,8 @@ Requirements: Bash, GNU Make, Python 3, Git, ripgrep, Node.js/npm, and matching
 make check
 ```
 
-The check runs skill client contracts, rejects Tariboy checkout and versioned
+The check runs skill client contracts, checks the image creator's closure-monitor
+contract against a fake Scripts launcher, rejects Tariboy checkout and versioned
 Store paths, restores locked skills only in a temporary copy, and validates and
 builds every image against a temporary isolated daemon. It never uses the live
 Tariboy base directory, runtime directory, or HTTP listener.
