@@ -129,11 +129,14 @@ and every descendant.
 Build each selected image from a disposable copy under the configured workdir,
 never from the Store checkout: restoring the lock rewrites `skills-lock.json`
 and creates `.agents/` in the tree it runs in, and the customer's checkout may
-hold unrelated uncommitted edits.
+hold unrelated uncommitted edits. The copy drops every `images/*/.agents`
+before restoring: the restore never removes a skill that left the lock, so a
+copied installation can carry stale skills. Leave the checkout's own
+`.agents` untouched.
 
 ```bash
 PUBLISH_DIR="$WORKDIR/publish/TASK-KEY/MERGE_SHA"
-mkdir -p "$PUBLISH_DIR" && cp -a STORE_ROOT/. "$PUBLISH_DIR/" && rm -rf "$PUBLISH_DIR/.git"
+mkdir -p "$PUBLISH_DIR" && cp -a STORE_ROOT/. "$PUBLISH_DIR/" && rm -rf "$PUBLISH_DIR/.git" "$PUBLISH_DIR"/images/*/.agents
 for LAYER in CHAIN_DIRS; do (cd "$PUBLISH_DIR/images/$LAYER" && npx skills experimental_install); done
 scripts/image_creator.sh build --name NAME --tag IMAGE_VERSION --path "$PUBLISH_DIR/images/NAME"
 scripts/image_creator.sh build --name NAME --tag latest --path "$PUBLISH_DIR/images/NAME"

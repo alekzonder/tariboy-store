@@ -40,3 +40,26 @@ case "$output" in
     exit 1
     ;;
 esac
+
+rm -rf -- "$fixture"
+mkdir -p "$fixture/images/example/.agents/skills/locked" \
+  "$fixture/images/example/.agents/skills/removed"
+printf '%s\n' '{"version": 1, "skills": {"locked": {"source": "../../skills/locked", "sourceType": "local"}}}' \
+  >"$fixture/images/example/skills-lock.json"
+if ! output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); then
+  printf 'expected stale installation to warn, not fail: %s\n' "$output" >&2
+  exit 1
+fi
+case "$output" in
+  *'warning: images/example/.agents/skills/removed is not recorded in images/example/skills-lock.json'*) ;;
+  *)
+    printf 'missing stale installation warning: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac
+case "$output" in
+  *'skills/locked'*)
+    printf 'locked installation reported as stale: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac

@@ -19,8 +19,36 @@ check_paths() {
   fi
 }
 
+# `npx skills experimental_install` adds locked skills but never removes one
+# dropped from the lock, so a checkout can keep a stale installed copy.
+warn_stale_installs() {
+  local source=$1
+  local lock
+  for lock in "$source"/images/*/skills-lock.json; do
+    test -f "$lock" || continue
+    python3 -B - "$source" "$lock" <<'PY'
+import json
+import pathlib
+import sys
+
+source, lock = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+installed = lock.parent / ".agents" / "skills"
+if installed.is_dir():
+    locked = set(json.loads(lock.read_text()).get("skills", {}))
+    for entry in sorted(installed.iterdir()):
+        if entry.name not in locked:
+            print(
+                f"warning: {entry.relative_to(source)} is not recorded in "
+                f"{lock.relative_to(source)}",
+                file=sys.stderr,
+            )
+PY
+  done
+}
+
 if test "${1:-}" = "--paths-only"; then
   check_paths "${2:-$repo_root}"
+  warn_stale_installs "${2:-$repo_root}"
   exit
 fi
 if test "$#" -ne 0; then
@@ -29,6 +57,7 @@ if test "$#" -ne 0; then
 fi
 
 check_paths "$repo_root"
+warn_stale_installs "$repo_root"
 
 tariboy_bin=$(command -v "${TARIBOY_BIN:-tariboy}")
 tariboyd_bin=$(command -v "${TARIBOYD_BIN:-tariboyd}")
@@ -48,7 +77,7 @@ umask 077
 
 source_copy="$tmp/store"
 cp -a "$repo_root/." "$source_copy"
-rm -rf -- "$source_copy/.git"
+rm -rf -- "$source_copy/.git" "$source_copy"/images/*/.agents
 for lock in "$source_copy"/images/*/skills-lock.json; do
   test -f "$lock" || continue
   if ! (cd -- "$(dirname -- "$lock")" && npx skills experimental_install) >"$tmp/restore.log" 2>&1; then
