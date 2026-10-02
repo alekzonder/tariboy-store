@@ -78,7 +78,9 @@ def create(args, scheduled):
         raise UsageError(f"tools script {action}: NAME [options] -- COMMAND required")
     separator = args.index("--", 2)
     name = args[1]
-    allowed = {"description", "every", "quiet-exit"} if scheduled else {"description"}
+    allowed = {"description", "every"} if scheduled else {"description"}
+    if scheduled and any(arg == "--quiet-exit" or arg.startswith("--quiet-exit=") for arg in args[2:separator]):
+        raise UsageError("tools script schedule: --quiet-exit is not supported; a recurring command exits with $TARIBOY_QUIET_EXIT (111) to stay quiet")
     flags, pos = parse_flags(args[:separator], 2, allowed)
     if pos:
         raise UsageError(f'tools script {action}: unexpected argument "{pos[0]}" before --')
@@ -94,14 +96,6 @@ def create(args, scheduled):
         if every <= 0:
             raise UsageError("tools script schedule: --every must be a positive number of seconds")
         body["interval_seconds"] = every
-        if "quiet-exit" in flags:
-            try:
-                quiet = int(flags["quiet-exit"])
-            except ValueError as error:
-                raise UsageError("tools script schedule: --quiet-exit must be between 0 and 255") from error
-            if not 0 <= quiet <= 255:
-                raise UsageError("tools script schedule: --quiet-exit must be between 0 and 255")
-            body["quiet_exit"] = quiet
     post("/tools/script/" + action, body)
 
 

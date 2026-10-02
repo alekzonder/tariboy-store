@@ -34,7 +34,7 @@
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "61ec9dab9d5c75a30f7f1b7ecaa4ef33ab2065a41c45b849019eb075d6903d56"
+      "computedHash": "f777315b399d5625c599ab6eb21d8b214e3ffe5e24660123c8e6e4eda1e5b6f7"
     },
     "status": {
       "source": "../../skills/status",

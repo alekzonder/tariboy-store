@@ -87,10 +87,10 @@ Row 6 starts exactly one durable monitor per task, on an absolute state
 directory created owner-only outside the worktree:
 
 ```text
-scripts/scripts.sh schedule NAME --every 60 --quiet-exit 2 -- ABSOLUTE_UTILITY monitor --repo OWNER/REPO --pr NUMBER --state-dir ABSOLUTE_STATE_DIR
+scripts/scripts.sh schedule NAME --every 60 -- ABSOLUTE_UTILITY monitor --repo OWNER/REPO --pr NUMBER --state-dir ABSOLUTE_STATE_DIR
 ```
 
-Only the quiet exit `2` keeps that schedule running. Every published
+Only the quiet exit `$TARIBOY_QUIET_EXIT` (`111`) keeps that schedule running. Every published
 `script.result` stops the definition, so row 7 ends in exactly one decision:
 resume the recorded `scr-...` script ID with `scripts/scripts.sh rerun` while
 the PR is open, or remove it with `scripts/scripts.sh rm` once it is no longer

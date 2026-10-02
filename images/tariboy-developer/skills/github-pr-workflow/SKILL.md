@@ -92,7 +92,7 @@ not enable shell tracing around these commands.
    absolute utility and state paths; substitute a stable task-derived name:
 
    ```bash
-   scripts/scripts.sh schedule "$SCHEDULE_NAME" --every 60 --quiet-exit 2 -- \
+   scripts/scripts.sh schedule "$SCHEDULE_NAME" --every 60 -- \
      "$UTILITY" monitor --repo "$REPO" --pr "$PR_NUMBER" \
      --state-dir "$STATE_DIR"
    ```
@@ -116,7 +116,7 @@ not enable shell tracing around these commands.
    scripts/scripts.sh rerun "$SCHEDULE_ID"
    ```
 
-   Only exit `2` leaves the schedule running, because it publishes nothing.
+   Only exit `$TARIBOY_QUIET_EXIT` (`111`) leaves the schedule running, because it publishes nothing.
    Never replace a stopped monitor with a second `schedule`, and never finish
    an iteration calling a definition that already published its result an
    active monitor.
@@ -130,7 +130,7 @@ not enable shell tracing around these commands.
      failed checks through `systematic-debugging`; route substantive review
      feedback through `receiving-code-review`; commit and push fixes to the
      same branch.
-   - Exit `2`: unchanged complete observation. This is the only quiet result;
+   - Exit `111`: unchanged complete observation. This is the only quiet result;
      the recurring run continues without waking the agent.
    - Any other nonzero exit: read the bounded diagnostic from the run log,
      repair the authentication, API, transport, validation, parse, or state
@@ -170,12 +170,18 @@ not enable shell tracing around these commands.
      enter main refresh, post-merge verification, final completion comment,
      `tasks done`, or context cleanup from this branch.
 
+## Workflow tasks
+
+This skill is the way to monitor a pull request on a task without a workflow.
+On a workflow task whose status instructions say the daemon watches the pull
+request, do not schedule this monitor: the workflow already observes it.
+
 ## Quick Reference
 
 | Utility result | Meaning | Required action |
 |---|---|---|
 | `0` | First complete observation or meaningful change | Read facts, act, then `rerun` the stopped definition |
-| `2` | Complete observation unchanged | Stay quiet; the schedule keeps running |
+| `111` | Complete observation unchanged | Stay quiet; the schedule keeps running |
 | other nonzero | Actionable error | Read redacted log, repair, `rerun` the stopped definition, keep task active |
 
 ## Observed-Failure Counters
@@ -184,7 +190,7 @@ not enable shell tracing around these commands.
 |---|---|
 | "The PR exists, so the task can close." | Keep it active through observed merge, post-merge verification, and cleanup. |
 | "A direct curl header is quicker." | Use only this utility; tokens never enter curl arguments or durable data. |
-| "Any nonzero exit can mean unchanged." | Only `2` means unchanged; every other nonzero result is an error. |
+| "Any nonzero exit can mean unchanged." | Only `111` means unchanged; every other nonzero result is an error. |
 | "The monitor woke me, so it is still watching." | Publishing that result stopped it. Nothing runs again until `rerun "$SCHEDULE_ID"`. |
 | "A fresh `schedule` is simpler than finding the script ID." | A second definition duplicates the monitor. Reuse the recorded ID. |
 | "Main can be updated after the worktree exists." | Follow the role prompt: fetch and fast-forward local main before worktree creation. |

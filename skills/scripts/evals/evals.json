@@ -17,7 +17,7 @@
       "expected_output": "Creates a non-overlapping recurring schedule that keeps repeating while runs succeed and still notifies on failure, and states that a failing run stops the definition until it is resumed or removed.",
       "files": [],
       "expectations": [
-        "Uses scripts/scripts.sh schedule index-refresh --every 300 --quiet-exit 0 -- ./scripts/refresh-index.sh, so successful runs stay quiet and the schedule survives them.",
+        "Uses scripts/scripts.sh schedule index-refresh --every 300 -- ./scripts/refresh-index.sh and has the command exit with $TARIBOY_QUIET_EXIT (111) on a successful run so it stays quiet and the schedule survives it.",
         "Explains that a failing run publishes script.result and therefore stops the recurring definition.",
         "Requires scripts/scripts.sh rerun with the script ID to resume it, or scripts/scripts.sh rm to drop it, rather than assuming the schedule persists by itself."
       ]

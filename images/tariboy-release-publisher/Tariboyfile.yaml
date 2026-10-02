@@ -1,38 +1,35 @@
 schema_version: 2
-image_version: 0.3.1
-
+image_version: 0.3.2
 plugins:
-  - name: whoami
-  - name: context
-  - name: status
-  - name: workdir
-  - name: scripts
-  - name: tasks
-  - name: goal
-  - name: messages
-  - name: loop
-
+    - name: whoami
+    - name: context
+    - name: status
+    - name: workdir
+    - name: scripts
+    - name: tasks
+    - name: goal
+    - name: messages
+    - name: loop
 skills:
-  - dir: ./.agents/skills/cli-text
-  - dir: ./.agents/skills/publish-release
-  - dir: ./.agents/skills/whoami
-  - dir: ./.agents/skills/context
-  - dir: ./.agents/skills/status
-  - dir: ./.agents/skills/workdir
-  - dir: ./.agents/skills/scripts
-  - dir: ./.agents/skills/tasks
-  - dir: ./.agents/skills/goal
-  - dir: ./.agents/skills/messages
-  - dir: ./.agents/skills/loop
-
+    - dir: ./.agents/skills/cli-text
+    - dir: ./.agents/skills/publish-release
+    - dir: ./.agents/skills/whoami
+    - dir: ./.agents/skills/context
+    - dir: ./.agents/skills/status
+    - dir: ./.agents/skills/workdir
+    - dir: ./.agents/skills/scripts
+    - dir: ./.agents/skills/tasks
+    - dir: ./.agents/skills/goal
+    - dir: ./.agents/skills/messages
+    - dir: ./.agents/skills/loop
 prompts:
-  - file: ./.agents/skills/cli-text/cli-text.md
-  - runtime: identity
-  - runtime: one-shot
-  - runtime: messages
-  - runtime: goal
-  - runtime: context
-  - runtime: workdir
-  - file: ./instructions.md
-  - runtime: user-prompt
-  - file: ./.agents/skills/loop/finish-iteration.md
+    - file: ./.agents/skills/cli-text/cli-text.md
+    - runtime: identity
+    - runtime: one-shot
+    - runtime: messages
+    - runtime: goal
+    - runtime: context
+    - runtime: workdir
+    - file: ./instructions.md
+    - runtime: user-prompt
+    - file: ./.agents/skills/loop/finish-iteration.md

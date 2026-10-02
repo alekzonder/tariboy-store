@@ -16,8 +16,11 @@ finish the iteration, and consume the later `script.result` message instead of
 waiting in the current iteration.
 
 Run repeatedly with `scripts/scripts.sh schedule <name> --every <seconds> -- <command>`.
-Runs never overlap. `--quiet-exit CODE` records that exit without waking the
-agent and is the only outcome that keeps the schedule running.
+Runs never overlap. A run that exits with `$TARIBOY_QUIET_EXIT` (`111`)
+publishes nothing and keeps the schedule; it is the only outcome that does.
+The daemon exports the code to every run, so a shell command stays quiet with
+`exit "${TARIBOY_QUIET_EXIT:-111}"` and a Python one with
+`sys.exit(int(os.environ.get("TARIBOY_QUIET_EXIT", "111")))`.
 
 Inspect with `scripts/scripts.sh ls`, `scripts/scripts.sh runs`, and
 `scripts/scripts.sh logs`; use `scripts/scripts.sh rerun`,
@@ -45,9 +48,9 @@ This covers every published outcome:
 
 | Event | Effect on the recurring definition |
 | --- | --- |
-| Run exits with the `--quiet-exit CODE` value | No message; schedule keeps running |
+| Run exits with `$TARIBOY_QUIET_EXIT` (`111`) | No message; schedule keeps running |
 | Run exits with any other code, success or failure | Result published; definition stopped |
-| A schedule created without `--quiet-exit` | Every run publishes, so it stops after the first run |
+| A command that never exits with `$TARIBOY_QUIET_EXIT` | Every run publishes, so the schedule stops after the first run |
 | `cancel <run-id>` for one active run | That run still publishes a result, so the definition stops too |
 | A run interrupted by a daemon restart | Recovery publishes the interrupted result, so the definition stops |
 | `cancel <script-id>` | Definition cancelled; it can never run again |
@@ -120,4 +123,4 @@ repeat the failure comment while the question remains unanswered.
 | "Cancelling one run leaves the schedule intact." | That run still publishes a result, which stops the definition. |
 | "I will schedule it again to resume monitoring." | A second definition duplicates the work. `rerun <script-id>` resumes the recorded one. |
 | "`rerun <name>` is clearer than the ID." | Names are not resolved; only `scr-...` IDs work. |
-| "It succeeded, so nothing stopped." | Success is not quiet. Only the `--quiet-exit` code is quiet. |
+| "It succeeded, so nothing stopped." | Success is not quiet. Only `$TARIBOY_QUIET_EXIT` (`111`) is quiet. |

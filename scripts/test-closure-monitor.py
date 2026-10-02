@@ -2,8 +2,9 @@
 """Deterministic contract check for the image-creator closure monitor.
 
 It never talks to a daemon. A fake Scripts launcher keeps a JSON ledger and
-applies the documented recurring-definition semantics (only the quiet exit
-keeps a definition active), and a fake poll command plays the poll interface.
+applies the documented recurring-definition semantics (only the quiet exit,
+the code it exports as TARIBOY_QUIET_EXIT, default 111, keeps a definition
+active), and a fake poll command plays the poll interface.
 The check proves that the skill's schedule template, its lifecycle table and
 the image instructions agree with each other and with that model; it is not
 evidence of agent behavior.
@@ -33,11 +34,12 @@ if cmd == "schedule":
     name, rest = args[0], args[1:]
     sep = rest.index("--")
     opts, command = rest[:sep], rest[sep + 1:]
+    if "--quiet-exit" in opts:
+        sys.exit("--quiet-exit is not supported")
     every = int(opts[opts.index("--every") + 1])
-    quiet = int(opts[opts.index("--quiet-exit") + 1]) if "--quiet-exit" in opts else None
     sid = "scr-fake-%06d" % state["next"]
     state["next"] += 1
-    state["defs"][sid] = {"name": name, "every": every, "quiet": quiet, "command": command, "state": "active"}
+    state["defs"][sid] = {"name": name, "every": every, "command": command, "state": "active"}
     save(); print(json.dumps({"script_id": sid}))
 elif cmd == "ls":
     print(json.dumps(state["defs"]))
@@ -45,8 +47,9 @@ elif cmd == "tick":
     d = state["defs"][args[0]]
     if d["state"] != "active":
         sys.exit("not active")
-    rc = subprocess.run(d["command"]).returncode
-    if rc != d["quiet"]:
+    quiet = int(os.environ.get("TARIBOY_QUIET_EXIT", "111"))
+    rc = subprocess.run(d["command"], env=dict(os.environ, TARIBOY_QUIET_EXIT=str(quiet))).returncode
+    if rc != quiet:
         d["state"] = "completed"
         state["outbox"].append({"script_id": args[0], "exit": rc})
     save(); print(rc)
@@ -69,7 +72,7 @@ FAKE_POLL = r'''#!/usr/bin/env python3
 import json, os, sys
 review, state_dir = sys.argv[1], sys.argv[sys.argv.index("--state-dir") + 1]
 scenario = open(os.path.join(state_dir, "scenario")).read().strip()
-codes = {"unchanged": 2, "open": 0, "closed": 0, "merged": 0, "data-error": 3, "missing-credential": 4}
+codes = {"unchanged": int(os.environ.get("TARIBOY_QUIET_EXIT", "111")), "open": 0, "closed": 0, "merged": 0, "data-error": 3, "missing-credential": 4}
 if scenario in ("open", "closed", "merged"):
     facts = {"review": review, "state": scenario}
     if scenario == "merged":
@@ -180,21 +183,23 @@ class ClosureMonitorContract(unittest.TestCase):
     def test_template_uses_owning_launcher_with_fixed_cadence(self):
         words = self.template()
         self.assertEqual(words[:3], ["scripts/scripts.sh", "schedule", "NAME"])
-        self.assertEqual(words[3:8], ["--every", "60", "--quiet-exit", "2", "--"])
-        github = re.findall(r"scripts/scripts\.sh schedule \S+ --every 60 --quiet-exit 2 -- \S+ monitor", self.skill)
+        self.assertEqual(words[3:6], ["--every", "60", "--"])
+        self.assertNotIn("--quiet-exit", self.skill)
+        self.assertNotIn("--quiet-exit", self.instructions)
+        github = re.findall(r"scripts/scripts\.sh schedule \S+ --every 60 -- \S+ monitor", self.skill)
         self.assertEqual(len(github), 1, "GitHub lifecycle keeps its own schedule template")
 
     def test_saved_command_is_identical_and_active(self):
         sid, poll = self.schedule_from_template()
         definition = self.ls()[sid]
         self.assertEqual(definition["command"], poll)
-        self.assertEqual((definition["every"], definition["quiet"], definition["state"]), (60, 2, "active"))
+        self.assertEqual((definition["every"], definition["state"]), (60, "active"))
 
     def test_unchanged_observation_is_quiet_and_keeps_running(self):
         sid, _ = self.schedule_from_template()
         self.scenario("unchanged")
         for _ in range(3):
-            self.assertEqual(self.scripts("tick", sid).strip(), "2")
+            self.assertEqual(self.scripts("tick", sid).strip(), "111")
         self.assertEqual(self.ls()[sid]["state"], "active")
         with open(self.env["FAKE_LEDGER"]) as handle:
             self.assertEqual(json.load(handle)["outbox"], [])
@@ -209,7 +214,7 @@ class ClosureMonitorContract(unittest.TestCase):
                     self.reset_ledger()
                     sid, _ = self.schedule_from_template()
                     self.scenario(name)
-                    self.assertNotEqual(self.scripts("tick", sid).strip(), "2", "never quiet")
+                    self.assertNotEqual(self.scripts("tick", sid).strip(), "111", "never quiet")
                     self.assertEqual(self.ls()[sid]["state"], "completed")
                     if "`rm SCRIPT_ID`" in action:
                         self.assertIn("never `rerun`", action)

@@ -175,6 +175,7 @@ class GitHubPRWorkflowTests(unittest.TestCase):
         github_token=None,
         github_repository=None,
         origin_url=None,
+        quiet_code=None,
     ):
         with tempfile.TemporaryDirectory() as process_sandbox:
             sandbox = Path(process_sandbox)
@@ -208,6 +209,9 @@ class GitHubPRWorkflowTests(unittest.TestCase):
             env.pop("GH_TOKEN", None)
             env.pop("GITHUB_TOKEN", None)
             env.pop("GITHUB_REPOSITORY", None)
+            env.pop("TARIBOY_QUIET_EXIT", None)
+            if quiet_code is not None:
+                env["TARIBOY_QUIET_EXIT"] = quiet_code
             env.update({
                 "HOME": str(home),
                 "PWD": str(working_dir),
@@ -427,8 +431,18 @@ class GitHubPRWorkflowTests(unittest.TestCase):
             unchanged = self.run_utility("monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl)
             curl.set_responses(monitor_responses(checks=[{"id": 7, "name": "check", "status": "completed", "conclusion": "success"}]))
             changed = self.run_utility("monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl)
-        self.assertEqual(unchanged.returncode, 2, unchanged.stderr)
+        self.assertEqual(unchanged.returncode, 111, unchanged.stderr)
         self.assertEqual(changed.returncode, 0, changed.stderr)
+
+    def test_monitor_unchanged_observation_exits_with_the_exported_quiet_code(self):
+        with tempfile.TemporaryDirectory() as state_dir, FakeCurl(monitor_responses()) as curl:
+            first = self.run_utility("monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl)
+            curl.set_responses(monitor_responses())
+            unchanged = self.run_utility(
+                "monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl, quiet_code="77"
+            )
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(unchanged.returncode, 77, unchanged.stderr)
 
     def test_monitor_failed_check_and_status_transitions_emit_actionable_metadata(self):
         successful_check = {
@@ -525,7 +539,7 @@ class GitHubPRWorkflowTests(unittest.TestCase):
         for body in ("initial issue body", "review comment body", "review body"):
             self.assertIn(body, first.stdout)
             self.assertNotIn(body, state)
-        self.assertEqual(unchanged.returncode, 2, unchanged.stderr)
+        self.assertEqual(unchanged.returncode, 111, unchanged.stderr)
         for body in ("initial issue body", "review comment body", "review body"):
             self.assertNotIn(body, unchanged.stdout)
         self.assertEqual(updated.returncode, 0, updated.stderr)

@@ -899,6 +899,15 @@ def observation_facts(
     return facts
 
 
+def quiet_code() -> int:
+    """Exit code the daemon treats as a quiet run of a recurring script."""
+    try:
+        code = int(os.environ.get("TARIBOY_QUIET_EXIT", "111"))
+    except ValueError:
+        return 111
+    return code if 0 <= code <= 255 else 111
+
+
 def command_monitor(args: argparse.Namespace, client: GitHubClient) -> int:
     owner, repo = args.resolved_repo
     repository = f"{owner}/{repo}"
@@ -945,7 +954,7 @@ def command_monitor(args: argparse.Namespace, client: GitHubClient) -> int:
     validate_snapshot(snapshot, repository, args.pr)
     payload = encode_snapshot(snapshot)
     if old == snapshot:
-        return 2
+        return quiet_code()
 
     facts = observation_facts(
         old,

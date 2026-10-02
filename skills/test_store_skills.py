@@ -331,6 +331,27 @@ class StoreSkillsTest(unittest.TestCase):
                 self.assertIn("unknown flag", process.stderr)
                 self.assertIsNone(request)
 
+    def test_scripts_schedule_rejects_quiet_exit_flag_naming_the_env_code(self):
+        process, request = self.run_script(
+            "scripts/scripts/scripts.sh",
+            ["schedule", "poll", "--every", "60", "--quiet-exit", "2", "--", "echo", "done"],
+            {},
+        )
+        self.assertEqual(process.returncode, 2)
+        self.assertIn("TARIBOY_QUIET_EXIT", process.stderr)
+        self.assertIn("111", process.stderr)
+        self.assertIsNone(request)
+
+    def test_scripts_schedule_request_has_no_quiet_exit(self):
+        process, request = self.run_script(
+            "scripts/scripts/scripts.sh",
+            ["schedule", "poll", "--every", "60", "--", "echo", "done"],
+            {},
+        )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(request[0][:2], ["POST", "/tools/script/schedule"])
+        self.assertNotIn(b"quiet_exit", request[1])
+
     def test_socket_server_stops_when_launch_raises(self):
         with patch("subprocess.run", side_effect=RuntimeError("launch failed")):
             with self.assertRaisesRegex(RuntimeError, "launch failed"):

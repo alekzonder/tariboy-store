@@ -43,7 +43,7 @@
     "github-pr-workflow": {
       "source": "../tariboy-developer/skills/github-pr-workflow",
       "sourceType": "local",
-      "computedHash": "621d12871d292ce1a98b72b90bbfe60c1be4885b830a728d51d560124fda589b"
+      "computedHash": "c2e3522a5d55c784848398b3cb4ba8d451bc0d63ef09d2c60145515ba8a05314"
     },
     "goal": {
       "source": "../../skills/goal",
@@ -80,7 +80,7 @@
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "61ec9dab9d5c75a30f7f1b7ecaa4ef33ab2065a41c45b849019eb075d6903d56"
+      "computedHash": "f777315b399d5625c599ab6eb21d8b214e3ffe5e24660123c8e6e4eda1e5b6f7"
     },
     "status": {
       "source": "../../skills/status",
@@ -107,7 +107,7 @@
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
       "sourceType": "local",
-      "computedHash": "9ea4e4967e3436249c438ec2bc6e786420f72e4fbf3db05d6bad09f42bb91c85"
+      "computedHash": "a973c9e9a1d100c6cf4c70f6e9a9bcdf52ea556277901e7fd88b57d1b0f1fecb"
     },
     "tasks": {
       "source": "../../skills/tasks",
