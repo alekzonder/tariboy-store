@@ -1,0 +1,71 @@
+schema_version: 1
+name: development
+workflow_version: 0.1.0
+initial_status: plan
+
+requires_secrets: [GH_TOKEN]
+
+limits:
+  idle_iterations: 3
+  rejected_requests: 5
+  script_failures: 3
+  unavailable_grace: 5m
+
+artifacts:
+  - name: plan
+    description: The implementation plan, as Markdown.
+  - name: pull_request
+    description: URL of the pull request for this task.
+  - name: merge_commit
+    description: Merge commit recorded by the monitor.
+
+statuses:
+  - id: plan
+    owner: { pool: developers }
+    instructions: ./statuses/plan.md
+    transitions:
+      - on: planned
+        to: approval
+        requires: [plan]
+
+  - id: approval
+    owner: customer
+    instructions: ./statuses/approval.md
+    transitions:
+      - { on: approved, to: implement }
+      - { on: changes_requested, to: plan }
+
+  - id: implement
+    owner: { pool: developers }
+    instructions: ./statuses/implement.md
+    limits: { idle_iterations: 6 }
+    transitions:
+      - on: ready
+        to: review
+        requires: [pull_request]
+        checks:
+          - script: ./scripts/pr-open.py
+            timeout: 60s
+
+  - id: review
+    owner: script
+    watch:
+      script: ./scripts/pr-monitor.py
+      every: 60s
+      timeout: 60s
+    transitions:
+      - { on: merged, to: complete }
+      - { on: changes_requested, to: implement }
+
+  - id: complete
+    owner: { pool: developers }
+    instructions: ./statuses/complete.md
+    transitions:
+      - on: cleaned
+        to: done
+        checks:
+          - script: ./scripts/merged-on-base.py
+            run_as: agent
+
+  - id: done
+    terminal: true
