@@ -59,6 +59,44 @@ existing image digests and images maintained elsewhere do not change automatical
 Behavioral evidence and executable text checks are in `skills/cli-text/evals/`;
 per-image routing evidence is in each image's `evals/cli-text/` directory.
 
+## Workflow images
+
+A workflow image packages a task workflow: the statuses a task moves through,
+who owns each one, and the scripts that check or watch for a transition. It is
+built from `workflows/<name>/`:
+
+- `Workflowfile.yaml` is the manifest (`schema_version: 1`).
+- `statuses/<status>.md` holds the instructions an agent reads in a status.
+- `scripts/` holds the check and watch scripts the manifest names.
+
+A workflow source directory is self-contained: no symlinks, no path outside the
+directory, every script executable, and no file named `manifest.json` at its
+root. Scripts use only the Python 3 standard library, `curl`, `git` and POSIX
+`sh`.
+
+An agent image holds the tools, skills and prompts of one agent. A workflow
+image holds the process around a task: statuses, transitions, required
+artifacts and their scripts. Nothing of the process belongs in an agent image,
+and no agent tooling belongs in a workflow image.
+
+Build one by its Store selector, or from a path:
+
+```bash
+tariboy workflow build --source official/research
+tariboy workflow build --path workflows/research
+tariboy workflow validate --path workflows/research
+```
+
+The default tag is the manifest's `workflow_version`. Update an existing source
+with `tariboy workflow version update patch --path workflows/<name>` before
+publishing changed content.
+
+Bind a built workflow to a queue with the operator command:
+
+```bash
+ttasks queue workflow set QUEUE research:0.1.0
+```
+
 ## Release publisher
 
 `tariboy-release-publisher` creates a TARI task for each new release, proposes
@@ -80,5 +118,9 @@ make check
 The check runs skill client contracts, checks the image creator's closure-monitor
 contract against a fake Scripts launcher, rejects Tariboy checkout and versioned
 Store paths, restores locked skills only in a temporary copy, and validates and
-builds every image against a temporary isolated daemon. It never uses the live
-Tariboy base directory, runtime directory, or HTTP listener.
+builds every image against a temporary isolated daemon. It then validates and
+builds every `workflows/<name>/Workflowfile.yaml` against the same daemon and
+scans workflow manifests, scripts and status instructions for the same
+forbidden paths. A workflow that fails validation fails the check and prints
+the daemon's error list. The check never uses the live Tariboy base directory,
+runtime directory, or HTTP listener.

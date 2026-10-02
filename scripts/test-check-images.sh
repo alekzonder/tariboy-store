@@ -63,3 +63,31 @@ case "$output" in
     exit 1
     ;;
 esac
+
+rm -rf -- "$fixture"
+mkdir -p "$fixture/workflows/example"
+printf '%s\n' \
+  'schema_version: 1' \
+  'name: example' \
+  'initial_status: /home/agent/github/tariboy/scripts/check.sh' >"$fixture/workflows/example/Workflowfile.yaml"
+if output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); then
+  printf '%s\n' 'expected forbidden checkout path in a workflow to fail' >&2
+  exit 1
+fi
+case "$output" in
+  *'workflows/example/Workflowfile.yaml'*'/home/agent/github/tariboy'*) ;;
+  *)
+    printf 'unexpected diagnostic: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac
+
+rm -rf -- "$fixture"
+mkdir -p "$fixture/workflows/example/scripts" "$fixture/workflows/example/statuses"
+printf '%s\n' 'schema_version: 1' 'name: example' >"$fixture/workflows/example/Workflowfile.yaml"
+printf '%s\n' '#!/bin/sh' 'exit 0' >"$fixture/workflows/example/scripts/check.sh"
+printf '%s\n' 'Do the work.' >"$fixture/workflows/example/statuses/work.md"
+if ! output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); then
+  printf 'expected a clean workflow to pass: %s\n' "$output" >&2
+  exit 1
+fi

@@ -1,0 +1,20 @@
+schema_version: 1
+name: research
+workflow_version: 0.1.0
+initial_status: research
+
+artifacts:
+  - name: report
+    description: The research report, as Markdown.
+
+statuses:
+  - id: research
+    owner: { pool: researchers }
+    instructions: ./statuses/research.md
+    transitions:
+      - on: reported
+        to: done
+        requires: [report]
+
+  - id: done
+    terminal: true

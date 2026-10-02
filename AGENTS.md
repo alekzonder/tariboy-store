@@ -15,7 +15,8 @@ Before changing files, read `README.md` for the repository layout, the image
 build commands and the check contract. Then read the source that owns the
 behavior in scope: `skills/<name>/SKILL.md` for a Store skill, and
 `images/<name>/instructions.md` together with `images/<name>/Tariboyfile.yaml`
-for an image.
+for an image, and `workflows/<name>/Workflowfile.yaml` together with its
+`statuses/` instructions for a workflow image.
 
 ## Verification
 

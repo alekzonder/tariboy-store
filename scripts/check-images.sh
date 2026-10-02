@@ -6,12 +6,23 @@ repo_root=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
 check_paths() {
   local source=$1
   local matches
-  matches=$(rg -n --glob Tariboyfile.yaml '\$(CURRENT_VERSION_STORE|STORE)(/|$)|/home/agent/github/tariboy' "$source/images" || true)
-  if test -n "$matches"; then
-    printf '%s\n' "$matches" >&2
-    return 1
+  local forbidden='\$(CURRENT_VERSION_STORE|STORE)(/|$)|/home/agent/github/tariboy'
+  if test -d "$source/images"; then
+    matches=$(rg -n --glob Tariboyfile.yaml "$forbidden" "$source/images" || true)
+    if test -n "$matches"; then
+      printf '%s\n' "$matches" >&2
+      return 1
+    fi
+  fi
+  if test -d "$source/workflows"; then
+    matches=$(rg -n --glob Workflowfile.yaml --glob '**/scripts/**' --glob '**/statuses/**' "$forbidden" "$source/workflows" || true)
+    if test -n "$matches"; then
+      printf '%s\n' "$matches" >&2
+      return 1
+    fi
   fi
   local duplicate
+  test -d "$source/images" || return 0
   duplicate=$(find "$source/images" -mindepth 2 -maxdepth 2 -name iteration-finish.md -print -quit)
   if test -n "$duplicate"; then
     printf '%s duplicates skills/loop/finish-iteration.md\n' "${duplicate#"$source/"}" >&2
@@ -70,6 +81,8 @@ cleanup() {
     kill "$daemon_pid"
     wait "$daemon_pid" 2>/dev/null || true
   fi
+  # A built workflow image keeps its content read-only.
+  chmod -R u+w -- "$tmp" 2>/dev/null || true
   rm -rf -- "$tmp"
 }
 trap cleanup EXIT
@@ -113,4 +126,19 @@ for image_dir in "$source_copy"/images/*; do
   name=$(basename -- "$image_dir")
   "$tariboy_bin" --socket "$socket" image validate --path "$image_dir" --name "$name" >/dev/null
   "$tariboy_bin" --socket "$socket" image build --path "$image_dir" --name "$name" --tag store-check >/dev/null
+done
+
+for workflow_dir in "$source_copy"/workflows/*; do
+  test -f "$workflow_dir/Workflowfile.yaml" || continue
+  name=$(basename -- "$workflow_dir")
+  if ! "$tariboy_bin" --socket "$socket" workflow validate --path "$workflow_dir" >"$tmp/workflow.log" 2>&1; then
+    printf 'workflow %s failed validation:\n' "$name" >&2
+    sed -n '1,200p' "$tmp/workflow.log" >&2
+    exit 1
+  fi
+  if ! "$tariboy_bin" --socket "$socket" workflow build --path "$workflow_dir" >"$tmp/workflow.log" 2>&1; then
+    printf 'workflow %s failed to build:\n' "$name" >&2
+    sed -n '1,200p' "$tmp/workflow.log" >&2
+    exit 1
+  fi
 done
