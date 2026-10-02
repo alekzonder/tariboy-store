@@ -295,7 +295,9 @@ def stop_process(process: subprocess.Popen[bytes]) -> None:
         raise ScriptFailure("failed to reap curl after termination") from exc
 
 
-def bounded_process_output(process: subprocess.Popen[bytes]) -> tuple[bytes, bytes]:
+def bounded_process_output(
+    process: subprocess.Popen[bytes], limit_seconds: float = 35
+) -> tuple[bytes, bytes]:
     if process.stdout is None or process.stderr is None:
         fail("curl output pipes are unavailable")
     streams = {
@@ -304,7 +306,7 @@ def bounded_process_output(process: subprocess.Popen[bytes]) -> tuple[bytes, byt
     }
     buffers = {"response": bytearray(), "diagnostic": bytearray()}
     selector = selectors.DefaultSelector()
-    deadline = time.monotonic() + 35
+    deadline = time.monotonic() + limit_seconds
     try:
         for descriptor in streams:
             os.set_blocking(descriptor, False)
@@ -350,10 +352,28 @@ STATUS_MARKER = b"\n#tariboy-http-status:"
 
 
 class GitHubClient:
-    def __init__(self, token: str | None = None, curl_bin: str | None = None):
+    def __init__(
+        self,
+        token: str | None = None,
+        curl_bin: str | None = None,
+        deadline: float | None = None,
+    ):
+        """`deadline`, a time.monotonic() value, bounds every request of the
+        client together: no request starts after it or runs past it."""
         self.token = token if token is not None else select_token()
         self.api_base = resolve_api_base()
         self.curl_bin = curl_bin if curl_bin is not None else resolve_curl()
+        self.deadline = deadline
+
+    def _time_limits(self) -> tuple[int, int, float]:
+        """Connect timeout, curl --max-time, and the output deadline."""
+        if self.deadline is None:
+            return 10, 30, 35
+        remaining = self.deadline - time.monotonic()
+        if remaining < 1:
+            fail("the run exceeded its overall time limit")
+        seconds = min(30, int(remaining))
+        return min(10, seconds), seconds, min(35.0, remaining)
 
     def request(
         self,
@@ -370,6 +390,7 @@ class GitHubClient:
             url = append_query(url, params)
         if self.token in url:
             fail("refusing to place the GitHub token in a URL")
+        connect_timeout, max_time, output_limit = self._time_limits()
 
         args = [
             self.curl_bin,
@@ -378,9 +399,9 @@ class GitHubClient:
             "--show-error",
             "--fail-with-body",
             "--connect-timeout",
-            "10",
+            str(connect_timeout),
             "--max-time",
-            "30",
+            str(max_time),
             "--max-filesize",
             str(MAX_RESPONSE_BYTES),
             "--config",
@@ -426,7 +447,7 @@ class GitHubClient:
                 view = view[written:]
             os.close(write_fd)
             write_fd = -1
-            stdout, _ = bounded_process_output(process)
+            stdout, _ = bounded_process_output(process, output_limit)
         except OSError as exc:
             if process is not None:
                 stop_process(process)

@@ -303,31 +303,31 @@ class ItemTests(MonitorCase):
             (
                 "failed check",
                 {"checks": [check(5, "unit", conclusion="failure")]},
-                f"check:{HEAD_SHA}:unit",
+                f"check:{HEAD_SHA}:unit:5",
                 "check — unit — https://github.com/acme/widget/runs/5 — failure",
             ),
             (
                 "timed out check",
                 {"checks": [check(6, "e2e", conclusion="timed_out")]},
-                f"check:{HEAD_SHA}:e2e",
+                f"check:{HEAD_SHA}:e2e:6",
                 "check — e2e — https://github.com/acme/widget/runs/6 — timed_out",
             ),
             (
                 "cancelled check",
                 {"checks": [check(7, "e2e", conclusion="cancelled")]},
-                f"check:{HEAD_SHA}:e2e",
+                f"check:{HEAD_SHA}:e2e:7",
                 "check — e2e — https://github.com/acme/widget/runs/7 — cancelled",
             ),
             (
                 "failed status",
                 {"statuses": [commit_status(10, "ci/build", "failure")]},
-                f"status:{HEAD_SHA}:ci/build",
+                f"status:{HEAD_SHA}:ci/build:10",
                 "status — ci/build — https://ci.example.com/build/1 — failure",
             ),
             (
                 "errored status without a target",
                 {"statuses": [commit_status(11, "ci/deploy", "error", target_url=None)]},
-                f"status:{HEAD_SHA}:ci/deploy",
+                f"status:{HEAD_SHA}:ci/deploy:11",
                 f"status — ci/deploy — {PR_URL} — error",
             ),
             (
@@ -412,7 +412,7 @@ class ItemTests(MonitorCase):
         )
         code, result, _, _ = self.run_monitor()
         self.assert_changes(code, result)
-        self.assertEqual(self.pending_ids(), [f"status:{HEAD_SHA}:ci/build"])
+        self.assertEqual(self.pending_ids(), [f"status:{HEAD_SHA}:ci/build:13"])
 
     def test_items_are_listed_in_a_stable_order(self):
         self.observe(
@@ -429,8 +429,8 @@ class ItemTests(MonitorCase):
             self.pending_ids(),
             [
                 f"closed:{CLOSED_AT}",
-                f"check:{HEAD_SHA}:unit",
-                f"status:{HEAD_SHA}:ci/build",
+                f"check:{HEAD_SHA}:unit:5",
+                f"status:{HEAD_SHA}:ci/build:10",
                 "review:20",
                 "review_comment:30",
                 "issue_comment:40",
@@ -510,7 +510,7 @@ class VisitTests(MonitorCase):
     def test_a_new_head_makes_the_same_check_failure_a_new_item(self):
         self.observe(checks=[check(5, "unit", conclusion="failure")])
         self.assert_changes(*self.run_monitor(visit=7)[:2])
-        self.assertEqual(self.pending_ids(), [f"check:{HEAD_SHA}:unit"])
+        self.assertEqual(self.pending_ids(), [f"check:{HEAD_SHA}:unit:5"])
 
         code, result, _, _ = self.run_monitor(visit=8)
         self.assertEqual(code, QUIET, result)
@@ -520,9 +520,41 @@ class VisitTests(MonitorCase):
             checks=[check(9, "unit", conclusion="failure", head=NEW_HEAD_SHA)],
         )
         self.assert_changes(*self.run_monitor(visit=9)[:2])
-        self.assertEqual(self.pending_ids(), [f"check:{NEW_HEAD_SHA}:unit"])
+        self.assertEqual(self.pending_ids(), [f"check:{NEW_HEAD_SHA}:unit:9"])
         self.assertEqual(self.state()["head_sha"], NEW_HEAD_SHA)
-        self.assertIn(f"check:{HEAD_SHA}:unit", self.state()["acknowledged"])
+
+    def test_a_rerun_that_fails_again_on_the_same_head_is_a_new_item(self):
+        self.observe(
+            checks=[check(5, "unit", conclusion="failure")],
+            statuses=[commit_status(10, "ci/build", "failure")],
+        )
+        self.assert_changes(*self.run_monitor(visit=7)[:2])
+        code, result, _, _ = self.run_monitor(visit=8)
+        self.assertEqual(code, QUIET, result)
+
+        self.observe(
+            checks=[check(6, "unit", conclusion="failure")],
+            statuses=[commit_status(12, "ci/build", "failure"), commit_status(10, "ci/build", "failure")],
+        )
+        self.assert_changes(*self.run_monitor(visit=8)[:2])
+        self.assertEqual(
+            self.pending_ids(), [f"check:{HEAD_SHA}:unit:6", f"status:{HEAD_SHA}:ci/build:12"]
+        )
+
+    def test_acknowledged_checks_of_an_old_head_are_dropped(self):
+        self.observe(
+            checks=[check(5, "unit", conclusion="failure")],
+            statuses=[commit_status(10, "ci/build", "failure")],
+            issue_comments=[comment(40)],
+        )
+        self.assert_changes(*self.run_monitor(visit=7)[:2])
+        self.run_monitor(visit=8)
+        self.assertEqual(len(self.state()["acknowledged"]), 3)
+
+        self.observe(pr=pull(head=NEW_HEAD_SHA), issue_comments=[comment(40), comment(41)])
+        self.assert_changes(*self.run_monitor(visit=8)[:2])
+        self.assertEqual(self.state()["acknowledged"], ["issue_comment:40"])
+        self.assertEqual(self.pending_ids(), ["issue_comment:41"])
 
     def test_closed_without_merge_is_reported_once_per_visit(self):
         self.observe(pr=pull(state="closed", closed_at=CLOSED_AT), issue_comments=[comment(40)])
@@ -572,10 +604,18 @@ class FailureTests(MonitorCase):
         data, info = before
         self.assertEqual(self.state_path.read_bytes(), data)
         self.assertEqual(self.state_path.stat().st_ino, info.st_ino)
+        return stderr
 
     def test_http_errors_are_failures_that_keep_the_state(self):
         before = self.seed_state()
-        for route in ("pulls/42", f"commits/{HEAD_SHA}/check-runs", "pulls/42/reviews", "issues/42/comments"):
+        for route in (
+            "pulls/42",
+            f"commits/{HEAD_SHA}/check-runs",
+            f"commits/{HEAD_SHA}/statuses",
+            "pulls/42/reviews",
+            "pulls/42/comments",
+            "issues/42/comments",
+        ):
             for status in (403, 500):
                 with self.subTest(route=route, status=status):
                     self.observe(issue_comments=[comment(40), comment(41)])
@@ -590,7 +630,6 @@ class FailureTests(MonitorCase):
             "cut JSON": good[: len(good) // 2],
             "not JSON": b"<html>" + BODY_TEXT.encode("utf-8") + b"</html>",
             "not a list": {"message": "nope"},
-            "missing user": [{**comment(41), "user": None}],
             "duplicate ids": [comment(41), comment(41)],
             "bad id": [{**comment(41), "id": "41"}],
         }
@@ -599,6 +638,20 @@ class FailureTests(MonitorCase):
                 self.observe(issue_comments=[comment(40), comment(41)])
                 self.github.routes[f"{BASE}/issues/42/comments"] = (200, body)
                 self.assert_failure_keeps_state(before)
+
+    def test_a_truncated_review_list_is_a_failure_that_keeps_the_state(self):
+        before = self.seed_state()
+        self.observe(issue_comments=[comment(40), comment(41)])
+        good = json.dumps([review(20, "CHANGES_REQUESTED")]).encode("utf-8")
+        self.github.routes[f"{BASE}/pulls/42/reviews"] = (200, Truncated(good))
+        self.assert_failure_keeps_state(before)
+
+    def test_reaching_the_pagination_limit_is_a_failure_that_keeps_the_state(self):
+        before = self.seed_state()
+        many = [{"id": index, "user": {"login": "alice"}, "html_url": None} for index in range(1, 10002)]
+        self.observe(issue_comments=many)
+        stderr = self.assert_failure_keeps_state(before)
+        self.assertIn("item limit", stderr)
 
     def test_malformed_pull_requests_and_checks_are_failures(self):
         before = self.seed_state()
@@ -636,6 +689,85 @@ class FailureTests(MonitorCase):
                 self.assertEqual(code, 1)
                 self.assertIsNone(result)
                 self.assertEqual(self.state_path.read_text(encoding="utf-8"), value)
+
+
+class OddDataTests(MonitorCase):
+    def test_enterprise_managed_logins_with_underscores_are_items(self):
+        self.observe(issue_comments=[comment(40, login="jane_acme")])
+        message = self.assert_changes(*self.run_monitor()[:2])
+        self.assertIn(f"issue_comment — jane_acme — {PR_URL}#issuecomment-40 — new", message.splitlines())
+
+    def test_an_unknown_login_is_rendered_as_unknown(self):
+        self.observe(
+            reviews=[{**review(20, "CHANGES_REQUESTED"), "user": None}],
+            review_comments=[{**comment(30, anchor="discussion_r"), "user": {"login": "bad\u202elogin"}}],
+            issue_comments=[{key: value for key, value in comment(40).items() if key != "user"}],
+        )
+        message = self.assert_changes(*self.run_monitor()[:2])
+        self.assertEqual(self.pending_ids(), ["review:20", "review_comment:30", "issue_comment:40"])
+        lines = message.splitlines()
+        self.assertIn(f"review — unknown — {PR_URL}#pullrequestreview-20 — CHANGES_REQUESTED", lines)
+        self.assertIn(f"review_comment — unknown — {PR_URL}#discussion_r-30 — new", lines)
+        self.assertIn(f"issue_comment — unknown — {PR_URL}#issuecomment-40 — new", lines)
+
+    def test_an_unknown_pull_request_author_ignores_no_comment(self):
+        body = pull()
+        body["user"] = None
+        self.observe(pr=body, issue_comments=[{**comment(40), "user": None}])
+        self.assert_changes(*self.run_monitor()[:2])
+        self.assertEqual(self.pending_ids(), ["issue_comment:40"])
+
+    def test_control_and_separator_characters_in_names_become_spaces(self):
+        self.observe(
+            checks=[
+                check(5, "unit\u2028tests", conclusion="failure"),
+                check(6, "lint\x07now", conclusion="failure"),
+            ],
+            statuses=[commit_status(10, "ci\u200b/build\n", "failure")],
+        )
+        message = self.assert_changes(*self.run_monitor()[:2])
+        self.assertEqual(
+            self.pending_ids(),
+            [f"check:{HEAD_SHA}:lint now:6", f"check:{HEAD_SHA}:unit tests:5", f"status:{HEAD_SHA}:ci /build:10"],
+        )
+        for character in ("\u2028", "\x07", "\u200b"):
+            self.assertNotIn(character, message)
+            self.assertNotIn(character, self.state_path.read_text(encoding="utf-8"))
+        self.assertIn("check — unit tests — https://github.com/acme/widget/runs/5 — failure", message.splitlines())
+
+    def test_long_names_are_hashed_in_the_identity(self):
+        import hashlib
+
+        name = "x" * 150
+        self.observe(checks=[check(5, name, conclusion="failure")])
+        message = self.assert_changes(*self.run_monitor()[:2])
+        digest = hashlib.sha256(name.encode("utf-8")).hexdigest()[:16]
+        self.assertEqual(self.pending_ids(), [f"check:{HEAD_SHA}:{digest}:5"])
+        self.assertIn(f"check — {'x' * 100} — ", message)
+        self.assertNotIn("x" * 101, message)
+
+    def test_multibyte_names_keep_the_more_line_within_4_kib(self):
+        checks = [check(index, f"{'检查' * 45}-{index}", conclusion="failure") for index in range(1, 201)]
+        self.observe(checks=checks)
+        message = self.assert_changes(*self.run_monitor()[:2])
+        self.assertLessEqual(len(message.encode("utf-8")), 3900)
+        lines = message.splitlines()
+        listed = [line for line in lines if line.startswith("check — ")]
+        self.assertTrue(listed)
+        self.assertLess(len(listed), 20)
+        self.assertEqual(lines[-1], f"(+{200 - len(listed)} more)")
+
+    def test_stale_temporary_state_files_are_removed(self):
+        stale = [self.task_dir / ".pr-monitor.json.abc123.tmp", self.task_dir / ".pr-monitor.json.zz.tmp"]
+        for path in stale:
+            path.write_text("partial", encoding="utf-8")
+        keep = self.task_dir / "other.tmp"
+        keep.write_text("keep", encoding="utf-8")
+        code, result, _, _ = self.run_monitor()
+        self.assertEqual(code, QUIET, result)
+        for path in stale:
+            self.assertFalse(path.exists(), path)
+        self.assertTrue(keep.exists())
 
 
 class TokenTests(MonitorCase):

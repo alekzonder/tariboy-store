@@ -13,11 +13,24 @@ outcome (`pending`, keyed by the visit that reported them).
 
 Text taken from GitHub is untrusted: no body is ever read into the message or
 the state file; a message line carries only the item kind, the author login
-or check name, a URL, and a state.
+or check name, a URL, and a state. Odd values never stop the watch: an
+unusable login reads `unknown`, and control and separator characters in a
+check name or status context become spaces.
+
+The whole run has a 50-second deadline, below the 60-second watch timeout,
+so a slow GitHub is a failure that leaves the state file as it was.
+
+One window remains. The state file is written before the result file, so a
+run killed in the milliseconds between the two writes leaves a pending entry
+that the daemon never applied. The same visit reports it again; but if the
+task leaves the status by another route first (an operator move), a later
+visit treats that entry as applied and acknowledges its items, which the
+developer then never saw in a transition message.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -25,7 +38,9 @@ import re
 import stat
 import sys
 import tempfile
+import time
 from typing import Any
+import unicodedata
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,14 +50,18 @@ from pr_lib import fail  # noqa: E402
 
 STATE_FILE = "pr-monitor.json"
 SHA_RE = re.compile(r"^[0-9a-f]{40}([0-9a-f]{24})?$")
-LOGIN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,99}(\[bot\])?$")
+LOGIN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,99}(\[bot\])?$")
+UNKNOWN_LOGIN = "unknown"
+STRIPPED_CATEGORIES = {"Cc", "Cf", "Zl", "Zp"}
+RUN_DEADLINE_SECONDS = 50
 URL_RE = re.compile(r"^https://[A-Za-z0-9._~:/?#@!&*+,;=%-]+$")
 FAILED_CONCLUSIONS = {"failure", "timed_out", "cancelled", "action_required", "startup_failure"}
 FAILED_STATES = {"failure", "error"}
 MAX_LISTED = 20
-MESSAGE_BUDGET = 3900
+MESSAGE_BUDGET_BYTES = 3900
 MAX_NAME_CHARS = 100
 MAX_URL_CHARS = 300
+IDENTITY_HASH_CHARS = 16
 
 
 # --- Field validation (from the github-pr-workflow utility) ------------------
@@ -95,12 +114,33 @@ def body_is_empty(value: dict[str, Any], label: str) -> bool:
     return not body.strip()
 
 
-def login_field(value: dict[str, Any], label: str) -> str:
+def login_of(value: dict[str, Any]) -> str | None:
+    """The author login, or None when it is missing or unusable."""
     user = value.get("user")
     login = user.get("login") if isinstance(user, dict) else None
     if not isinstance(login, str) or not LOGIN_RE.fullmatch(login):
-        fail(f"GitHub {label} has an invalid user")
+        return None
     return pr_lib.redact_text(login)
+
+
+def label_field(value: dict[str, Any], key: str, label: str) -> str:
+    """A check name or status context: control, format, and separator
+    characters become spaces instead of failing the run."""
+    item = value.get(key)
+    if not isinstance(item, str) or len(item) > pr_lib.MAX_RESPONSE_BYTES:
+        fail(f"GitHub {label} has an invalid {key}")
+    cleaned = "".join(
+        " " if unicodedata.category(character) in STRIPPED_CATEGORIES else character
+        for character in item
+    )
+    return pr_lib.redact_text(cleaned.strip())
+
+
+def url_field(value: dict[str, Any], key: str, fallback: str) -> str:
+    item = value.get(key)
+    if not isinstance(item, str):
+        return fallback
+    return fact_url(pr_lib.redact_text(item), fallback)
 
 
 def unique_id(item: dict[str, Any], label: str, seen: set[int]) -> int:
@@ -122,6 +162,13 @@ def fact_url(value: str | None, fallback: str) -> str:
 
 def fact_name(value: str) -> str:
     return value[:MAX_NAME_CHARS]
+
+
+def identity_name(value: str) -> str:
+    """A name as it appears in an identity: long names by a hash prefix."""
+    if len(value) <= MAX_NAME_CHARS:
+        return value
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:IDENTITY_HASH_CHARS]
 
 
 def make_item(identity: str, kind: str, name: str, url: str, state: str) -> dict[str, str]:
@@ -167,7 +214,7 @@ def normalize_pr(value: Any, number: int) -> dict[str, Any]:
         "head_sha": head_sha,
         "head_ref": head_ref,
         "base_ref": base_ref,
-        "author": login_field(item, "pull request"),
+        "author": login_of(item),
     }
 
 
@@ -177,41 +224,50 @@ def failed_checks(values: list[Any], head_sha: str, pr_url: str) -> list[dict[st
     for value in values:
         check = require_dict(value, "check run")
         check_id = unique_id(check, "check run", seen)
-        name = text_field(check, "name", "check run") or ""
+        name = label_field(check, "name", "check run")
         status = nonempty_text_field(check, "status", "check run")
         conclusion = text_field(check, "conclusion", "check run", nullable=True)
-        url = text_field(check, "html_url", "check run", nullable=True)
         if status != "completed" or conclusion not in FAILED_CONCLUSIONS:
             continue
         label = name or str(check_id)
         items.append(
             make_item(
-                f"check:{head_sha}:{label}", "check", fact_name(label), fact_url(url, pr_url), conclusion
+                f"check:{head_sha}:{identity_name(label)}:{check_id}",
+                "check",
+                fact_name(label),
+                url_field(check, "html_url", pr_url),
+                conclusion,
             )
         )
     return sorted(items, key=lambda item: item["id"])
 
 
 def failed_statuses(values: list[Any], head_sha: str, pr_url: str) -> list[dict[str, str]]:
-    newest: dict[str, tuple[int, str, str | None]] = {}
+    newest: dict[str, tuple[int, str, str]] = {}
     seen: set[int] = set()
     for value in values:
         status = require_dict(value, "commit status")
         status_id = unique_id(status, "commit status", seen)
-        context = nonempty_text_field(status, "context", "commit status")
+        context = label_field(status, "context", "commit status") or str(status_id)
         state = nonempty_text_field(status, "state", "commit status")
-        url = text_field(status, "target_url", "commit status", nullable=True)
+        url = url_field(status, "target_url", pr_url)
         if context not in newest or newest[context][0] < status_id:
             newest[context] = (status_id, state, url)
     items = [
-        make_item(f"status:{head_sha}:{context}", "status", fact_name(context), fact_url(url, pr_url), state)
-        for context, (_, state, url) in newest.items()
+        make_item(
+            f"status:{head_sha}:{identity_name(context)}:{status_id}",
+            "status",
+            fact_name(context),
+            url,
+            state,
+        )
+        for context, (status_id, state, url) in newest.items()
         if state in FAILED_STATES
     ]
     return sorted(items, key=lambda item: item["id"])
 
 
-def review_items(values: list[Any], author: str, pr_url: str) -> list[dict[str, str]]:
+def review_items(values: list[Any], author: str | None, pr_url: str) -> list[dict[str, str]]:
     items = []
     seen: set[int] = set()
     for value in values:
@@ -221,29 +277,30 @@ def review_items(values: list[Any], author: str, pr_url: str) -> list[dict[str, 
         empty = body_is_empty(review, "review")
         if state == "PENDING" and review.get("submitted_at") is None:
             continue
-        login = login_field(review, "review")
-        url = text_field(review, "html_url", "review", nullable=True)
-        if state == "CHANGES_REQUESTED" or (state == "COMMENTED" and not empty and login != author):
-            items.append(
-                (review_id, make_item(f"review:{review_id}", "review", login, fact_url(url, pr_url), state))
-            )
+        login = login_of(review)
+        by_author = login is not None and login == author
+        if state == "CHANGES_REQUESTED" or (state == "COMMENTED" and not empty and not by_author):
+            url = url_field(review, "html_url", pr_url)
+            name = login or UNKNOWN_LOGIN
+            items.append((review_id, make_item(f"review:{review_id}", "review", name, url, state)))
     return [item for _, item in sorted(items, key=lambda pair: pair[0])]
 
 
-def comment_items(values: list[Any], kind: str, author: str, pr_url: str) -> list[dict[str, str]]:
+def comment_items(
+    values: list[Any], kind: str, author: str | None, pr_url: str
+) -> list[dict[str, str]]:
     label = kind.replace("_", " ")
     items = []
     seen: set[int] = set()
     for value in values:
         comment = require_dict(value, label)
         comment_id = unique_id(comment, label, seen)
-        login = login_field(comment, label)
-        url = text_field(comment, "html_url", label, nullable=True)
-        if login == author:
+        login = login_of(comment)
+        if login is not None and login == author:
             continue
-        items.append(
-            (comment_id, make_item(f"{kind}:{comment_id}", kind, login, fact_url(url, pr_url), "new"))
-        )
+        url = url_field(comment, "html_url", pr_url)
+        name = login or UNKNOWN_LOGIN
+        items.append((comment_id, make_item(f"{kind}:{comment_id}", kind, name, url, "new")))
     return [item for _, item in sorted(items, key=lambda pair: pair[0])]
 
 
@@ -361,7 +418,28 @@ def atomic_write(path: Path, payload: bytes) -> None:
                 pass
 
 
+def remove_stale_temporaries(directory: Path) -> None:
+    """Remove temporary state files a killed run left behind."""
+    for path in directory.glob(f".{STATE_FILE}.*.tmp"):
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
+
+def current_head_only(acknowledged: list[str], head_sha: str) -> list[str]:
+    """Drop check and status identities of heads other than the current one."""
+    kept = []
+    for identity in acknowledged:
+        kind, _, rest = identity.partition(":")
+        if kind in {"check", "status"} and rest.partition(":")[0] != head_sha:
+            continue
+        kept.append(identity)
+    return kept
+
+
 def write_state(path: Path, state: dict[str, Any]) -> None:
+    state = {**state, "acknowledged": current_head_only(state["acknowledged"], state["head_sha"])}
     payload = (
         json.dumps(pr_lib.redact_value(state), sort_keys=True, ensure_ascii=False) + "\n"
     ).encode("utf-8")
@@ -384,14 +462,15 @@ def visit_id_of(task: dict) -> int:
 def changes_message(name: str, items: list[dict[str, str]]) -> str:
     count = len(items)
     lines = [f"Pull request {name} needs changes ({count} item{'' if count == 1 else 's'}):"]
-    size = len(lines[0])
+    size = len(lines[0].encode("utf-8"))
     listed = 0
     for item in items[:MAX_LISTED]:
         line = f"{item['kind']} — {item['name']} — {item['url']} — {item['state']}"
-        if size + 1 + len(line) > MESSAGE_BUDGET:
+        line_size = len(line.encode("utf-8"))
+        if size + 1 + line_size > MESSAGE_BUDGET_BYTES:
             break
         lines.append(line)
-        size += 1 + len(line)
+        size += 1 + line_size
         listed += 1
     if listed < count:
         lines.append(f"(+{count - listed} more)")
@@ -399,6 +478,7 @@ def changes_message(name: str, items: list[dict[str, str]]) -> str:
 
 
 def main() -> int:
+    deadline = time.monotonic() + RUN_DEADLINE_SECONDS
     task = pr_lib.load_task()
     visit_id = visit_id_of(task)
     value = pr_lib.artifact(task, "pull_request")
@@ -416,9 +496,12 @@ def main() -> int:
     name = f"{repository}#{number}"
     pr_url = f"{pr_lib.PULL_REQUEST_PREFIX}{repository}/pull/{number}"
 
+    remove_stale_temporaries(state_path.parent)
     old = load_state(state_path)
-    client = pr_lib.GitHubClient()
+    client = pr_lib.GitHubClient(deadline=deadline)
     pr, observed = observe(client, owner, repo, number, pr_url)
+    if time.monotonic() > deadline:
+        fail("the run exceeded its overall time limit")
 
     # Reconcile with the visit: a pending entry of another visit was applied,
     # one of this visit was not (the daemon stopped before recording it).
