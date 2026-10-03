@@ -90,11 +90,11 @@ directory created owner-only outside the worktree:
 scripts/scripts.sh schedule NAME --every 60 -- ABSOLUTE_UTILITY monitor --repo OWNER/REPO --pr NUMBER --state-dir ABSOLUTE_STATE_DIR
 ```
 
-Only the quiet exit `$TARIBOY_QUIET_EXIT` (`111`) keeps that schedule running. Every published
-`script.result` stops the definition, so row 7 ends in exactly one decision:
-resume the recorded `scr-...` script ID with `scripts/scripts.sh rerun` while
-the PR is open, or remove it with `scripts/scripts.sh rm` once it is no longer
-needed. A second schedule for the same PR and a stopped definition recorded as
+Only the quiet exit `$TARIBOY_QUIET_EXIT` (`111`) keeps that schedule
+running. Every published `script.result` stops the definition, so row 7 ends
+in exactly one decision: resume the recorded `scr-...` script ID with
+`scripts/scripts.sh rerun` while the PR is open, or remove it with
+`scripts/scripts.sh rm` once it is no longer needed. A second schedule for the same PR and a stopped definition recorded as
 an active monitor are both defects.
 
 Row 8 in PR mode proves containment with

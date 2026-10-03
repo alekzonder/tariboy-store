@@ -342,6 +342,16 @@ class StoreSkillsTest(unittest.TestCase):
         self.assertIn("111", process.stderr)
         self.assertIsNone(request)
 
+    def test_scripts_schedule_rejects_quiet_exit_equals_form(self):
+        process, request = self.run_script(
+            "scripts/scripts/scripts.sh",
+            ["schedule", "poll", "--every=60", "--quiet-exit=2", "--", "echo", "done"],
+            {},
+        )
+        self.assertEqual(process.returncode, 2)
+        self.assertIn("TARIBOY_QUIET_EXIT", process.stderr)
+        self.assertIsNone(request)
+
     def test_scripts_schedule_request_has_no_quiet_exit(self):
         process, request = self.run_script(
             "scripts/scripts/scripts.sh",

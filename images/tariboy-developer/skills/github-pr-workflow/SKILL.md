@@ -13,6 +13,10 @@ The role prompt owns task intake, branch verification, merge waiting,
 post-merge verification, cleanup, and task completion. This skill owns the
 repeatable GitHub operations and durable monitor.
 
+This skill is the way to monitor a pull request on a task without a workflow.
+On a workflow task whose status instructions say the daemon watches the pull
+request, do not schedule this monitor: the workflow already observes it.
+
 ## Markdown writes
 
 Before any GitHub write, repair user-visible text as valid GitHub-flavored
@@ -116,10 +120,10 @@ not enable shell tracing around these commands.
    scripts/scripts.sh rerun "$SCHEDULE_ID"
    ```
 
-   Only exit `$TARIBOY_QUIET_EXIT` (`111`) leaves the schedule running, because it publishes nothing.
-   Never replace a stopped monitor with a second `schedule`, and never finish
-   an iteration calling a definition that already published its result an
-   active monitor.
+   Only exit `$TARIBOY_QUIET_EXIT` (`111`) leaves the schedule running,
+   because it publishes nothing. Never replace a stopped monitor with a second
+   `schedule`, and never finish an iteration calling a definition that already
+   published its result an active monitor.
 
    - Exit `0`: read the run's recorded log path and process the changed JSON
      facts. Changed `check_runs` and `statuses` facts contain the current
@@ -169,12 +173,6 @@ not enable shell tracing around these commands.
      cancelling it first only when `ls` still reports `state: active`. Never
      enter main refresh, post-merge verification, final completion comment,
      `tasks done`, or context cleanup from this branch.
-
-## Workflow tasks
-
-This skill is the way to monitor a pull request on a task without a workflow.
-On a workflow task whose status instructions say the daemon watches the pull
-request, do not schedule this monitor: the workflow already observes it.
 
 ## Quick Reference
 

@@ -38,7 +38,7 @@
     "github-pr-workflow": {
       "source": "./skills/github-pr-workflow",
       "sourceType": "local",
-      "computedHash": "c2e3522a5d55c784848398b3cb4ba8d451bc0d63ef09d2c60145515ba8a05314"
+      "computedHash": "a5aa8a061bdb3e2101e7666d4707cde91d00ea2dee77edbb5277002b238b0339"
     },
     "goal": {
       "source": "../../skills/goal",

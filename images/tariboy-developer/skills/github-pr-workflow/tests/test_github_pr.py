@@ -444,6 +444,16 @@ class GitHubPRWorkflowTests(unittest.TestCase):
         self.assertEqual(first.returncode, 0, first.stderr)
         self.assertEqual(unchanged.returncode, 77, unchanged.stderr)
 
+    def test_monitor_unchanged_observation_falls_back_to_111_on_a_bad_quiet_code(self):
+        for bad in ("abc", "300", "-1"):
+            with self.subTest(code=bad), tempfile.TemporaryDirectory() as state_dir, FakeCurl(monitor_responses()) as curl:
+                self.run_utility("monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl)
+                curl.set_responses(monitor_responses())
+                unchanged = self.run_utility(
+                    "monitor", "--repo", REPO, "--pr", "31", "--state-dir", state_dir, curl=curl, quiet_code=bad
+                )
+                self.assertEqual(unchanged.returncode, 111, unchanged.stderr)
+
     def test_monitor_failed_check_and_status_transitions_emit_actionable_metadata(self):
         successful_check = {
             "id": 7,
