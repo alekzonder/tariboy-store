@@ -10,9 +10,9 @@ annotated `vMAJOR.MINOR.PATCH` tag. Publication includes the release artifacts.
 
 ## Task and recorded plan
 
-**REQUIRED:** Use `tasks`. Without an explicitly supplied workflow-managed
-assignment packet, use the flexible TARI task API directly; do not call
-`ttasks work next` or claim another assignment before creating/resuming TARI.
+**REQUIRED:** Use `tasks`. Unless the Goal block says the release task follows
+a workflow, use the flexible TARI task API directly; do not claim other work
+with `ttasks ready --queue TARI --claim` before creating or resuming TARI.
 For a new release, use `whoami` for your agent name,
 then create a root with `ttasks create --queue TARI --assignee AGENT --title
 'Publish Tariboy release'`. Use a stable request idempotency key for retries.
@@ -84,8 +84,8 @@ The task's approval question must contain these fields:
 - Worktree/branch, version command, checks, direct main merge/push and annotated
   tag publication, matching workflow/assets verification and cleanup.
 
-Use `ttasks ask KEY user:LOGIN TEXT` with the supplied customer's identity (or
-the task packet's declared question action). **Wait for its recorded answer
+Use `ttasks ask KEY user:LOGIN TEXT` with the supplied customer's identity, on
+a workflow task too. **Wait for its recorded answer
 before repository mutation.** An urgent request to release is not plan approval.
 Reuse approval for unchanged inputs. If the fetched source changes, reanalyze
 and ask for approval of the revised SHA/version/changelog before proceeding.

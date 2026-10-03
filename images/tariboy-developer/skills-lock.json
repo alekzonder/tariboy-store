@@ -98,7 +98,7 @@
     "tasks": {
       "source": "../../skills/tasks",
       "sourceType": "local",
-      "computedHash": "b4758ce69026bb416ba7719c1fbef408c301da74be113d3e4a5e3c3ea834bbf2"
+      "computedHash": "169970cb6703525408958385b8d6718482d75d42aaee06ac907ceb3b9d67f770"
     },
     "test-driven-development": {
       "source": "obra/superpowers",

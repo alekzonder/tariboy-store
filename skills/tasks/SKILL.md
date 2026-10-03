@@ -7,7 +7,9 @@ description: Use when claiming, decomposing, delegating, questioning, updating, 
 
 **REQUIRED:** Use `cli-text` before passing text to this CLI. Keep the storage
 rules below; quote transport separately. Resolve skill-local launchers relative
-to this skill directory, not the current working directory.
+to this skill directory, not the current working directory. A task that follows
+a workflow is worked through its Goal block, not the flexible status and
+completion commands below: see "Tasks with a workflow".
 
 This skill's launcher delegates to `ttasks`. The binary selects identity-bound
 agent mode when `TARIBOY_TOOLS_SOCKET` is set; otherwise it uses operator mode.

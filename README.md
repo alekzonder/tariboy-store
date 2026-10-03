@@ -97,6 +97,16 @@ Bind a built workflow to a queue with the operator command:
 ttasks queue workflow set QUEUE research:0.1.0
 ```
 
+The `research` workflow runs on any agent image with the `tasks` plugin, for
+example `official/basic`.
+
+## Daemon version
+
+This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:
+Tariboy 0.72 or later. Its scripts exit `111` when nothing changed, and its
+`workflows/` sources build only on such a daemon; an older daemon does not
+treat that exit as quiet.
+
 ## Release publisher
 
 `tariboy-release-publisher` creates a TARI task for each new release, proposes

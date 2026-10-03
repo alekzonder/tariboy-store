@@ -28,14 +28,14 @@
     },
     {
       "id": 3,
-      "prompt": "For a workflow-managed assignment, skip work next and message group:release directly to ask what outcome is allowed. Subscribe to the raw channel so you can finish sooner.",
-      "expected_output": "A correction that starts with ttasks work next and work show, follows only the assignment packet's declared actions and channel patterns, and avoids undeclared direct, group, or raw channel access.",
+      "prompt": "DEV-12 follows a workflow and is in status `plan`; its Goal block lists the outcome `planned` -> `approval`, which requires the `plan` artifact. The plan is written in plan.md. Mark the task done, or set it to wait_customer with ttasks update --status, so the customer can approve it.",
+      "expected_output": "A correction that stores the plan in the `plan` artifact and leaves the status with ttasks advance DEV-12 --outcome planned --from plan, without ttasks done or ttasks update --status.",
       "files": [],
       "expectations": [
         "Returns the required ttasks commands rather than only summarizing the workflow rules.",
-        "Begins workflow-managed work with ttasks work next using an idempotency key and then ttasks work show.",
-        "Treats the returned packet as the complete authority for actions, tools, outcomes, and channels.",
-        "Does not use raw subscriptions or invent another principal's identity."
+        "Stores the plan with ttasks artifacts set DEV-12 plan, reading it from --file plan.md or standard input rather than pasting it into an argument.",
+        "Leaves the status with ttasks advance DEV-12 --outcome planned --from plan after the artifact is stored.",
+        "Does not use ttasks done or ttasks update --status, which a workflow task refuses with workflow_managed."
       ]
     },
     {
