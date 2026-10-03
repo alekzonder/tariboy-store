@@ -186,13 +186,13 @@ A usable source names a packaged command and gives its arguments for one
 review, exit `$TARIBOY_QUIET_EXIT` (`111`) for an unchanged complete
 observation, a different exit for every error, the state paths it keeps, and
 an authoritative read reporting open, closed unmerged, or merged with
-merge-commit metadata. Resolve the
-command to the absolute path of its installed script at run time. Never write
-an inline shell poll, never point it into another task's worktree, and never
-use the GitHub utility for another VCS. When no source defines that interface,
-create no monitor and invent no command. The one delivery `ttasks ask` to the
-task's customer by login then gives the review URL, asks for the review result
-and also asks for the missing closure-observation interface.
+merge-commit metadata. Resolve the command to the absolute path of its
+installed script at run time. Never write an inline shell poll, never point it
+into another task's worktree, and never use the GitHub utility for another
+VCS. When no source defines that interface, create no monitor and invent no
+command. The one delivery `ttasks ask` to the task's customer by login then
+gives the review URL, asks for the review result and also asks for the missing
+closure-observation interface.
 
 Register it once through the owning Scripts launcher, with an owner-only state
 directory outside the worktree when the command keeps state:

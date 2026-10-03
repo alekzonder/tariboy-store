@@ -32,6 +32,9 @@ REJECT = 112
 PR_URL = "https://github.com/acme/widget/pull/42"
 EXPECTED_FORM = "https://github.com/OWNER/REPO/pull/NUMBER"
 HEAD_SHA = "0123456789abcdef0123456789abcdef01234567"
+MISSING_STATE = (
+    "The pull request monitor state is missing; run the review status first or ask the operator."
+)
 
 sys.path.insert(0, str(SCRIPTS))
 sys.dont_write_bytecode = True
@@ -245,6 +248,7 @@ class PullRequestOpenTests(ScriptCase):
             "https://github.com/acme/widget/pull/042",
             "https://github.com/acme/widget/pull/0",
             "https://github.com/acme/widget/pull/-1",
+            "https://github.com/acme/widget/pull/+42",
             "https://github.com/acme/widget/pull/4 2",
             "https://github.com/acme/widget/pull/４２",
             "https://github.com/acme/widget/pull/42\n",
@@ -398,6 +402,7 @@ class MergedOnBaseTests(ScriptCase):
         self.git("merge", "--quiet", "--no-ff", "-m", "Merge feature", "feature")
         self.merge_sha = self.git("rev-parse", "HEAD")
         self.git("branch", "--quiet", "-D", "feature")
+        self.write_state({"base_ref": "main", "head_ref": "feature"})
 
     def git(self, *args, cwd=None):
         completed = subprocess.run(
@@ -421,17 +426,21 @@ class MergedOnBaseTests(ScriptCase):
         path = self.task_dir / "pr-monitor.json"
         path.write_text(value if isinstance(value, str) else json.dumps(value), encoding="utf-8")
 
-    def run_check(self, merge_commit=None, cwd=None):
+    def run_check(self, merge_commit=None, cwd=None, env=None):
         artifacts = {} if merge_commit is None else {"merge_commit": merge_commit}
         snapshot = task(artifacts)
         snapshot["status"] = "complete"
         snapshot["outcome"] = "cleaned"
-        return self.run_script(MERGED_ON_BASE, snapshot, cwd=cwd or self.repo)
+        return self.run_script(MERGED_ON_BASE, snapshot, cwd=cwd or self.repo, env=env)
+
+    def assert_names_no_branch(self, message):
+        for name in ("main", "release", "feature"):
+            self.assertNotRegex(message, rf"\b{name}\b(?! checkout)")
 
     def test_clean_main_checkout_passes(self):
-        self.write_state({"base_ref": "main", "head_ref": "feature"})
         code, result, _, _ = self.run_check(self.merge_sha)
         self.assertEqual(code, 0, result)
+        self.assertEqual(self.message(result), f"Merge commit {self.merge_sha} is on the local base branch.")
 
     def test_abbreviated_merge_commit_passes(self):
         code, result, _, _ = self.run_check(self.merge_sha[:7])
@@ -469,8 +478,71 @@ class MergedOnBaseTests(ScriptCase):
         self.write_state({"base_ref": "release"})
         code, result, _, _ = self.run_check(self.merge_sha)
         self.assertEqual(code, REJECT)
-        self.assertIn("release", self.message(result))
-        self.assertIn("does not exist", self.message(result))
+        self.assertIn("base branch does not exist", self.message(result))
+        self.assert_names_no_branch(self.message(result))
+
+    def test_a_missing_monitor_state_rejects(self):
+        (self.task_dir / "pr-monitor.json").unlink()
+        code, result, _, _ = self.run_check(self.merge_sha)
+        self.assertEqual(code, REJECT)
+        self.assertEqual(self.message(result), MISSING_STATE)
+
+    def test_a_state_without_a_base_rejects(self):
+        self.write_state({"head_ref": "feature"})
+        code, result, _, _ = self.run_check(self.merge_sha)
+        self.assertEqual(code, REJECT)
+        self.assertEqual(self.message(result), MISSING_STATE)
+
+    def test_no_task_dir_rejects(self):
+        code, result, _, _ = self.run_check(self.merge_sha, env={"TARIBOY_TASK_DIR": ""})
+        self.assertEqual(code, REJECT)
+        self.assertEqual(self.message(result), MISSING_STATE)
+
+    def test_a_linked_worktree_is_not_the_main_checkout(self):
+        tree = self.root / "task-tree"
+        self.git("worktree", "add", "--quiet", "-b", "other", str(tree), self.merge_sha)
+        self.write_state({"base_ref": "main", "head_ref": "feature"})
+        code, result, _, _ = self.run_check(self.merge_sha, cwd=tree)
+        self.assertEqual(code, REJECT)
+        self.assertIn("main checkout", self.message(result))
+
+    def test_an_empty_repository_rejects(self):
+        empty = self.root / "empty"
+        empty.mkdir()
+        self.git("init", "--quiet", "--initial-branch=main", cwd=empty)
+        code, result, _, _ = self.run_check(self.merge_sha[:7], cwd=empty)
+        self.assertEqual(code, REJECT)
+        self.assertIn("base branch does not exist", self.message(result))
+
+    def test_a_merge_commit_that_names_no_commit_rejects(self):
+        tree = self.git("rev-parse", "HEAD^{tree}")
+        code, result, _, _ = self.run_check(tree[:12])
+        self.assertEqual(code, REJECT)
+        self.assertIn("is not a commit in this repository", self.message(result))
+
+    def test_git_runs_without_the_token_and_resolves_the_sha(self):
+        bin_dir = self.root / "bin"
+        bin_dir.mkdir()
+        calls = self.root / "git-calls"
+        leaks = self.root / "git-leaks"
+        wrapper = bin_dir / "git"
+        wrapper.write_text(
+            "#!/bin/sh\n"
+            f'printf "%s\\n" "$*" >>"{calls}"\n'
+            f'if [ -n "${{GH_TOKEN-}}${{GITHUB_TOKEN-}}" ]; then echo leaked >>"{leaks}"; fi\n'
+            'exec /usr/bin/git "$@"\n',
+            encoding="utf-8",
+        )
+        wrapper.chmod(0o755)
+        code, result, _, _ = self.run_check(
+            self.merge_sha[:7], env={"PATH": f"{bin_dir}:/usr/bin:/bin", "GITHUB_TOKEN": TOKEN}
+        )
+        self.assertEqual(code, 0, result)
+        self.assertFalse(leaks.exists(), "a git subprocess received the token")
+        lines = calls.read_text(encoding="utf-8").splitlines()
+        self.assertIn(f"rev-parse --verify --quiet --end-of-options {self.merge_sha[:7]}^{{commit}}", lines)
+        self.assertIn(f"merge-base --is-ancestor -- {self.merge_sha} refs/heads/main", lines)
+        self.assertIn("worktree list --porcelain", lines)
 
     def test_base_branch_from_state_is_used(self):
         self.git("branch", "release", self.merge_sha)
@@ -483,12 +555,14 @@ class MergedOnBaseTests(ScriptCase):
         self.git("reset", "--quiet", "--hard", "HEAD~1")
         code, result, _, _ = self.run_check(self.merge_sha)
         self.assertEqual(code, REJECT)
-        self.assertIn("fast-forward main first", self.message(result))
+        self.assertIn("fast-forward the base branch first", self.message(result))
+        self.assert_names_no_branch(self.message(result))
 
     def test_unknown_merge_commit_rejects(self):
         code, result, _, _ = self.run_check("abcdef1234567")
         self.assertEqual(code, REJECT)
-        self.assertIn("fast-forward main first", self.message(result))
+        self.assertIn("fast-forward the base branch first", self.message(result))
+        self.assert_names_no_branch(self.message(result))
 
     def test_linked_worktree_on_the_head_branch_rejects(self):
         self.git("branch", "feature", self.feature_sha)

@@ -91,3 +91,17 @@ if ! output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); the
   printf 'expected a clean workflow to pass: %s\n' "$output" >&2
   exit 1
 fi
+
+printf '%s\n' 'Read $CURRENT_VERSION_STORE/skills/tasks first.' \
+  >"$fixture/workflows/example/statuses/work.md"
+if output=$("$root/scripts/check-images.sh" --paths-only "$fixture" 2>&1); then
+  printf '%s\n' 'expected a forbidden Store path in status instructions to fail' >&2
+  exit 1
+fi
+case "$output" in
+  *'workflows/example/statuses/work.md'*'$CURRENT_VERSION_STORE'*) ;;
+  *)
+    printf 'unexpected diagnostic: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac

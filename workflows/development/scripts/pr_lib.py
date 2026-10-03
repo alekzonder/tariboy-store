@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Shared protocol and GitHub helpers for the development workflow scripts.
 
+The scripts support github.com only: pull request URLs must be
+https://github.com/OWNER/REPO/pull/N, and the API is https://api.github.com.
+GITHUB_API_URL is not part of that contract; it is the test seam that points
+the client at a local fake GitHub (http only for a loopback host).
+
 The GitHub client is the bounded, redacting curl client of the
-github-pr-workflow utility; only the API root differs: it comes from
-GITHUB_API_URL. The token stays in the process environment and reaches curl
-through an inherited config descriptor, never an argument, a URL, or a file.
+github-pr-workflow utility. The token stays in the process environment and
+reaches curl through an inherited config descriptor, never an argument, a URL,
+or a file.
 """
 
 from __future__ import annotations
@@ -178,12 +183,16 @@ def validate_branch(value: str, label: str) -> str:
         or len(value.encode("utf-8")) > 1024
     ):
         raise ValueError(f"invalid {label} branch")
+    env = os.environ.copy()
+    env.pop("GH_TOKEN", None)
+    env.pop("GITHUB_TOKEN", None)
     try:
         result = subprocess.run(
             ["git", "check-ref-format", "--branch", value],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            env=env,
             timeout=5,
             check=False,
         )

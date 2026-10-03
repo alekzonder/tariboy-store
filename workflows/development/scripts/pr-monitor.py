@@ -467,7 +467,8 @@ def current_head_only(acknowledged: list[str], head_sha: str) -> list[str]:
 
 def write_state(path: Path, state: dict[str, Any]) -> None:
     if isinstance(state.get("head_sha"), str):
-        state = {**state, "acknowledged": current_head_only(state["acknowledged"], state["head_sha"])}
+        acknowledged = current_head_only(state["acknowledged"], state["head_sha"])
+        state = {**state, "acknowledged": acknowledged}
     payload = (
         json.dumps(pr_lib.redact_value(state), sort_keys=True, ensure_ascii=False) + "\n"
     ).encode("utf-8")
@@ -527,7 +528,12 @@ def transient(
     same = old is not None and old["repo"] == repository and old["number"] == number
     since = old.get("transient_since") if same else None
     if since is None:
-        base = old if same else {"repo": repository, "number": number, "acknowledged": [], "pending": None}
+        base = old if same else {
+            "repo": repository,
+            "number": number,
+            "acknowledged": [],
+            "pending": None,
+        }
         write_state(path, {**base, "transient_since": utc_now().strftime(TIME_FORMAT)})
         return pr_lib.QUIET_EXIT
     if utc_now() - parse_time(since) >= TRANSIENT_LIMIT:
@@ -601,7 +607,7 @@ def main() -> int:
         write_state(state_path, state)
         pr_lib.write_result(
             outcome="merged",
-            message=f"Pull request {name} merged as {merge_sha[:12]} into {pr['base_ref']}.",
+            message=f"Pull request {name} merged as {merge_sha[:12]} into the base branch.",
             artifacts={"merge_commit": merge_sha},
         )
         return 0

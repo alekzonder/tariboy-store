@@ -9,12 +9,14 @@ paginated collections, and keeps its state in TARIBOY_TASK_DIR/pr-monitor.json.
 
 import datetime
 import http.server
+import importlib.util
 import json
 import os
 from pathlib import Path
 import shutil
 import sys
 import threading
+import time
 import unittest
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
@@ -264,7 +266,7 @@ class QuietAndMergedTests(MonitorCase):
             result,
             {
                 "outcome": "merged",
-                "message": f"Pull request acme/widget#42 merged as {MERGE_SHA[:12]} into main.",
+                "message": f"Pull request acme/widget#42 merged as {MERGE_SHA[:12]} into the base branch.",
                 "artifacts": {"merge_commit": MERGE_SHA},
             },
         )
@@ -287,7 +289,8 @@ class QuietAndMergedTests(MonitorCase):
         code, result, _, _ = self.run_monitor()
         self.assertEqual(code, 0, result)
         self.assertEqual(result["outcome"], "merged")
-        self.assertTrue(result["message"].endswith(" into release."))
+        self.assertTrue(result["message"].endswith(" into the base branch."))
+        self.assertNotIn("release", result["message"])
         self.assertEqual(self.state()["base_ref"], "release")
 
     def test_merged_without_a_valid_merge_commit_is_a_failure(self):
@@ -836,6 +839,54 @@ class TransientTests(MonitorCase):
         self.observe(issue_comments=[comment(40)])
         self.assert_changes(*self.run_monitor()[:2])
         self.assertNotIn("transient_since", self.state())
+
+
+class DeadlineTests(MonitorCase):
+    """The run's 50-second deadline, with the clock injected in process."""
+
+    def test_the_run_deadline_is_a_failure_that_keeps_the_state(self):
+        self.observe(issue_comments=[comment(40)])
+        self.assert_changes(*self.run_monitor(visit=7)[:2])
+        before = self.state_path.read_bytes()
+        self.github.requests.clear()
+
+        spec = importlib.util.spec_from_file_location("pr_monitor_under_test", PR_MONITOR)
+        monitor = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(monitor)
+        pr_lib = monitor.pr_lib
+        run_dir = self.root / "in-process"
+        run_dir.mkdir()
+        snapshot = task({"pull_request": PR_URL})
+        snapshot.update({"status": "review", "outcome": "", "visit": {"id": 8, "entered_at": "2026-10-02T10:00:00Z"}})
+        (run_dir / "task.json").write_text(json.dumps(snapshot), encoding="utf-8")
+        env = {
+            "TARIBOY_TASK_FILE": str(run_dir / "task.json"),
+            "TARIBOY_RESULT_FILE": str(run_dir / "result.json"),
+            "TARIBOY_TASK_DIR": str(self.task_dir),
+            "GH_TOKEN": TOKEN,
+            "GITHUB_API_URL": self.github.url,
+        }
+
+        # After the first request the clock jumps past the deadline.
+        real_monotonic = time.monotonic
+        offset = [0.0]
+        original_request = pr_lib.GitHubClient.request
+
+        def request(client, *args, **kwargs):
+            value = original_request(client, *args, **kwargs)
+            offset[0] = monitor.RUN_DEADLINE_SECONDS + 1
+            return value
+
+        with mock.patch.dict(os.environ, env), mock.patch.object(
+            pr_lib.GitHubClient, "request", request
+        ), mock.patch("time.monotonic", lambda: real_monotonic() + offset[0]):
+            with self.assertRaises(pr_lib.ScriptFailure) as caught:
+                monitor.main()
+        self.assertNotIsInstance(caught.exception, pr_lib.TransientFailure)
+        self.assertIn("overall time limit", str(caught.exception))
+        self.assertEqual(len(self.github.requests), 1)
+        self.assertEqual(self.state_path.read_bytes(), before)
+        self.assertFalse((run_dir / "result.json").exists())
 
 
 class OddDataTests(MonitorCase):

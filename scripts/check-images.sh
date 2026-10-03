@@ -6,11 +6,17 @@ repo_root=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
 check_paths() {
   local source=$1
   local matches
+  local duplicate
   local forbidden='\$(CURRENT_VERSION_STORE|STORE)(/|$)|/home/agent/github/tariboy'
   if test -d "$source/images"; then
     matches=$(rg -n --glob Tariboyfile.yaml "$forbidden" "$source/images" || true)
     if test -n "$matches"; then
       printf '%s\n' "$matches" >&2
+      return 1
+    fi
+    duplicate=$(find "$source/images" -mindepth 2 -maxdepth 2 -name iteration-finish.md -print -quit)
+    if test -n "$duplicate"; then
+      printf '%s duplicates skills/loop/finish-iteration.md\n' "${duplicate#"$source/"}" >&2
       return 1
     fi
   fi
@@ -20,13 +26,6 @@ check_paths() {
       printf '%s\n' "$matches" >&2
       return 1
     fi
-  fi
-  local duplicate
-  test -d "$source/images" || return 0
-  duplicate=$(find "$source/images" -mindepth 2 -maxdepth 2 -name iteration-finish.md -print -quit)
-  if test -n "$duplicate"; then
-    printf '%s duplicates skills/loop/finish-iteration.md\n' "${duplicate#"$source/"}" >&2
-    return 1
   fi
 }
 

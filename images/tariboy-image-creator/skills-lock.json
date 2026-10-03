@@ -107,7 +107,7 @@
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
       "sourceType": "local",
-      "computedHash": "10d5927e21855db0f2e1cbac7bf0271092ece0b9be0a09ffd6711be76ee1983a"
+      "computedHash": "e0a87e511c6b4dab4cb0c2d02307e00c9458719b50bcbf04b1ab687214fce838"
     },
     "tasks": {
       "source": "../../skills/tasks",
