@@ -1,6 +1,6 @@
 schema_version: 1
 name: development
-workflow_version: 0.1.0
+workflow_version: 0.2.0
 initial_status: plan
 
 requires_secrets: [GH_TOKEN]
@@ -14,6 +14,10 @@ limits:
 artifacts:
   - name: plan
     description: The implementation plan, as Markdown.
+  - name: branch
+    description: Name of the task's branch, the pull request's head.
+  - name: verification
+    description: Verification on the pull request's head commit, as Markdown, with its full SHA.
   - name: pull_request
     description: URL of the pull request for this task.
   - name: merge_commit
@@ -27,6 +31,9 @@ statuses:
       - on: planned
         to: approval
         requires: [plan]
+        checks:
+          - script: ./scripts/plan-check.py
+            timeout: 30s
 
   - id: approval
     owner: customer
@@ -42,7 +49,7 @@ statuses:
     transitions:
       - on: ready
         to: review
-        requires: [pull_request]
+        requires: [pull_request, branch, verification]
         checks:
           - script: ./scripts/pr-open.py
             timeout: 60s
