@@ -73,9 +73,10 @@ ttasks ask TASK-42 user:LOGIN "$BODY"
 ttasks comment TASK-42 "$BODY"
 ```
 
-For a flexible task, ask with
+On any task, ask with
 `ttasks ask <key> user:<login>|agent:<name> <text>`.
-A comment is not a blocking question.
+A comment is not a blocking question. Never invent another principal's
+identity.
 
 When an active durable script or schedule is the only remaining wait object,
 set the flexible task to `wait_customer` with `ttasks update <key> --status
@@ -85,15 +86,31 @@ A recurring definition that published its result is stopped, so it qualifies
 only after the `scripts` skill's `rerun` resumed it in this iteration. Do not
 poll, replace the schedule, or mark the task complete.
 
-For workflow-managed work, begin with
-`ttasks work next --idempotency-key <stable-key>` and
-`ttasks work show <assignment>`. Treat its packet as the complete authority:
-use only declared actions, tools, outcomes, and channel patterns. Add artifacts
-with `ttasks artifacts add <assignment>`, inspect assignment questions with
-`ttasks questions <assignment>`, answer with `ttasks answer <question>`, and
-subscribe with `ttasks observe subscribe <assignment> <pattern>`. Complete with an
-allowed outcome. Raw channel subscriptions and undeclared direct or group
-messages remain denied. Never invent another principal's identity.
+## Tasks with a workflow
+
+A task in a queue bound to a workflow has a `status` owned by an agent pool,
+the customer, or a script, and a `category` the daemon derives from it. Its Goal
+block states the status instructions, the available outcomes with their
+required artifacts and checks, the current artifacts, and the exact commands;
+`ttasks workflow get <key>` shows the same data on demand.
+
+- Store a required artifact with `ttasks artifacts set <key> <name>`, the value
+  from stdin, `--file <path>`, or a value argument; it is stored as given.
+- Leave the status only with
+  `ttasks advance <key> --outcome <name> --from <status> [--message <text>]`.
+- `ttasks done`, `ttasks update --status`, `ttasks assign`, and
+  `ttasks ready --claim` are refused with `workflow_managed`: the daemon
+  assigns and releases the task. `not_holder` means you do not own the current
+  status. `transition_pending` means a request still runs: read it with
+  `workflow get` instead of sending another.
+- A `rejected` request carries a check's message: fix what it names and advance
+  again. A `failed` request is a broken script, a timeout, or a broken result,
+  not yours to repair by retrying blindly: read it with
+  `ttasks workflow runs <key>` and `ttasks workflow log <key> <run>`, then tell
+  the customer on the task.
+- Questions to the customer still use the `ask` form above.
+- `workflow_paused` means the task waits for the customer's decision: do
+  nothing on it until the customer resumes it.
 
 ## Observed-Failure Counters
 
