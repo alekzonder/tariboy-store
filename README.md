@@ -100,6 +100,16 @@ ttasks queue workflow set QUEUE research:0.1.0
 The `research` workflow runs on any agent image with the `tasks` plugin, for
 example `official/basic`.
 
+The `development` workflow holds the whole development process: planning,
+approval, implementation, the pull request watch and cleanup, and its checks
+prove the plan's sections, the branch, the verified head commit and the pull
+request's text. Run it with `official/tariboy-workflow-developer`, an agent
+image with the tools that do the work and no process of its own: it works only
+tasks of a workflow queue, and its `github-pr-workflow` skill proves GitHub
+access and finds or creates the task's one pull request without a monitor.
+`official/tariboy-developer` also works such tasks, beside its own process for
+tasks without a workflow.
+
 ## Daemon version
 
 This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:
