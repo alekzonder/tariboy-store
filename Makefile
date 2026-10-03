@@ -9,5 +9,6 @@ check:
 	./scripts/test-check-images.sh
 	python3 -B workflows/development/tests/test_checks.py
 	python3 -B workflows/development/tests/test_monitor.py
+	python3 -B images/tariboy-workflow-developer/skills/github-pr-workflow/tests/test_github_pr.py
 	./scripts/check-images.sh
 	git diff --check

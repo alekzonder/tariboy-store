@@ -14,11 +14,14 @@ you understand it.
    steps; the `approval` status is the only approval. Separate what you
    established from what you propose; never present a guess as a fact.
 2. Write the plan for the customer to read on its own, without asking for
-   more detail:
-   - how the solution works, end to end;
-   - the ordered implementation steps and the result of each;
-   - how the change will be verified;
-   - its limitations and how it behaves on failure.
+   more detail, under these four Markdown headings, each with its own text:
+   - `How it works`: how the solution works, end to end;
+   - `Steps`: the ordered implementation steps and the result of each;
+   - `Verification`: how the change will be verified;
+   - `Limitations`: its limitations and how it behaves on failure.
+
+   In a Russian plan the headings are `Как работает`, `Шаги`, `Проверка`
+   and `Ограничения`.
 
    Fit the depth to the task: a small fix gets a short, concrete plan, a new
    mechanism a full explanation. A generic checklist, or a link to a plan kept
@@ -28,7 +31,8 @@ you understand it.
    written or answer the question with changes requested.
 4. Store the plan, as Markdown, in the `plan` artifact. Read it from standard
    input; never paste it into a shell argument.
-5. Leave the status with the outcome `planned`.
+5. Leave the status with the outcome `planned`. A check confirms the four
+   sections; if it rejects, add what its message names and advance again.
 
 If you need a fact or a decision only the customer has before you can write
 any plan at all, ask through the task and wait for the answer. Do not stop at
