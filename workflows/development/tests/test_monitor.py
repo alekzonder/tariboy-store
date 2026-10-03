@@ -7,6 +7,7 @@ against a local HTTP server thread that stands in for the GitHub API with
 paginated collections, and keeps its state in TARIBOY_TASK_DIR/pr-monitor.json.
 """
 
+import datetime
 import http.server
 import json
 import os
@@ -20,7 +21,7 @@ from urllib.parse import parse_qs, urlparse
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from test_checks import ScriptCase, SCRIPTS, TOKEN, task  # noqa: E402
+from test_checks import ScriptCase, SCRIPTS, TOKEN, task, unused_port  # noqa: E402
 
 PR_MONITOR = SCRIPTS / "pr-monitor.py"
 QUIET = 111
@@ -42,7 +43,8 @@ class Truncated:
 
 
 class FakeGitHub:
-    """A tiny GitHub API with page/per_page pagination of list bodies."""
+    """A tiny GitHub API with page/per_page pagination of list bodies. A route
+    is (status, body) or (status, body, headers)."""
 
     def __init__(self):
         self.routes = {}
@@ -55,7 +57,7 @@ class FakeGitHub:
                     {"path": self.path, "authorization": self.headers.get("Authorization")}
                 )
                 parsed = urlparse(self.path)
-                status, body = owner.routes.get(parsed.path, (404, {"message": "Not Found"}))
+                status, body, *extra = owner.routes.get(parsed.path, (404, {"message": "Not Found"}))
                 query = parse_qs(parsed.query)
                 if "page" in query and status == 200:
                     page = int(query["page"][0])
@@ -74,6 +76,8 @@ class FakeGitHub:
                 else:
                     payload = json.dumps(body).encode("utf-8")
                 self.send_response(status)
+                for name, value in (extra[0] if extra else {}).items():
+                    self.send_header(name, value)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(promised or len(payload)))
                 self.end_headers()
@@ -291,9 +295,9 @@ class QuietAndMergedTests(MonitorCase):
                 body = pull(state="closed", merged=True, closed_at=CLOSED_AT)
                 body["merge_commit_sha"] = merge_sha
                 self.observe(pr=body)
-                code, result, _, _ = self.run_monitor()
+                code, result, _, stderr = self.run_monitor()
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
+                self.failure_message(result, stderr)
                 self.assertFalse(self.state_path.exists())
 
 
@@ -597,8 +601,7 @@ class FailureTests(MonitorCase):
     def assert_failure_keeps_state(self, before, *, visit=8):
         code, result, _, stderr = self.run_monitor(visit=visit)
         self.assertEqual(code, 1, result)
-        self.assertIsNone(result)
-        self.assertTrue(stderr.strip())
+        self.assertNotIn("rm -rf", self.failure_message(result, stderr))
         self.assertLess(len(stderr), 2048)
         self.assertNotIn("rm -rf", stderr)
         data, info = before
@@ -616,7 +619,7 @@ class FailureTests(MonitorCase):
             "pulls/42/comments",
             "issues/42/comments",
         ):
-            for status in (403, 500):
+            for status in (401, 403, 404):
                 with self.subTest(route=route, status=status):
                     self.observe(issue_comments=[comment(40), comment(41)])
                     self.github.routes[f"{BASE}/{route}"] = (status, {"message": BODY_TEXT})
@@ -677,18 +680,133 @@ class FailureTests(MonitorCase):
             with self.subTest(artifacts=artifacts):
                 code, result, _, stderr = self.run_monitor(artifacts=artifacts)
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
-                self.assertIn("pull_request", stderr)
+                self.assertIn("pull_request", self.failure_message(result, stderr))
         self.assertEqual(self.github.requests, [])
 
     def test_malformed_state_is_a_failure(self):
-        for value in ("not json", "[]", json.dumps({"repo": "acme/widget", "number": 42, "acknowledged": "x"})):
+        for value in (
+            "not json",
+            "[]",
+            json.dumps({"repo": "acme/widget", "number": 42, "acknowledged": "x"}),
+            json.dumps({"repo": "acme/widget", "number": 42, "acknowledged": [], "transient_since": "soon"}),
+        ):
             with self.subTest(value=value):
                 self.state_path.write_text(value, encoding="utf-8")
-                code, result, _, _ = self.run_monitor()
+                code, result, _, stderr = self.run_monitor()
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
+                self.failure_message(result, stderr)
                 self.assertEqual(self.state_path.read_text(encoding="utf-8"), value)
+
+
+def utc_text(delta_minutes=0):
+    moment = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=delta_minutes)
+    return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class TransientTests(MonitorCase):
+    """A failure a retry can fix stays quiet for 15 minutes; then it fails.
+
+    The clock is injected through the recorded start of the streak
+    (`transient_since` in the state file)."""
+
+    def transient_since(self):
+        value = self.state()["transient_since"]
+        return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=datetime.timezone.utc
+        )
+
+    def assert_quiet(self, **kwargs):
+        code, result, _, stderr = self.run_monitor(**kwargs)
+        self.assertEqual(code, QUIET, (result, stderr))
+        self.assertIsNone(result, "a quiet run writes no result file")
+
+    def write_streak(self, since):
+        self.state_path.write_text(
+            json.dumps(
+                {"repo": "acme/widget", "number": 42, "acknowledged": [], "pending": None, "transient_since": since}
+            ),
+            encoding="utf-8",
+        )
+
+    def test_a_rate_limit_is_quiet_and_records_when_it_started(self):
+        self.github.routes[f"{BASE}/pulls/42"] = (429, {"message": BODY_TEXT})
+        before = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+        self.assert_quiet()
+        state = self.state()
+        self.assertEqual((state["repo"], state["number"]), ("acme/widget", 42))
+        self.assertEqual(state["acknowledged"], [])
+        self.assertIsNone(state["pending"])
+        self.assertGreaterEqual(self.transient_since(), before)
+        self.assert_state_mode()
+
+    def test_a_spent_rate_limit_403_is_quiet(self):
+        self.github.routes[f"{BASE}/pulls/42/reviews"] = (
+            403,
+            {"message": "API rate limit exceeded"},
+            {"X-RateLimit-Remaining": "0"},
+        )
+        self.assert_quiet()
+        self.assertIn("transient_since", self.state())
+
+    def test_a_plain_403_is_a_failure(self):
+        self.github.routes[f"{BASE}/pulls/42/reviews"] = (403, {"message": "Forbidden"})
+        code, result, _, stderr = self.run_monitor()
+        self.assertEqual(code, 1)
+        self.assertEqual(self.failure_message(result, stderr), "GitHub answered HTTP 403")
+        self.assertFalse(self.state_path.exists())
+
+    def test_a_refused_connection_is_quiet(self):
+        self.assert_quiet(env={"GITHUB_API_URL": f"http://127.0.0.1:{unused_port()}"})
+        self.assertIn("transient_since", self.state())
+
+    def test_a_transient_failure_keeps_the_pending_items(self):
+        self.observe(issue_comments=[comment(40)])
+        self.assert_changes(*self.run_monitor(visit=7)[:2])
+        seeded = self.state()
+        self.github.routes[f"{BASE}/issues/42/comments"] = (502, {"message": "Bad Gateway"})
+        self.assert_quiet(visit=7)
+        after = self.state()
+        self.assertEqual({key: value for key, value in after.items() if key != "transient_since"}, seeded)
+
+    def test_a_short_streak_stays_quiet_and_keeps_its_start(self):
+        self.github.routes[f"{BASE}/pulls/42"] = (500, {"message": "boom"})
+        self.assert_quiet()
+        started = self.state()["transient_since"]
+        data = self.state_path.read_bytes()
+        self.assert_quiet()
+        self.assertEqual(self.state()["transient_since"], started)
+        self.assertEqual(self.state_path.read_bytes(), data, "a later transient run does not rewrite the state")
+
+    def test_a_streak_under_15_minutes_stays_quiet(self):
+        since = utc_text(-14)
+        self.write_streak(since)
+        self.github.routes[f"{BASE}/pulls/42"] = (429, {"message": "slow down"})
+        self.assert_quiet()
+        self.assertEqual(self.state()["transient_since"], since)
+
+    def test_a_streak_past_15_minutes_is_a_failure(self):
+        since = utc_text(-16)
+        self.write_streak(since)
+        data = self.state_path.read_bytes()
+        self.github.routes[f"{BASE}/pulls/42"] = (500, {"message": "boom"})
+        code, result, _, stderr = self.run_monitor()
+        self.assertEqual(code, 1, result)
+        message = self.failure_message(result, stderr)
+        self.assertIn(f"unavailable since {since}", message)
+        self.assertIn("HTTP 500", message)
+        self.assertEqual(self.state_path.read_bytes(), data)
+
+    def test_a_complete_observation_clears_the_streak(self):
+        self.github.routes[f"{BASE}/pulls/42"] = (500, {"message": "boom"})
+        self.assert_quiet()
+        self.observe()
+        self.assert_quiet()
+        self.assertNotIn("transient_since", self.state())
+        self.github.routes[f"{BASE}/pulls/42"] = (500, {"message": "boom"})
+        self.assert_quiet()
+        self.observe(issue_comments=[comment(40)])
+        self.assert_changes(*self.run_monitor()[:2])
+        self.assertNotIn("transient_since", self.state())
 
 
 class OddDataTests(MonitorCase):
@@ -787,8 +905,7 @@ class TokenTests(MonitorCase):
     def test_no_token_is_a_failure(self):
         code, result, _, stderr = self.run_monitor(token=False)
         self.assertEqual(code, 1)
-        self.assertIsNone(result)
-        self.assertIn("GH_TOKEN", stderr)
+        self.assertIn("GH_TOKEN", self.failure_message(result, stderr))
         self.assertEqual(self.github.requests, [])
 
 

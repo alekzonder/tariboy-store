@@ -18,6 +18,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 from typing import Any, Callable, NoReturn
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
@@ -37,6 +38,14 @@ MAX_DIAGNOSTIC_BYTES = 16 * 1024
 MAX_MESSAGE_CHARS = 4000
 MAX_MESSAGE_BYTES = 4096
 DEFAULT_PAGINATE_LIMIT = 10000
+MAX_HEADER_BYTES = 64 * 1024
+# curl exits a retry can fix: could not resolve the host (6), could not
+# connect (7), timed out (28), TLS handshake failed (35), empty reply (52),
+# connection reset while receiving (56).
+TRANSIENT_CURL_EXITS = {6, 7, 28, 35, 52, 56}
+# The first curl whose --write-out knows %header{name}.
+WRITE_OUT_HEADER_VERSION = (7, 84, 0)
+RATE_LIMIT_HEADER = "x-ratelimit-remaining"
 COMPONENT_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 PULL_REQUEST_PREFIX = "https://github.com/"
@@ -48,12 +57,27 @@ class ScriptFailure(Exception):
     """An already-safe failure: exit 1 with a bounded diagnostic on stderr."""
 
 
+class TransientFailure(ScriptFailure):
+    """A failure a later retry can fix: a rate limit, a GitHub server error, or
+    a connection that could not be made or broke off."""
+
+
 class GitHubHTTPError(ScriptFailure):
     """GitHub answered with an HTTP status outside 2xx."""
 
     def __init__(self, status: int):
         super().__init__(f"GitHub answered HTTP {status}")
         self.status = status
+
+
+class TransientHTTPError(GitHubHTTPError, TransientFailure):
+    """HTTP 429, a 5xx, or a 403 with the rate limit spent."""
+
+
+def is_transient_status(status: int, rate_limit_remaining: str | None) -> bool:
+    if status == 429 or 500 <= status <= 599:
+        return True
+    return status == 403 and rate_limit_remaining == "0"
 
 
 def fail(message: str) -> NoReturn:
@@ -77,13 +101,22 @@ def redact_value(value: Any) -> Any:
 
 
 def run(main: Callable[[], int]) -> NoReturn:
-    """Run a script's main and turn a ScriptFailure into exit 1."""
+    """Run a script's main and turn a ScriptFailure into exit 1.
+
+    The redacted diagnostic goes to stderr (the run's log) and, best effort,
+    into the result file's message, so the failure reaches the transition
+    request and the pause comment."""
     try:
         code = main()
     except ScriptFailure as exc:
         diagnostic = redact_text(str(exc)).replace("\n", " ").replace("\r", " ")
+        diagnostic = diagnostic[:MAX_DIAGNOSTIC_BYTES]
         name = Path(sys.argv[0]).name or "script"
-        sys.stderr.write(f"{name}: {diagnostic[:MAX_DIAGNOSTIC_BYTES]}\n")
+        sys.stderr.write(f"{name}: {diagnostic}\n")
+        try:
+            write_result(message=diagnostic)
+        except ScriptFailure:
+            pass
         raise SystemExit(1)
     raise SystemExit(code)
 
@@ -244,6 +277,37 @@ def resolve_api_base() -> str:
     return value.rstrip("/")
 
 
+def curl_version(curl_bin: str) -> tuple[int, ...] | None:
+    """The version `curl --version` reports, or None when it cannot tell."""
+    env = os.environ.copy()
+    env.pop("GH_TOKEN", None)
+    env.pop("GITHUB_TOKEN", None)
+    try:
+        result = subprocess.run(
+            [curl_bin, "--version"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            env=env,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    match = re.match(rb"curl (\d+)\.(\d+)\.(\d+)", result.stdout[:200])
+    return tuple(int(part) for part in match.groups()) if match else None
+
+
+def header_value(headers: bytes, name: str) -> str | None:
+    """The value of `name` in the last response of a --dump-header file."""
+    blocks = re.split(rb"\r?\n\r?\n", headers.strip())
+    prefix = name.lower().encode("ascii") + b":"
+    for line in re.split(rb"\r?\n", blocks[-1] if blocks else b""):
+        if line.lower().startswith(prefix):
+            return line[len(prefix) :].strip().decode("ascii", "replace")
+    return None
+
+
 def resolve_curl() -> str:
     override = os.environ.get("TARIBOY_GITHUB_CURL_BIN")
     if override:
@@ -364,6 +428,32 @@ class GitHubClient:
         self.api_base = resolve_api_base()
         self.curl_bin = curl_bin if curl_bin is not None else resolve_curl()
         self.deadline = deadline
+        version = curl_version(self.curl_bin)
+        self.header_in_write_out = version is not None and version >= WRITE_OUT_HEADER_VERSION
+
+    def _header_file(self) -> str | None:
+        """A private file inside TARIBOY_TASK_DIR for --dump-header, or None."""
+        task_dir = os.environ.get("TARIBOY_TASK_DIR")
+        if not task_dir:
+            return None
+        try:
+            descriptor, path = tempfile.mkstemp(prefix=".github-headers.", dir=task_dir)
+        except OSError:
+            return None
+        os.close(descriptor)
+        return path
+
+    def _rate_limit_remaining(self, header_file: str | None, write_out: bytes) -> str | None:
+        if self.header_in_write_out:
+            return write_out.decode("ascii", "replace").strip()
+        if header_file is None:
+            return None
+        try:
+            with open(header_file, "rb") as source:
+                headers = source.read(MAX_HEADER_BYTES)
+        except OSError:
+            return None
+        return header_value(headers, RATE_LIMIT_HEADER)
 
     def _time_limits(self) -> tuple[int, int, float]:
         """Connect timeout, curl --max-time, and the output deadline."""
@@ -411,8 +501,13 @@ class GitHubClient:
             "--header",
             "X-GitHub-Api-Version: 2022-11-28",
             "--write-out",
-            STATUS_MARKER.decode("ascii") + "%{http_code}",
+            STATUS_MARKER.decode("ascii")
+            + "%{http_code}"
+            + (f" %header{{{RATE_LIMIT_HEADER}}}" if self.header_in_write_out else ""),
         ]
+        header_file = None if self.header_in_write_out else self._header_file()
+        if header_file is not None:
+            args.extend(["--dump-header", header_file])
         if method != "GET":
             args.extend(["--request", method])
         if body is not None:
@@ -430,6 +525,7 @@ class GitHubClient:
         env.pop("GH_TOKEN", None)
         env.pop("GITHUB_TOKEN", None)
         process: subprocess.Popen[bytes] | None = None
+        rate_limit_remaining = None
         try:
             process = subprocess.Popen(
                 args,
@@ -448,6 +544,11 @@ class GitHubClient:
             os.close(write_fd)
             write_fd = -1
             stdout, _ = bounded_process_output(process, output_limit)
+            response, marker, tail = stdout.rpartition(STATUS_MARKER)
+            status_text, _, header_text = tail.partition(b" ")
+            status = int(status_text) if marker and status_text.isdigit() else 0
+            if status >= 300:
+                rate_limit_remaining = self._rate_limit_remaining(header_file, header_text)
         except OSError as exc:
             if process is not None:
                 stop_process(process)
@@ -457,13 +558,21 @@ class GitHubClient:
                 os.close(read_fd)
             if write_fd >= 0:
                 os.close(write_fd)
+            if header_file is not None:
+                try:
+                    os.unlink(header_file)
+                except OSError:
+                    pass
 
-        response, marker, status_text = stdout.rpartition(STATUS_MARKER)
-        status = int(status_text) if marker and status_text.isdigit() else 0
         if status >= 300 or (process.returncode == 22 and status):
+            if is_transient_status(status, rate_limit_remaining):
+                raise TransientHTTPError(status)
             raise GitHubHTTPError(status)
         if process.returncode != 0:
-            fail(f"GitHub request failed (curl exit {process.returncode})")
+            message = f"GitHub request failed (curl exit {process.returncode})"
+            if process.returncode in TRANSIENT_CURL_EXITS:
+                raise TransientFailure(message)
+            fail(message)
         if not marker or not 200 <= status < 300:
             fail("GitHub returned an incomplete response")
         try:

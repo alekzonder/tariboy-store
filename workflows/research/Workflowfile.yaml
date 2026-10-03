@@ -11,6 +11,7 @@ statuses:
   - id: research
     owner: { pool: researchers }
     instructions: ./statuses/research.md
+    limits: { idle_iterations: 6 }
     transitions:
       - on: reported
         to: done

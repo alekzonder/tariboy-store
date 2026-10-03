@@ -20,6 +20,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 
 
 WORKFLOW_DIR = Path(__file__).resolve().parents[1]
@@ -36,8 +37,16 @@ sys.path.insert(0, str(SCRIPTS))
 sys.dont_write_bytecode = True
 
 
+class Truncated:
+    """A response whose Content-Length promises more than the server sends."""
+
+    def __init__(self, payload):
+        self.payload = payload
+
+
 class FakeGitHub:
-    """A tiny GitHub API: routes map a request path to (status, body)."""
+    """A tiny GitHub API: routes map a request path to (status, body) or
+    (status, body, headers)."""
 
     def __init__(self):
         self.routes = {}
@@ -50,11 +59,22 @@ class FakeGitHub:
                     {"path": self.path, "authorization": self.headers.get("Authorization")}
                 )
                 path = self.path.split("?", 1)[0]
-                status, body = owner.routes.get(path, (404, {"message": "Not Found"}))
-                payload = body if isinstance(body, bytes) else json.dumps(body).encode("utf-8")
+                status, body, *extra = owner.routes.get(path, (404, {"message": "Not Found"}))
+                promised = None
+                if isinstance(body, Truncated):
+                    payload = body.payload
+                    promised = len(payload) + 64
+                elif isinstance(body, bytes):
+                    payload = body
+                else:
+                    payload = json.dumps(body).encode("utf-8")
                 self.send_response(status)
+                for name, value in (extra[0] if extra else {}).items():
+                    self.send_header(name, value)
+                if 300 <= status < 400:
+                    self.send_header("Location", "https://example.com/elsewhere")
                 self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(payload)))
+                self.send_header("Content-Length", str(promised or len(payload)))
                 self.end_headers()
                 self.wfile.write(payload)
 
@@ -178,6 +198,15 @@ class ScriptCase(unittest.TestCase):
         self.assertIsNotNone(result, "the script wrote no result file")
         return result.get("message", "")
 
+    def failure_message(self, result, stderr):
+        """A failure (exit 1) leaves its diagnostic, and only that, in the result
+        file, so it reaches the request and the pause comment."""
+        self.assertIsNotNone(result, "a failure writes its diagnostic to the result file")
+        self.assertEqual(set(result), {"message"})
+        self.assertTrue(result["message"])
+        self.assertIn(result["message"], stderr)
+        return result["message"]
+
 
 class PullRequestOpenTests(ScriptCase):
     def setUp(self):
@@ -283,8 +312,7 @@ class PullRequestOpenTests(ScriptCase):
     def test_no_token_is_a_failure(self):
         code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL}, token=False)
         self.assertEqual(code, 1)
-        self.assertIsNone(result)
-        self.assertIn("GH_TOKEN", stderr)
+        self.assertIn("GH_TOKEN", self.failure_message(result, stderr))
         self.assertLess(len(stderr), 2048)
         self.assertEqual(self.github.requests, [])
 
@@ -293,24 +321,36 @@ class PullRequestOpenTests(ScriptCase):
             {"pull_request": PR_URL}, env={"GITHUB_API_URL": f"http://127.0.0.1:{unused_port()}"}
         )
         self.assertEqual(code, 1)
-        self.assertIsNone(result)
-        self.assertTrue(stderr.strip())
+        self.failure_message(result, stderr)
         self.assertLess(len(stderr), 2048)
 
     def test_non_json_answer_is_a_failure(self):
         self.route(200, b"<html>rate limited</html>")
         code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL})
         self.assertEqual(code, 1)
-        self.assertIsNone(result)
+        self.assertNotIn("rate limited", self.failure_message(result, stderr))
         self.assertNotIn("rate limited", stderr)
 
     def test_server_errors_are_failures(self):
-        for status in (401, 403, 500):
+        for status in (301, 401, 403, 429, 500):
             with self.subTest(status=status):
                 self.route(status, {"message": "nope"})
-                code, result, _, _ = self.run_pr_open({"pull_request": PR_URL})
+                code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL})
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
+                self.assertIn(f"HTTP {status}", self.failure_message(result, stderr))
+
+    def test_failure_result_carries_the_diagnostic_and_no_token(self):
+        self.route(500, {"message": TOKEN})
+        code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL})
+        self.assertEqual(code, 1)
+        self.assertEqual(self.failure_message(result, stderr), "GitHub answered HTTP 500")
+
+    def test_a_truncated_body_is_a_failure(self):
+        payload = json.dumps(pull()).encode("utf-8")
+        self.route(200, Truncated(payload))
+        code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL})
+        self.assertEqual(code, 1)
+        self.failure_message(result, stderr)
 
     def test_malformed_pull_request_is_a_failure(self):
         for body in (
@@ -322,9 +362,9 @@ class PullRequestOpenTests(ScriptCase):
         ):
             with self.subTest(body=body):
                 self.route(200, body)
-                code, result, _, _ = self.run_pr_open({"pull_request": PR_URL})
+                code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL})
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
+                self.failure_message(result, stderr)
 
     def test_token_echoed_by_github_never_leaves_the_script(self):
         self.route(200, {**pull(), "head": {"sha": TOKEN}})
@@ -332,11 +372,11 @@ class PullRequestOpenTests(ScriptCase):
         self.assertEqual(code, 1)
 
     def test_api_root_must_be_https_or_loopback(self):
-        code, result, _, _ = self.run_pr_open(
+        code, result, _, stderr = self.run_pr_open(
             {"pull_request": PR_URL}, env={"GITHUB_API_URL": "http://api.example.com"}
         )
         self.assertEqual(code, 1)
-        self.assertIsNone(result)
+        self.failure_message(result, stderr)
         self.assertEqual(self.github.requests, [])
 
 
@@ -489,8 +529,7 @@ class MergedOnBaseTests(ScriptCase):
                 self.write_state(state)
                 code, result, _, stderr = self.run_check(self.merge_sha)
                 self.assertEqual(code, 1)
-                self.assertIsNone(result)
-                self.assertTrue(stderr.strip())
+                self.failure_message(result, stderr)
 
 
 class LibraryTests(unittest.TestCase):
@@ -541,6 +580,109 @@ class LibraryTests(unittest.TestCase):
     def test_exit_codes_default(self):
         self.assertEqual(self.lib.QUIET_EXIT, int(os.environ.get("TARIBOY_QUIET_EXIT", "111")))
         self.assertEqual(self.lib.REJECT_EXIT, int(os.environ.get("TARIBOY_REJECT_EXIT", "112")))
+
+
+class TransientFailureTests(unittest.TestCase):
+    """pr_lib.GitHubClient raises TransientFailure for what a retry can fix:
+    HTTP 429, 5xx, a 403 whose x-ratelimit-remaining is 0, and the curl exits
+    of a refused, reset, timed-out, or failed connection."""
+
+    def setUp(self):
+        import pr_lib
+
+        self.lib = pr_lib
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.task_dir = self.root / "state"
+        self.task_dir.mkdir()
+        self.github = FakeGitHub().__enter__()
+        self.addCleanup(self.github.__exit__)
+
+    def fake_curl(self, version):
+        """A curl that reports `version` and logs its arguments (never the
+        token: it travels in the config descriptor)."""
+        path = self.root / f"curl-{version}"
+        log = self.root / f"curl-{version}.log"
+        path.write_text(
+            "#!/bin/sh\n"
+            f'if [ "$1" = "--version" ]; then echo "curl {version} (x86_64-pc-linux-gnu)"; exit 0; fi\n'
+            f'printf "%s\\n" "$@" >>"{log}"\n'
+            'exec /usr/bin/curl "$@"\n',
+            encoding="utf-8",
+        )
+        path.chmod(0o755)
+        return str(path), log
+
+    def get(self, status, headers=None, *, curl_bin=None, api=None, task_dir=True):
+        self.github.routes["/repos/acme/widget/pulls/42"] = (status, {"message": "x"}, headers or {})
+        env = {"GITHUB_API_URL": api or self.github.url}
+        if task_dir:
+            env["TARIBOY_TASK_DIR"] = str(self.task_dir)
+        with mock.patch.dict(os.environ, env):
+            if not task_dir:
+                os.environ.pop("TARIBOY_TASK_DIR", None)
+            client = self.lib.GitHubClient(token=TOKEN, curl_bin=curl_bin)
+            return client.get("/repos/acme/widget/pulls/42")
+
+    def assert_transient(self, *args, **kwargs):
+        with self.assertRaises(self.lib.TransientFailure) as caught:
+            self.get(*args, **kwargs)
+        self.assertIsInstance(caught.exception, self.lib.ScriptFailure)
+        return caught.exception
+
+    def assert_not_transient(self, *args, **kwargs):
+        with self.assertRaises(self.lib.ScriptFailure) as caught:
+            self.get(*args, **kwargs)
+        self.assertNotIsInstance(caught.exception, self.lib.TransientFailure)
+        return caught.exception
+
+    def test_rate_limits_and_server_errors_are_transient(self):
+        for status in (429, 500, 502, 503, 504):
+            with self.subTest(status=status):
+                self.assert_transient(status)
+
+    def test_a_403_is_transient_only_when_the_rate_limit_is_spent(self):
+        self.assert_transient(403, {"X-RateLimit-Remaining": "0"})
+        for headers in ({}, {"X-RateLimit-Remaining": "17"}):
+            with self.subTest(headers=headers):
+                self.assert_not_transient(403, headers)
+
+    def test_other_http_errors_are_not_transient(self):
+        for status in (301, 401, 404, 422):
+            with self.subTest(status=status):
+                error = self.assert_not_transient(status)
+                self.assertIsInstance(error, self.lib.GitHubHTTPError)
+                self.assertEqual(error.status, status)
+
+    def test_a_refused_connection_is_transient(self):
+        error = self.assert_transient(200, api=f"http://127.0.0.1:{unused_port()}")
+        self.assertIn("curl exit 7", str(error))
+
+    def test_a_current_curl_reads_the_header_through_write_out(self):
+        curl_bin, log = self.fake_curl("8.5.0")
+        self.assert_transient(403, {"X-RateLimit-Remaining": "0"}, curl_bin=curl_bin)
+        arguments = log.read_text(encoding="utf-8")
+        self.assertIn("%header{x-ratelimit-remaining}", arguments)
+        self.assertNotIn("--dump-header", arguments)
+        self.assertEqual(list(self.task_dir.iterdir()), [])
+
+    def test_an_old_curl_dumps_the_headers_inside_the_task_dir_and_removes_them(self):
+        curl_bin, log = self.fake_curl("7.81.0")
+        self.assert_transient(403, {"X-RateLimit-Remaining": "0"}, curl_bin=curl_bin)
+        self.assert_not_transient(403, {"X-RateLimit-Remaining": "3"}, curl_bin=curl_bin)
+        arguments = log.read_text(encoding="utf-8").splitlines()
+        self.assertNotIn("%header{x-ratelimit-remaining}", "\n".join(arguments))
+        dumps = [arguments[index + 1] for index, value in enumerate(arguments) if value == "--dump-header"]
+        self.assertEqual(len(dumps), 2)
+        for dump in dumps:
+            self.assertEqual(Path(dump).parent, self.task_dir)
+        self.assertEqual(list(self.task_dir.iterdir()), [], "the header file is removed")
+
+    def test_an_old_curl_without_a_task_dir_cannot_tell_a_rate_limit(self):
+        curl_bin, log = self.fake_curl("7.81.0")
+        self.assert_not_transient(403, {"X-RateLimit-Remaining": "0"}, curl_bin=curl_bin, task_dir=False)
+        self.assertNotIn("--dump-header", log.read_text(encoding="utf-8"))
 
 
 class FileTests(unittest.TestCase):

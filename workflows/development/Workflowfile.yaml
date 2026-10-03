@@ -51,8 +51,9 @@ statuses:
     owner: script
     watch:
       script: ./scripts/pr-monitor.py
-      every: 60s
+      every: 120s
       timeout: 60s
+    limits: { script_failures: 10 }
     transitions:
       - { on: merged, to: complete }
       - { on: changes_requested, to: implement }

@@ -20,6 +20,13 @@ check name or status context become spaces.
 The whole run has a 50-second deadline, below the 60-second watch timeout,
 so a slow GitHub is a failure that leaves the state file as it was.
 
+A transient failure (a rate limit, a GitHub server error, a connection that
+could not be made or broke off; see pr_lib.TransientFailure) is quiet: the
+first one records `transient_since` in the state file, and the next complete
+observation clears it. Once transient failures have lasted 15 minutes without
+a break, each further one is a failure that says since when GitHub has been
+unavailable.
+
 One window remains. The state file is written before the result file, so a
 run killed in the milliseconds between the two writes leaves a pending entry
 that the daemon never applied. The same visit reports it again; but if the
@@ -30,6 +37,7 @@ developer then never saw in a transition message.
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import os
@@ -62,6 +70,8 @@ MESSAGE_BUDGET_BYTES = 3900
 MAX_NAME_CHARS = 100
 MAX_URL_CHARS = 300
 IDENTITY_HASH_CHARS = 16
+TRANSIENT_LIMIT = datetime.timedelta(minutes=15)
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 # --- Field validation (from the github-pr-workflow utility) ------------------
@@ -382,7 +392,23 @@ def load_state(path: Path) -> dict[str, Any] | None:
             or not all(valid_item(item) for item in items)
         ):
             fail("the monitor state has an invalid pending entry")
+    if "transient_since" in state:
+        parse_time(state["transient_since"])
     return state
+
+
+def parse_time(value: Any) -> datetime.datetime:
+    try:
+        if not isinstance(value, str):
+            raise ValueError(value)
+        moment = datetime.datetime.strptime(value, TIME_FORMAT)
+    except ValueError as exc:
+        raise pr_lib.ScriptFailure("the monitor state has an invalid transient_since") from exc
+    return moment.replace(tzinfo=datetime.timezone.utc)
+
+
+def utc_now() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
 
 def atomic_write(path: Path, payload: bytes) -> None:
@@ -439,7 +465,8 @@ def current_head_only(acknowledged: list[str], head_sha: str) -> list[str]:
 
 
 def write_state(path: Path, state: dict[str, Any]) -> None:
-    state = {**state, "acknowledged": current_head_only(state["acknowledged"], state["head_sha"])}
+    if isinstance(state.get("head_sha"), str):
+        state = {**state, "acknowledged": current_head_only(state["acknowledged"], state["head_sha"])}
     payload = (
         json.dumps(pr_lib.redact_value(state), sort_keys=True, ensure_ascii=False) + "\n"
     ).encode("utf-8")
@@ -477,6 +504,25 @@ def changes_message(name: str, items: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def transient(
+    path: Path,
+    old: dict[str, Any] | None,
+    repository: str,
+    number: int,
+    error: pr_lib.TransientFailure,
+) -> int:
+    """Stay quiet through a transient failure, up to TRANSIENT_LIMIT."""
+    same = old is not None and old["repo"] == repository and old["number"] == number
+    since = old.get("transient_since") if same else None
+    if since is None:
+        base = old if same else {"repo": repository, "number": number, "acknowledged": [], "pending": None}
+        write_state(path, {**base, "transient_since": utc_now().strftime(TIME_FORMAT)})
+        return pr_lib.QUIET_EXIT
+    if utc_now() - parse_time(since) >= TRANSIENT_LIMIT:
+        fail(f"the GitHub API has been unavailable since {since}; the last failure: {error}")
+    return pr_lib.QUIET_EXIT
+
+
 def main() -> int:
     deadline = time.monotonic() + RUN_DEADLINE_SECONDS
     task = pr_lib.load_task()
@@ -499,7 +545,10 @@ def main() -> int:
     remove_stale_temporaries(state_path.parent)
     old = load_state(state_path)
     client = pr_lib.GitHubClient(deadline=deadline)
-    pr, observed = observe(client, owner, repo, number, pr_url)
+    try:
+        pr, observed = observe(client, owner, repo, number, pr_url)
+    except pr_lib.TransientFailure as exc:
+        return transient(state_path, old, repository, number, exc)
     if time.monotonic() > deadline:
         fail("the run exceeded its overall time limit")
 
@@ -507,8 +556,10 @@ def main() -> int:
     # one of this visit was not (the daemon stopped before recording it).
     acknowledged: list[str] = []
     replay: list[dict[str, str]] = []
-    acknowledged_changed = False
+    state_changed = False
     if old is not None and old["repo"] == repository and old["number"] == number:
+        # A complete observation ends a streak of transient failures.
+        state_changed = "transient_since" in old
         acknowledged = list(old["acknowledged"])
         pending = old.get("pending")
         if pending is not None and pending["visit_id"] != visit_id:
@@ -519,7 +570,7 @@ def main() -> int:
                 if item["kind"] != "closed" and item["id"] not in known:
                     acknowledged.append(item["id"])
                     known.add(item["id"])
-            acknowledged_changed = True
+            state_changed = True
         elif pending is not None:
             replay = list(pending["items"])
 
@@ -557,7 +608,7 @@ def main() -> int:
         pr_lib.write_result(outcome="changes_requested", message=changes_message(name, report))
         return 0
 
-    if acknowledged_changed:
+    if state_changed:
         write_state(state_path, state)
     return pr_lib.QUIET_EXIT
 
