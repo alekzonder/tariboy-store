@@ -63,6 +63,7 @@ UNKNOWN_LOGIN = "unknown"
 STRIPPED_CATEGORIES = {"Cc", "Cf", "Zl", "Zp"}
 RUN_DEADLINE_SECONDS = 50
 URL_RE = re.compile(r"^https://[A-Za-z0-9._~:/?#@!&*+,;=%-]+$")
+TASK_KEY_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9]+$")
 FAILED_CONCLUSIONS = {"failure", "timed_out", "cancelled", "action_required", "startup_failure"}
 FAILED_STATES = {"failure", "error"}
 MAX_LISTED = 20
@@ -486,9 +487,20 @@ def visit_id_of(task: dict) -> int:
     return visit_id
 
 
-def changes_message(name: str, items: list[dict[str, str]]) -> str:
+def task_key_of(task: dict) -> str:
+    """The task key for the message's pointer, or KEY when it looks odd."""
+    key = task.get("key")
+    if isinstance(key, str) and len(key) <= 64 and TASK_KEY_RE.fullmatch(key):
+        return key
+    return "KEY"
+
+
+def changes_message(key: str, items: list[dict[str, str]]) -> str:
+    """The first line counts the items and says where the full message is (the
+    Goal block cuts long values); then one line per item."""
     count = len(items)
-    lines = [f"Pull request {name} needs changes ({count} item{'' if count == 1 else 's'}):"]
+    counted = "1 item needs" if count == 1 else f"{count} items need"
+    lines = [f"{counted} attention; full list: ttasks workflow get {key} --json"]
     size = len(lines[0].encode("utf-8"))
     listed = 0
     for item in items[:MAX_LISTED]:
@@ -605,7 +617,9 @@ def main() -> int:
     if report:
         state["pending"] = {"visit_id": visit_id, "items": report}
         write_state(state_path, state)
-        pr_lib.write_result(outcome="changes_requested", message=changes_message(name, report))
+        pr_lib.write_result(
+            outcome="changes_requested", message=changes_message(task_key_of(task), report)
+        )
         return 0
 
     if state_changed:

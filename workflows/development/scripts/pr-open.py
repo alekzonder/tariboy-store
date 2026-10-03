@@ -71,8 +71,8 @@ def main() -> int:
         return 0
     if state == "closed":
         return reject(
-            f"Pull request {name} is closed without a merge; reopen it or open a new "
-            "one and store its URL as the pull_request artifact."
+            f"Pull request {name} is closed without a merge; reopen it, or ask the "
+            "customer through the task whether a new pull request replaces it."
         )
     pr_lib.write_result(message=f"Pull request {name} is open at {head_sha[:12]}.")
     return 0

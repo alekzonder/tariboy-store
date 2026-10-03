@@ -301,7 +301,11 @@ class PullRequestOpenTests(ScriptCase):
         self.route(200, pull(state="closed"))
         code, result, _, _ = self.run_pr_open({"pull_request": PR_URL})
         self.assertEqual(code, REJECT)
-        self.assertIn("reopen it or open a new one", self.message(result))
+        self.assertEqual(
+            self.message(result),
+            "Pull request acme/widget#42 is closed without a merge; reopen it, or ask the "
+            "customer through the task whether a new pull request replaces it.",
+        )
 
     def test_merged_pull_request_passes(self):
         self.route(200, pull(state="closed", merged=True, merge_sha="f" * 40))

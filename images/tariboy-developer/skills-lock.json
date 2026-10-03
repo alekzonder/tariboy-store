@@ -38,7 +38,7 @@
     "github-pr-workflow": {
       "source": "./skills/github-pr-workflow",
       "sourceType": "local",
-      "computedHash": "a5aa8a061bdb3e2101e7666d4707cde91d00ea2dee77edbb5277002b238b0339"
+      "computedHash": "5bafb4820ec50824ebffedd3269c299984bc7f349a8c54f5e28640120bd6d2d6"
     },
     "goal": {
       "source": "../../skills/goal",
@@ -98,7 +98,7 @@
     "tasks": {
       "source": "../../skills/tasks",
       "sourceType": "local",
-      "computedHash": "bb04645aaf3e880829c755243c32372676246286e19fffe0521b452562ae1006"
+      "computedHash": "b4758ce69026bb416ba7719c1fbef408c301da74be113d3e4a5e3c3ea834bbf2"
     },
     "test-driven-development": {
       "source": "obra/superpowers",

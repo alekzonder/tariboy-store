@@ -8,8 +8,8 @@ compatibility: Requires Python 3, curl, git, GitHub API access, and GH_TOKEN or 
 
 ## Contract
 
-Use this recipe only after the role prompt records PR mode on the Native Task.
-The role prompt owns task intake, branch verification, merge waiting,
+Use this recipe only after the role prompt records PR mode on the Native Task,
+or when workflow status instructions direct `ensure`. The role prompt owns task intake, branch verification, merge waiting,
 post-merge verification, cleanup, and task completion. This skill owns the
 repeatable GitHub operations and durable monitor.
 
@@ -83,7 +83,9 @@ not enable shell tracing around these commands.
    Record the returned PR number and URL. Re-run `ensure` after an uncertain
    result; never create a PR by another path. Multiple matches are ambiguous.
    One closed match returns `requires_decision: true`: it is the identified PR,
-   so never create a replacement and continue immediately to its monitor.
+   so never create a replacement. On a task without a workflow, continue
+   immediately to its monitor. On a workflow task, reopen it, or ask the
+   customer through the task whether a new pull request replaces it.
 
 3. Choose a new absolute, task-scoped state path in agent-owned persistent
    storage outside the task worktree. Create exactly that directory owner-only:

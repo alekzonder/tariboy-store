@@ -8,8 +8,12 @@ the result.
    branch so it contains the merge commit. Never reset, rebase, or force it.
    If the fast-forward fails because the local branch diverged, keep it
    exactly as it is, post the failure on the task, and ask the customer
-   through the task.
-2. Remove the task's worktree and then its local branch.
+   through the task. Prove the result: `git merge-base --is-ancestor
+   MERGE_COMMIT BASE` exits 0.
+2. Remove the task's worktree and then its local branch. After a squash or
+   rebase merge `git branch -d` refuses, because the branch's own commits are
+   not on the base; use `git branch -D` once step 1 proved the merge commit is
+   on the base branch.
 3. Set your working directory to the repository's main checkout with the
    `workdir` skill. The check that ends this status runs in your working
    directory: it looks there for the merge commit on the base branch and for

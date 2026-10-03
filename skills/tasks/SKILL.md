@@ -94,6 +94,10 @@ block states the status instructions, the available outcomes with their
 required artifacts and checks, the current artifacts, and the exact commands;
 `ttasks workflow get <key>` shows the same data on demand.
 
+- The Goal block cuts long values. Read an artifact in full with
+  `ttasks artifacts show <key> <name>`, and the transition message that
+  reached the status with `ttasks workflow get <key> --json`, in
+  `visits[].message` of the previous visit.
 - Store a required artifact with `ttasks artifacts set <key> <name>`, the value
   from stdin, `--file <path>`, or a value argument; it is stored as given.
 - Leave the status only with
@@ -104,10 +108,10 @@ required artifacts and checks, the current artifacts, and the exact commands;
   status. `transition_pending` means a request still runs: read it with
   `workflow get` instead of sending another.
 - A `rejected` request carries a check's message: fix what it names and advance
-  again. A `failed` request is a broken script, a timeout, or a broken result,
-  not yours to repair by retrying blindly: read it with
-  `ttasks workflow runs <key>` and `ttasks workflow log <key> <run>`, then tell
-  the customer on the task.
+  again. A `failed` request is a broken script, a timeout, or a broken result:
+  read the log with `ttasks workflow runs <key>` and
+  `ttasks workflow log <key> <run>`; retry once if the cause was transient;
+  otherwise tell the customer on the task.
 - Questions to the customer still use the `ask` form above.
 - `workflow_paused` means the task waits for the customer's decision: do
   nothing on it until the customer resumes it.
