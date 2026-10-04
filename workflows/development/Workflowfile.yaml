@@ -1,7 +1,7 @@
 schema_version: 1
 name: development
-workflow_version: 0.2.0
-initial_status: plan
+workflow_version: 0.3.0
+initial_status: backlog
 
 requires_secrets: [GH_TOKEN]
 
@@ -24,6 +24,12 @@ artifacts:
     description: Merge commit recorded by the monitor.
 
 statuses:
+  - id: backlog
+    owner: customer
+    instructions: ./statuses/backlog.md
+    transitions:
+      - { on: start, to: plan }
+
   - id: plan
     owner: { pool: developers }
     instructions: ./statuses/plan.md

@@ -955,7 +955,7 @@ class FileTests(unittest.TestCase):
             self.assertFalse(path.is_symlink(), f"{path} is a symlink")
 
     def test_status_instructions_are_short(self):
-        for name in ("plan", "approval", "implement", "complete"):
+        for name in ("backlog", "plan", "approval", "implement", "complete"):
             with self.subTest(status=name):
                 lines = (WORKFLOW_DIR / "statuses" / f"{name}.md").read_text(encoding="utf-8").splitlines()
                 self.assertLess(len(lines), 60)

@@ -110,6 +110,10 @@ access and finds or creates the task's one pull request without a monitor.
 `official/tariboy-developer` also works such tasks, beside its own process for
 tasks without a workflow.
 
+A task of a queue bound to the `development` workflow starts in `backlog`, a
+status the customer owns: no agent takes it until the customer starts it with
+`ttasks advance KEY --outcome start --from backlog`, which moves it to `plan`.
+
 ## Daemon version
 
 This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:
