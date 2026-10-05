@@ -110,6 +110,17 @@ chain reaches also bumps that descendant. Use `tariboy image version update
 patch|minor|major --path images/NAME`. Delivering such a change with an
 unchanged version is a defect, not a shortcut.
 
+Every change under `workflows/NAME/` likewise MUST bump that workflow's
+`workflow_version` in the same delivery with `tariboy workflow version update
+patch|minor|major --path workflows/NAME`, and the delivery comment records each
+workflow's old and new version. Before pushing, compare the `workflow_version`
+of every changed `workflows/NAME/` with the base; a value equal to the base's
+is a missing bump, whatever an earlier stage was supposed to do: run the update
+command, commit it and rerun the checks before the push. A workflow change
+bumps no `image_version` and an image change no `workflow_version`.
+**REQUIRED:** use `tariboy-workflow-authoring` for everything under
+`workflows/`.
+
 ## Publication after merge
 
 Publication builds the merged image under its version tag and `latest`. It is a
@@ -164,8 +175,17 @@ and do not bump or commit it after the merge yourself; the blocker asks the
 customer for a follow-up change. A later iteration reads the digests and
 tags already recorded on the task and republishes only what is missing.
 
+A path under `workflows/` selects no agent image. A merged workflow is not
+built or published by you, not even through the `image-creator` launcher, which
+builds agent images only: building a workflow image and binding it to a queue
+are operator actions. Record a hand-over instead.
+
 The consolidated completion comment gains a `Publication:` section listing, per
-published image, its name, version tag, `latest` and the digest.
+published image, its name, version tag, `latest` and the digest, and per merged
+workflow its name, merged `workflow_version`, `not published by the agent`, and
+the operator commands `tariboy workflow build STORE/NAME` and `ttasks queue
+workflow set QUEUE NAME:VERSION`. A workflow-only merge completes with no image
+build.
 
 ## Closure monitor
 
