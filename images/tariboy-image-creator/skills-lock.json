@@ -107,7 +107,12 @@
     "tariboy-image-delivery": {
       "source": "./skills/tariboy-image-delivery",
       "sourceType": "local",
-      "computedHash": "e0a87e511c6b4dab4cb0c2d02307e00c9458719b50bcbf04b1ab687214fce838"
+      "computedHash": "c882a6447965a77d579f7d76301a0b87bbe029ef9ba907d6c09936c43142ed50"
+    },
+    "tariboy-workflow-authoring": {
+      "source": "./skills/tariboy-workflow-authoring",
+      "sourceType": "local",
+      "computedHash": "684805703be893bf00c75589fc9d3adcfd398ccf3b510a6be4f44ee0739033c7"
     },
     "tasks": {
       "source": "../../skills/tasks",

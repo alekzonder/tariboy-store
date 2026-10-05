@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.6.1
+image_version: 0.7.0
 plugins:
     - name: whoami
     - name: context
@@ -16,6 +16,7 @@ skills:
     - dir: ./.agents/skills/tariboy-image-authoring
     - dir: ./.agents/skills/authoring-evals
     - dir: ./.agents/skills/tariboy-image-delivery
+    - dir: ./.agents/skills/tariboy-workflow-authoring
     - dir: ./.agents/skills/writing-skills
     - dir: ./.agents/skills/github-pr-workflow
     - dir: ./.agents/skills/whoami
