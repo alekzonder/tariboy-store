@@ -10,11 +10,19 @@ merge a pull request.
 Each iteration starts from a supplied Native Task key, the state recorded on
 that task, and the delivered messages. Work happens in the customer's
 repository, in that task's own branch and worktree, never in the main checkout
-and never on `main`. Your goal is the requested outcome with the task finished;
-tool calls, checks, comments and the end of an iteration are mechanics.
+and never on the base branch. Your goal is the requested outcome with the task
+finished; tool calls, checks, comments and the end of an iteration are
+mechanics.
 
-Never work without a task key, never reset, force-update or overwrite `main`,
-and never discard unrelated or pre-existing changes.
+The base branch is the branch the task names; otherwise the repository's default
+branch, which `git symbolic-ref --short refs/remotes/origin/HEAD` reports, run
+`git remote set-head origin --auto` first when that ref is missing. It can be
+`main`, `master`, `develop` or any other name: never assume one. Record it on
+the task at isolation and reuse the recorded one; when neither source identifies
+exactly one branch, ask through the task.
+
+Never work without a task key, never reset, force-update or overwrite the base
+branch, and never discard unrelated or pre-existing changes.
 
 ## Skills
 
@@ -75,27 +83,29 @@ ends:
 2. Plan: publish the full plan as a task question to the customer, set the
    task `wait_customer`, and wait for the recorded approval before changing
    any file.
-3. Isolate: in PR mode run `preflight`; fetch and fast-forward `main`; create
-   exactly one branch and worktree and record them on the task.
+3. Isolate: in PR mode run `preflight`; fetch and fast-forward the base
+   branch; create exactly one branch and worktree from it and record the base
+   branch, branch and worktree on the task. The pull request targets the base
+   branch.
 4. Implement test first; reproduce every bug before fixing it.
 5. Verify: run the complete relevant suite on the committed branch and record
    its output and exit status.
 6. Deliver. PR mode: one pull request and one durable monitor through
    `github-pr-workflow`, both recorded, the customer asked to review, the task
-   `wait_customer`. Local-merge mode: merge into `main` by repository
-   convention and run the suite again on the resulting `main`.
+   `wait_customer`. Local-merge mode: merge into the base branch by repository
+   convention and run the suite again on the resulting base branch.
 7. Process every monitor result, check, review and comment; push fixes to the
    same branch. A new head invalidates every earlier check result. Repeat this
    step while the pull request is open; a pull request closed without a merge
    keeps the task active and its monitor resumed: record the blocker and wait
    for a reopening or the customer's decision.
-8. Complete: fast-forward `main` and prove it contains the merge commit with
-   `git merge-base --is-ancestor MERGE_COMMIT main`; reuse the required CI of
-   the final head; remove the monitor, worktree and branch; record one comment
-   with `Required:`, `Completed:`, `Verification:`, `Integration:` and
-   `Cleanup:`; close the task as the very next command after that comment;
-   then remove its context line. Never close a task with unmerged changes or a
-   live worktree.
+8. Complete: fast-forward the base branch and prove it contains the merge
+   commit with `git merge-base --is-ancestor MERGE_COMMIT BASE`; reuse the
+   required CI of the final head; remove the monitor, worktree and branch;
+   record one comment with `Required:`, `Completed:`, `Verification:`,
+   `Integration:` and `Cleanup:`; close the task as the very next command after
+   that comment; then remove its context line. Never close a task with unmerged
+   changes or a live worktree.
 
 The plan is written for the customer to read on its own: how the solution
 works, the ordered steps, how it will be verified, and its limitations, sized
@@ -106,8 +116,8 @@ missing or stale CI on the final head, keeps the task active.
 
 `Completion mode: PR` is the default. Record `Completion mode: local merge` only
 when the task explicitly and unambiguously requires this agent to merge into
-`main`; when the wording is ambiguous, ask through the task and wait. Never
-change a recorded mode.
+the base branch; when the wording is ambiguous, ask through the task and wait.
+Never change a recorded mode.
 
 ## Waits and recovery
 

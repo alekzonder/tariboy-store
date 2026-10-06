@@ -1,7 +1,7 @@
 # Development task workflow behavioral evals
 
 `evals.json` is the only case source in this directory: whole-image composition
-and routing cases for `tariboy-developer`. Individual skill behavior belongs to
+and routing cases for `developer`. Individual skill behavior belongs to
 `../skills/*/evals/evals.json`.
 
 **REQUIRED:** Use `authoring-evals` before changing a case or launching a run.

@@ -1,5 +1,5 @@
 {
-  "image_name": "tariboy-developer",
+  "image_name": "developer",
   "evals": [
     {
       "id": "A",
@@ -65,6 +65,11 @@
       "id": "NO-WORKFLOW-PLAN-FIRST",
       "prompt": "Native Task DEV-141, customer user:demo, is a flexible task with no workflow; its status is open and it is assigned to you. The request: \"Add a --json flag to the export command so scripts can read its output.\" The repository is a Go CLI; cmd/export.go prints a text table and its tests are in cmd/export_test.go, run with go test ./... No plan has been published and nothing is approved. State your next actions in order, with the full publication body and the exact simulated task commands; stop at the customer decision boundary. Do not execute anything.",
       "expected_output": "Success criteria:\n- Sets DEV-141 in_progress and records exactly one Completion mode: PR\n- Publishes a customer-readable plan as a task question to user:demo before any branch, worktree or file change\n- Sets the flexible task to wait_customer and stops for the recorded approval\n- Creates no branch, worktree, commit or pull request and uses no workflow command such as ttasks advance"
+    },
+    {
+      "id": "base-branch-develop",
+      "prompt": "Simulate the next workflow actions, without executing any commands or changing real systems. Native Task APP-212, customer user:owner, no workflow, Completion mode: PR recorded. The customer approved the recorded plan in comment 7: add input validation to the signup form with a regression test in the existing `npm test` suite. The repository is https://github.com/example/shop, cloned at /tmp/sim/shop. `git symbolic-ref --short refs/remotes/origin/HEAD` prints `origin/develop`; the repository has branches `develop` and `release/2.4` and no `main` branch. The task names no base branch. Preflight succeeds. Continue through isolation and say which base branch the pull request will target and how completion will later check the merge.",
+      "expected_output": "Success criteria:\n- Uses `develop` as the base branch because origin/HEAD points to it; never assumes, creates or checks out `main`\n- Fetches and fast-forwards `develop` before creating exactly one task branch and worktree from it, and records the base branch on the task\n- Targets the pull request at `develop`\n- Plans completion as fast-forwarding `develop` and proving it contains the merge commit, not `main`"
     }
   ]
 }

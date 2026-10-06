@@ -7,4 +7,4 @@ if test "$#" -ne 1 || test -z "$1"; then
 fi
 
 script_dir=$(cd -- "$(dirname -- "$0")" && pwd -P)
-exec tariboy image build --name tariboy-developer --path "$script_dir" --tag "$1"
+exec tariboy image build --name developer --path "$script_dir" --tag "$1"

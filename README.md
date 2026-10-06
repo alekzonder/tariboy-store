@@ -23,7 +23,7 @@ image by its Store selector:
 tariboy store add official git@github.com:alekzonder/tariboy-store.git
 tariboy store refresh official
 tariboy image build official/basic
-tariboy image build official/tariboy-developer
+tariboy image build official/developer
 ```
 
 For a local checkout:
@@ -107,7 +107,7 @@ request's text. Run it with `official/tariboy-workflow-developer`, an agent
 image with the tools that do the work and no process of its own: it works only
 tasks of a workflow queue, and its `github-pr-workflow` skill proves GitHub
 access and finds or creates the task's one pull request without a monitor.
-`official/tariboy-developer` also works such tasks, beside its own process for
+`official/developer` also works such tasks, beside its own process for
 tasks without a workflow.
 
 A task of a queue bound to the `development` workflow starts in `backlog`, a
