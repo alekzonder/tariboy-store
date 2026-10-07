@@ -114,6 +114,21 @@ A task of a queue bound to the `development` workflow starts in `backlog`, a
 status the customer owns: no agent takes it until the customer starts it with
 `ttasks advance KEY --outcome start --from backlog`, which moves it to `plan`.
 
+The `pr-review` workflow reviews pull requests. Its source `pull-requests`
+polls every repository named in the queue secret `REVIEW_REPOSITORIES`
+(`owner/repo` entries separated by commas; one repository is written
+`owner/repo,`, because the daemon hides a queue secret's exact value in task
+keys and artifacts) every two minutes and creates one task per open, non-draft
+pull request, keyed `owner/repo#N`. A reviewer writes the review in `review`;
+the customer then publishes it, sends it back with `revise`, or closes the task
+in `approval` (findings) or `approval_clean` (none); `publish` posts the
+approved review on GitHub as one `COMMENT` review. Run it with
+`official/reviewer`, an agent image with no process of its own and no
+`scripts` capability, whose `pull-request-review` skill fetches, checks and
+publishes reviews. The queue needs the secrets `GH_TOKEN` and
+`REVIEW_REPOSITORIES`; the reviewer agents need `GH_TOKEN` in their own
+environment to publish.
+
 ## Daemon version
 
 This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:

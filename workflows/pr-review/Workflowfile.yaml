@@ -1,0 +1,77 @@
+schema_version: 1
+name: pr-review
+workflow_version: 0.1.0
+initial_status: review
+
+requires_secrets: [GH_TOKEN, REVIEW_REPOSITORIES]
+
+limits:
+  idle_iterations: 3
+  rejected_requests: 5
+  script_failures: 3
+  unavailable_grace: 5m
+
+artifacts:
+  - name: pull_request
+    description: URL of the pull request to review.
+  - name: head_sha
+    description: Full SHA of the pull request's head commit the review covers.
+  - name: review
+    description: The review for the customer, as Markdown, with every finding.
+  - name: review_comments
+    description: The review to publish, as JSON with its summary and inline comments.
+  - name: published_review
+    description: URL of the review published on the pull request.
+
+sources:
+  - name: pull-requests
+    script: ./scripts/open-pulls.py
+    every: 2m
+    timeout: 120s
+
+statuses:
+  - id: review
+    owner: { pool: reviewers }
+    instructions: ./statuses/review.md
+    transitions:
+      - on: findings
+        to: approval
+        requires: [review, head_sha, review_comments]
+        checks:
+          - script: ./scripts/review-check.py
+            timeout: 60s
+      - on: no_findings
+        to: approval_clean
+        requires: [review, head_sha]
+        checks:
+          - script: ./scripts/review-check.py
+            timeout: 60s
+
+  - id: approval
+    owner: customer
+    instructions: ./statuses/approval.md
+    transitions:
+      - { on: publish, to: publish }
+      - { on: revise, to: review }
+      - { on: close, to: done }
+
+  - id: approval_clean
+    owner: customer
+    instructions: ./statuses/approval_clean.md
+    transitions:
+      - { on: close, to: done }
+      - { on: revise, to: review }
+
+  - id: publish
+    owner: { pool: reviewers }
+    instructions: ./statuses/publish.md
+    transitions:
+      - on: published
+        to: done
+        requires: [published_review]
+        checks:
+          - script: ./scripts/published-check.py
+            timeout: 60s
+
+  - id: done
+    terminal: true
