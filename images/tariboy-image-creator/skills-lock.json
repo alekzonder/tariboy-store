@@ -151,7 +151,7 @@
     "workdir": {
       "source": "../../skills/workdir",
       "sourceType": "local",
-      "computedHash": "0a7594d6122814a9ed98b391ac2e8d943a9689985ceb32a2bd050f24b4fb6943"
+      "computedHash": "cc348cbd1ef5873dac6ecfae713eb10e40592bf7f7c4d6f17461d756368aabfd"
     },
     "writing-plans": {
       "source": "obra/superpowers",
