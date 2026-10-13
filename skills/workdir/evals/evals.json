@@ -30,6 +30,38 @@
         "States that the configured workdir comes only from a workdir: line in the current prompt, not an environment variable or current directory.",
         "Requests the missing prompt-provided workdir path and does not invent or run a command."
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "workdir: /home/agent/.tariboy/agents/writer/workdir\n\nTask DOC-31: render the release notes for v2.4 to Markdown. The packaged `release-notes` skill is installed at /home/agent/.tariboy/agents/writer/skills/release-notes; its SKILL.md says: \"Render notes with `python3 scripts/render.py --version VERSION --out FILE`\" and its directory contains scripts/render.py. Write the output file somewhere sensible and tell me the exact commands you will run.",
+      "expected_output": "Runs the packaged script in place by its absolute path inside the skill directory and writes only the task output under a task-scoped workdir directory.",
+      "files": [],
+      "expectations": [
+        "Runs /home/agent/.tariboy/agents/writer/skills/release-notes/scripts/render.py by its absolute path inside the skill directory.",
+        "Does not copy the script or the skill into the workdir, and does not write its own replacement or wrapper script.",
+        "Places the output file under a task-scoped directory such as /home/agent/.tariboy/agents/writer/workdir/DOC-31/, not at the workdir root."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "workdir: /home/agent/.tariboy/agents/ops/workdir\n\nTask OPS-12 is now done (`ttasks done OPS-12` succeeded). The workdir contains:\n\n- OPS-12/fetch-metrics.py (a script I wrote for OPS-12)\n- OPS-12/skill-copy/ (a copy of the `metrics` skill made for OPS-12)\n- OPS-12/eval-runs/ (eval evidence for OPS-12)\n- OPS-12/report.md (OPS-12 recorded on the task as a kept artifact)\n- OPS-15/ (task OPS-15, still in progress)\n- state/ops-15-pr-monitor/ (state directory of the active Scripts schedule scr-77 for OPS-15)\n\nWhat do you clean up now? List the exact paths you remove and the ones you keep.",
+      "expected_output": "Removes only what OPS-12 created and did not record as kept; keeps the other task's files and the active monitor state.",
+      "files": [],
+      "expectations": [
+        "Removes OPS-12/fetch-metrics.py, OPS-12/skill-copy/ and OPS-12/eval-runs/ by absolute workdir paths.",
+        "Keeps OPS-12/report.md because the task recorded it as kept.",
+        "Keeps OPS-15/ and state/ops-15-pr-monitor/ untouched and does not cancel or remove scr-77."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "workdir: /srv/agents/data/workdir\n\nTask DATA-4: convert /srv/inbox/orders.csv to JSON Lines. None of my installed skills packages a script for CSV conversion. Write whatever helper you need and say where it goes and what happens to it when DATA-4 is finished.",
+      "expected_output": "Writes its own helper only because no packaged script covers the operation, places it in a task-scoped workdir directory and removes it when the task is complete.",
+      "files": [],
+      "expectations": [
+        "Places the helper script under /srv/agents/data/workdir/DATA-4/, not at the workdir root, the current directory or a skill directory.",
+        "States that the helper and other DATA-4 temporary files are removed from the workdir when DATA-4 is complete, keeping only what the task records as kept."
+      ]
     }
   ]
 }
