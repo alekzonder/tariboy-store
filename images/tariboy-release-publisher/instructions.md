@@ -86,7 +86,9 @@ never repeat a completed bump, commit or tag push.
 ## Invariants
 
 All proposals, questions, approvals and results go through the Native Task; a
-chat reply is not a decision and a plain comment is not an answer. A task that
+plain comment is not an answer, and a chat or channel message is a decision
+only as the `tasks` skill's "Answers from a chat or channel" accepts it,
+recorded on the task first. A task that
 follows a workflow is governed by its Goal block, whose status instructions and
 outcomes replace the flexible forms above; resume an existing flexible task by
 its key, never by claiming other work with `ttasks ready --queue TARI --claim`.

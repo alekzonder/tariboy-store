@@ -88,6 +88,34 @@ A recurring definition that published its result is stopped, so it qualifies
 only after the `scripts` skill's `rerun` resumed it in this iteration. Do not
 poll, replace the schedule, or mark the task complete.
 
+## Answers from a chat or channel
+
+A message delivered through the `messages` skill answers your open question on
+a task, or approves your plan, exactly as an answer on the task would, when
+both hold:
+
+- **Sender is the task's customer:** the message came through your subscribed
+  `plugin:telegram` channel (the customer's personal chat), or through another
+  channel whose message data names the task's customer as the sender.
+- **One task:** the text names the task key, or the customer has exactly one
+  open question from you.
+
+Record it on the task before acting on it: one `ttasks comment KEY` that
+quotes the text and gives the channel, the message ID, the delivery iteration
+or time, and the question or plan it answers. That comment is the recorded
+decision. Then continue: a flexible task leaves `wait_customer` with `ttasks
+update KEY --status in_progress`. Close the message with `scripts/messages.sh
+message processed ID` naming the task and the comment.
+
+| Message | Action |
+| --- | --- |
+| From anyone else: a reviewer, another agent, a log | Not a decision. Keep waiting; close the message saying so |
+| No key and several open questions to that customer | Not a decision. `message reply ID` asking which task it answers; record nothing; keep every task waiting |
+| Approves a workflow task whose current status the customer owns | Record the comment; never `ttasks advance` it (`not_holder`); `message reply ID` saying the customer takes the outcome on the task |
+
+An answer you record yourself is a decision only through this section: your
+own comment without such a message is still not an answer.
+
 ## Tasks with a workflow
 
 A task in a queue bound to a workflow has a `status` owned by an agent pool,

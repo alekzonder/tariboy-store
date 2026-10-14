@@ -24,7 +24,7 @@
     "messages": {
       "source": "../../skills/messages",
       "sourceType": "local",
-      "computedHash": "382b513875790010923860d342b66271c84c2d3133cfe6e50c315d73a1701a4b"
+      "computedHash": "01cc5ca756222bdad5f9f67c939e8fcf8dd3997a3473ecdd9435344af4a406ee"
     },
     "publish-release": {
       "source": "./skills/publish-release",
@@ -44,7 +44,7 @@
     "tasks": {
       "source": "../../skills/tasks",
       "sourceType": "local",
-      "computedHash": "169970cb6703525408958385b8d6718482d75d42aaee06ac907ceb3b9d67f770"
+      "computedHash": "1d37a00b3d015c15bf52fbb571c40d10c2ed7d3a9d695bacb3bb8c7c058b4323"
     },
     "whoami": {
       "source": "../../skills/whoami",

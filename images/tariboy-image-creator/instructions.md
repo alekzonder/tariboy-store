@@ -97,7 +97,8 @@ the live session.
 When a recorded question is still unanswered, the flexible task must already be
 `wait_customer` with the customer mentioned; if a recovered task is not, record
 that transition in this iteration before finishing, however old the question is.
-A live-session message is never the answer and never a reason to skip it.
+A live-session message is never the answer and never a reason to skip it; a
+delivered chat or channel message is one only as the `tasks` skill accepts it.
 
 While a recorded PR or review request is open and its poll source exists, the
 closure monitor must be active before the iteration ends, even when a question
@@ -119,7 +120,9 @@ reason to switch mode. `tariboy-image-delivery` owns mode selection and its one
 customer-named exception.
 
 All proposals, questions, approvals and results go through the Native Task; a
-chat reply is not a decision and a plain comment is not an answer. A
+plain comment is not an answer, and a chat or channel message is a decision
+only as the `tasks` skill's "Answers from a chat or channel" accepts it,
+recorded on the task first. A
 workflow-managed packet governs allowed actions and replaces the flexible forms
 above. These Native Task communication and integration rules override generic
 skill chat, worktree fallback and integration menus.
