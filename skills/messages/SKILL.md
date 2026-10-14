@@ -33,6 +33,10 @@ one; that request is answered by one finished message that names whatever is
 still running. Send again only for new external state, or to correct an error
 already sent.
 
+A message from a task's customer that answers your open question on that task
+or approves your plan is handled by the `tasks` skill's "Answers from a chat or
+channel": record it on the task before acting on it.
+
 - Notify: `scripts/messages.sh message send --channel <name> --text <body>`
 - Request a reply: `scripts/messages.sh request --channel <name> --text <body> [--deadline 5m]`
 - Inspect/recover: `scripts/messages.sh message ls [--all]`,

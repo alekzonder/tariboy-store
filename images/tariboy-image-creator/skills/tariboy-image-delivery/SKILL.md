@@ -16,7 +16,9 @@ intake blocker. Use only declared actions for a workflow-managed packet.
 All customer communication belongs on the Native Task. Flexible questions use
 `ttasks ask KEY user:LOGIN|agent:NAME TEXT`; workflow questions use the packet’s
 assignment-scoped form, revisions and blocking scope. These forms are mutually
-exclusive. A plain comment is not an answer wait.
+exclusive. A plain comment is not an answer wait. A delivered chat or channel
+message from the customer answers or approves only as the `tasks` skill's
+"Answers from a chat or channel" accepts it, recorded on the task first.
 
 For every new task, use read-only investigation to record a concrete plan:
 which image/skills change, why, evaluation coverage and delivery destination.
