@@ -112,7 +112,7 @@ issues. It is a top-level `sources` list in `Workflowfile.yaml`, available from
 tariboy `0.75.0`:
 
 ```yaml
-requires_secrets: [GH_TOKEN]         # top level, as for every script; not per source
+requires_secrets: [GITHUB_TOKEN]     # top level, as for every script; not per source
 artifacts:
   - name: pull_request               # every artifact a source item carries is declared here
     description: URL of the pull request to review.
@@ -149,7 +149,7 @@ sources:
   The token reaches curl only through a pipe, never `mktemp` or another file:
 
   ```sh
-  printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN" | curl -fsS --config - "$URL"
+  printf 'header = "Authorization: Bearer %s"\n' "$GITHUB_TOKEN" | curl -fsS --config - "$URL"
   ```
 - `tariboy workflow validate` printing `field sources not found` means the
   installed tariboy is older than `0.75.0`, not that the manifest is wrong.

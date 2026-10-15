@@ -9,7 +9,7 @@ URL is https://github.com/OWNER/REPO/pull/NUMBER. FILE holds review_comments
 JSON ({"body": ..., "comments": [...]}); "-" reads it from standard input.
 Every command prints one JSON object on stdout. Exit 0 on success, 2 when the
 input is invalid or GitHub would refuse the review (the "error" says why), 1
-on any other failure. The token comes from GH_TOKEN or GITHUB_TOKEN and
+on any other failure. The token comes from GITHUB_TOKEN and
 reaches curl only through an inherited descriptor.
 
 publish creates one review with the event COMMENT on the given commit. Its

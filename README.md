@@ -125,8 +125,8 @@ in `approval` (findings) or `approval_clean` (none); `publish` posts the
 approved review on GitHub as one `COMMENT` review. Run it with
 `official/reviewer`, an agent image with no process of its own and no
 `scripts` capability, whose `pull-request-review` skill fetches, checks and
-publishes reviews. The queue needs the secrets `GH_TOKEN` and
-`REVIEW_REPOSITORIES`; the reviewer agents need `GH_TOKEN` in their own
+publishes reviews. The queue needs the secrets `GITHUB_TOKEN` and
+`REVIEW_REPOSITORIES`; the reviewer agents need `GITHUB_TOKEN` in their own
 environment to publish.
 
 ## Daemon version

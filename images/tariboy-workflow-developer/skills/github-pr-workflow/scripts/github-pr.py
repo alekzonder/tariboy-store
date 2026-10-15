@@ -140,9 +140,9 @@ def validate_branch(value: str, label: str) -> str:
 
 def select_token() -> str:
     global TOKEN_FOR_REDACTION
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        fail("GH_TOKEN or GITHUB_TOKEN is required")
+        fail("GITHUB_TOKEN is required")
     TOKEN_FOR_REDACTION = token
     if CONTROL_RE.search(token) or len(token.encode("utf-8")) > 8192:
         fail("GitHub token contains invalid characters")
@@ -504,7 +504,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     global TOKEN_FOR_REDACTION
-    TOKEN_FOR_REDACTION = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+    TOKEN_FOR_REDACTION = os.environ.get("GITHUB_TOKEN") or ""
     args = build_parser().parse_args()
     args.resolved_repo = resolve_repo(args.repo)
     if args.command == "ensure":

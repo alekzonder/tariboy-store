@@ -201,7 +201,7 @@ class ScriptCase(unittest.TestCase):
             **GIT_ENV,
         }
         if token:
-            full_env["GH_TOKEN"] = TOKEN
+            full_env["GITHUB_TOKEN"] = TOKEN
         full_env.update(env or {})
         completed = subprocess.run(
             [str(script)],
@@ -323,14 +323,14 @@ class PullRequestOpenTests(ScriptCase):
             self.assertEqual(request["authorization"], f"Bearer {TOKEN}")
             self.assertNotIn(TOKEN, request["path"])
 
-    def test_github_token_is_the_fallback(self):
-        self.route(200, pull())
-        self.route_repository()
-        code, _, _, _ = self.run_pr_open(
-            {"pull_request": PR_URL}, token=False, env={"GITHUB_TOKEN": TOKEN}
+    def test_gh_token_is_not_accepted(self):
+        code, result, _, stderr = self.run_pr_open(
+            {"pull_request": PR_URL}, token=False, env={"GH_TOKEN": TOKEN}
         )
-        self.assertEqual(code, 0)
-        self.assertEqual(self.github.requests[0]["authorization"], f"Bearer {TOKEN}")
+        self.assertEqual(code, 1)
+        self.assertIn("GITHUB_TOKEN is required", self.failure_message(result, stderr))
+        self.assertNotIn(TOKEN, stderr)
+        self.assertEqual(self.github.requests, [])
 
     def test_missing_branch_artifact_rejects_without_calling_github(self):
         for value in (None, "", "-main", "two words", "feature/login\n"):
@@ -444,7 +444,7 @@ class PullRequestOpenTests(ScriptCase):
     def test_no_token_is_a_failure(self):
         code, result, _, stderr = self.run_pr_open({"pull_request": PR_URL}, token=False)
         self.assertEqual(code, 1)
-        self.assertIn("GH_TOKEN", self.failure_message(result, stderr))
+        self.assertIn("GITHUB_TOKEN is required", self.failure_message(result, stderr))
         self.assertLess(len(stderr), 2048)
         self.assertEqual(self.github.requests, [])
 

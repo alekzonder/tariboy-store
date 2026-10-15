@@ -55,7 +55,7 @@ COMPONENT_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 PULL_REQUEST_PREFIX = "https://github.com/"
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
-TOKEN_FOR_REDACTION = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+TOKEN_FOR_REDACTION = os.environ.get("GITHUB_TOKEN") or ""
 
 
 class ScriptFailure(Exception):
@@ -250,9 +250,9 @@ def write_result(
 
 def select_token() -> str:
     global TOKEN_FOR_REDACTION
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        fail("GH_TOKEN or GITHUB_TOKEN is required")
+        fail("GITHUB_TOKEN is required")
     TOKEN_FOR_REDACTION = token
     if CONTROL_RE.search(token) or len(token.encode("utf-8")) > 8192:
         fail("GitHub token contains invalid characters")

@@ -1,7 +1,7 @@
 ---
 name: github-pr-workflow
 description: Use when a workflow status asks you to prove GitHub access, open or find a task's one pull request, or write pull request text on GitHub.
-compatibility: Requires Python 3, curl, git, GitHub API access, and GH_TOKEN or GITHUB_TOKEN.
+compatibility: Requires Python 3, curl, git, GitHub API access, and GITHUB_TOKEN.
 ---
 
 # GitHub Pull Request Workflow
@@ -44,8 +44,8 @@ MARKDOWN_EOF_7F3A
 ```
 
 Resolve `scripts/github-pr.py` relative to this `SKILL.md`, then use its
-absolute path for every command. Keep the selected `GH_TOKEN` or fallback
-`GITHUB_TOKEN` only in the process environment. Never place a token in
+absolute path for every command. The utility reads the token from
+`GITHUB_TOKEN` only; keep it in the process environment. Never place a token in
 arguments, URLs, files, logs, task comments, or PR text, and do not enable
 shell tracing around these commands.
 
