@@ -863,7 +863,7 @@ class DeadlineTests(MonitorCase):
             "TARIBOY_TASK_FILE": str(run_dir / "task.json"),
             "TARIBOY_RESULT_FILE": str(run_dir / "result.json"),
             "TARIBOY_TASK_DIR": str(self.task_dir),
-            "GH_TOKEN": TOKEN,
+            "GITHUB_TOKEN": TOKEN,
             "GITHUB_API_URL": self.github.url,
         }
 
@@ -985,7 +985,14 @@ class TokenTests(MonitorCase):
     def test_no_token_is_a_failure(self):
         code, result, _, stderr = self.run_monitor(token=False)
         self.assertEqual(code, 1)
-        self.assertIn("GH_TOKEN", self.failure_message(result, stderr))
+        self.assertIn("GITHUB_TOKEN is required", self.failure_message(result, stderr))
+        self.assertEqual(self.github.requests, [])
+
+    def test_gh_token_is_not_accepted(self):
+        code, result, _, stderr = self.run_monitor(token=False, env={"GH_TOKEN": TOKEN})
+        self.assertEqual(code, 1)
+        self.assertIn("GITHUB_TOKEN is required", self.failure_message(result, stderr))
+        self.assertNotIn(TOKEN, stderr)
         self.assertEqual(self.github.requests, [])
 
 

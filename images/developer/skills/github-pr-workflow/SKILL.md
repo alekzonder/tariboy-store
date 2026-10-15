@@ -1,7 +1,7 @@
 ---
 name: github-pr-workflow
 description: Use when a GitHub-hosted Native Task uses pull-request completion or requires monitoring checks, reviews, comments, head changes, closure, or merge state.
-compatibility: Requires Python 3, curl, git, GitHub API access, and GH_TOKEN or GITHUB_TOKEN.
+compatibility: Requires Python 3, curl, git, GitHub API access, and GITHUB_TOKEN.
 ---
 
 # GitHub Pull Request Workflow
@@ -47,8 +47,8 @@ MARKDOWN_EOF_7F3A
 ```
 
 Resolve `scripts/github-pr.py` relative to this `SKILL.md`, then use its
-absolute path for every command and schedule. Keep the selected `GH_TOKEN` or
-fallback `GITHUB_TOKEN` only in the process environment. Never place a token in
+absolute path for every command and schedule. The utility reads the token from
+`GITHUB_TOKEN` only; keep it in the process environment. Never place a token in
 arguments, URLs, files, logs, task comments, PR text, or monitor state, and do
 not enable shell tracing around these commands.
 

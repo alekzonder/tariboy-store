@@ -1,85 +1,75 @@
 schema_version: 1
 name: development
-workflow_version: 0.3.0
+workflow_version: 0.4.0
 initial_status: backlog
-
-requires_secrets: [GH_TOKEN]
-
+requires_secrets: [GITHUB_TOKEN]
 limits:
-  idle_iterations: 3
-  rejected_requests: 5
-  script_failures: 3
-  unavailable_grace: 5m
-
+    idle_iterations: 3
+    rejected_requests: 5
+    script_failures: 3
+    unavailable_grace: 5m
 artifacts:
-  - name: plan
-    description: The implementation plan, as Markdown.
-  - name: branch
-    description: Name of the task's branch, the pull request's head.
-  - name: verification
-    description: Verification on the pull request's head commit, as Markdown, with its full SHA.
-  - name: pull_request
-    description: URL of the pull request for this task.
-  - name: merge_commit
-    description: Merge commit recorded by the monitor.
-
+    - name: plan
+      description: The implementation plan, as Markdown.
+    - name: branch
+      description: Name of the task's branch, the pull request's head.
+    - name: verification
+      description: Verification on the pull request's head commit, as Markdown, with its full SHA.
+    - name: pull_request
+      description: URL of the pull request for this task.
+    - name: merge_commit
+      description: Merge commit recorded by the monitor.
 statuses:
-  - id: backlog
-    owner: customer
-    instructions: ./statuses/backlog.md
-    transitions:
-      - { on: start, to: plan }
-
-  - id: plan
-    owner: { pool: developers }
-    instructions: ./statuses/plan.md
-    transitions:
-      - on: planned
-        to: approval
-        requires: [plan]
-        checks:
-          - script: ./scripts/plan-check.py
-            timeout: 30s
-
-  - id: approval
-    owner: customer
-    instructions: ./statuses/approval.md
-    transitions:
-      - { on: approved, to: implement }
-      - { on: changes_requested, to: plan }
-
-  - id: implement
-    owner: { pool: developers }
-    instructions: ./statuses/implement.md
-    limits: { idle_iterations: 6 }
-    transitions:
-      - on: ready
-        to: review
-        requires: [pull_request, branch, verification]
-        checks:
-          - script: ./scripts/pr-open.py
-            timeout: 60s
-
-  - id: review
-    owner: script
-    watch:
-      script: ./scripts/pr-monitor.py
-      every: 120s
-      timeout: 60s
-    limits: { script_failures: 10 }
-    transitions:
-      - { on: merged, to: complete }
-      - { on: changes_requested, to: implement }
-
-  - id: complete
-    owner: { pool: developers }
-    instructions: ./statuses/complete.md
-    transitions:
-      - on: cleaned
-        to: done
-        checks:
-          - script: ./scripts/merged-on-base.py
-            run_as: agent
-
-  - id: done
-    terminal: true
+    - id: backlog
+      owner: customer
+      instructions: ./statuses/backlog.md
+      transitions:
+        - {on: start, to: plan}
+    - id: plan
+      owner: {pool: developers}
+      instructions: ./statuses/plan.md
+      transitions:
+        - on: planned
+          to: approval
+          requires: [plan]
+          checks:
+            - script: ./scripts/plan-check.py
+              timeout: 30s
+    - id: approval
+      owner: customer
+      instructions: ./statuses/approval.md
+      transitions:
+        - {on: approved, to: implement}
+        - {on: changes_requested, to: plan}
+    - id: implement
+      owner: {pool: developers}
+      instructions: ./statuses/implement.md
+      limits: {idle_iterations: 6}
+      transitions:
+        - on: ready
+          to: review
+          requires: [pull_request, branch, verification]
+          checks:
+            - script: ./scripts/pr-open.py
+              timeout: 60s
+    - id: review
+      owner: script
+      watch:
+        script: ./scripts/pr-monitor.py
+        every: 120s
+        timeout: 60s
+      limits: {script_failures: 10}
+      transitions:
+        - {on: merged, to: complete}
+        - {on: changes_requested, to: implement}
+    - id: complete
+      owner: {pool: developers}
+      instructions: ./statuses/complete.md
+      transitions:
+        - on: cleaned
+          to: done
+          checks:
+            - script: ./scripts/merged-on-base.py
+              run_as: agent
+    - id: done
+      terminal: true

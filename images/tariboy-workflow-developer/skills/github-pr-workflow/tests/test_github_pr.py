@@ -159,8 +159,8 @@ class GitHubPRWorkflowTests(unittest.TestCase):
         self,
         *args,
         curl,
-        gh_token=SECRET,
-        github_token=None,
+        gh_token=None,
+        github_token=SECRET,
         github_repository=None,
         origin_url=None,
         quiet_code=None,
@@ -212,7 +212,7 @@ class GitHubPRWorkflowTests(unittest.TestCase):
                 "TMP": str(process_temp),
                 "TEMP": str(process_temp),
             })
-            expected_token = gh_token if gh_token is not None else (github_token if github_token is not None else SECRET)
+            expected_token = github_token if github_token is not None else SECRET
             env.update(curl.env(expected_token, sandbox))
             if gh_token is not None:
                 env["GH_TOKEN"] = gh_token
@@ -257,27 +257,29 @@ class GitHubPRWorkflowTests(unittest.TestCase):
 
     def test_preflight_rejects_missing_token_before_network(self):
         with FakeCurl([]) as curl:
-            result = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token=None)
+            result = self.run_utility("preflight", "--repo", REPO, curl=curl, github_token=None)
         self.assertNotEqual(result.returncode, 0)
+        self.assertIn("GITHUB_TOKEN is required", result.stderr)
         self.assert_no_requests(curl)
 
-    def test_preflight_falls_back_to_github_token_without_leaking_it(self):
+    def test_preflight_ignores_gh_token(self):
+        with FakeCurl([]) as curl:
+            result = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token=SECRET, github_token=None)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("GITHUB_TOKEN is required", result.stderr)
+        self.assert_secret_free(result)
+        self.assert_no_requests(curl)
+
+    def test_preflight_uses_github_token_and_redacts_invalid_value(self):
         with FakeCurl([{"body": {"full_name": REPO}}]) as curl:
-            result = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token=None, github_token=SECRET)
+            result = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token="other-token", github_token=SECRET)
             records = curl.records_json()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assert_secret_free(result)
         self.assertEqual(len(records), 1)
         self.assertNotIn(SECRET, json.dumps(records))
-
-    def test_preflight_gives_gh_token_precedence_and_redacts_invalid_value(self):
-        with FakeCurl([{"body": {"full_name": REPO}}]) as curl:
-            result = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token=SECRET, github_token="fallback-token")
-            records = curl.records_json()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(records), 1)
         with FakeCurl([]) as curl:
-            invalid = self.run_utility("preflight", "--repo", REPO, curl=curl, gh_token=SECRET + "\ninvalid", github_token="fallback-token")
+            invalid = self.run_utility("preflight", "--repo", REPO, curl=curl, github_token=SECRET + "\ninvalid")
         self.assertNotEqual(invalid.returncode, 0)
         self.assert_secret_free(invalid)
         self.assert_no_requests(curl)

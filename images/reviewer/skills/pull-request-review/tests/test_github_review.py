@@ -94,12 +94,13 @@ class UtilityTests(unittest.TestCase):
         self.github.close()
         self.temp.cleanup()
 
-    def run_util(self, *args, review=REVIEW, token=True):
+    def run_util(self, *args, review=REVIEW, token=True, extra_env=None):
         comments = self.root / "review.json"
         comments.write_text(json.dumps(review), encoding="utf-8")
         env = {"PATH": "/usr/bin:/bin", "HOME": str(self.root), "GITHUB_API_URL": self.github.url}
         if token:
-            env["GH_TOKEN"] = TOKEN
+            env["GITHUB_TOKEN"] = TOKEN
+        env.update(extra_env or {})
         argv = [sys.executable, "-B", str(UTIL), *[str(comments) if a == "FILE" else a for a in args]]
         done = subprocess.run(argv, env=env, capture_output=True, text=True, timeout=60)
         self.assertNotIn(TOKEN, done.stdout + done.stderr)
@@ -183,7 +184,13 @@ class UtilityTests(unittest.TestCase):
     def test_missing_token_and_server_errors_fail(self):
         code, output, stderr = self.run_util("fetch", "--pr", PR_URL, "--out", str(self.root / "x"), token=False)
         self.assertEqual((code, output), (1, None))
-        self.assertIn("GH_TOKEN", stderr)
+        self.assertIn("GITHUB_TOKEN is required", stderr)
+        code, output, stderr = self.run_util(
+            "fetch", "--pr", PR_URL, "--out", str(self.root / "w"), token=False, extra_env={"GH_TOKEN": TOKEN}
+        )
+        self.assertEqual((code, output), (1, None))
+        self.assertIn("GITHUB_TOKEN is required", stderr)
+        self.assertEqual(self.github.requests, [])
         self.github.routes["/repos/acme/widget/pulls/42"] = (500, {"message": TOKEN})
         code, _, stderr = self.run_util("fetch", "--pr", PR_URL, "--out", str(self.root / "y"))
         self.assertEqual(code, 1)

@@ -141,7 +141,7 @@ class ScriptCase(unittest.TestCase):
         if outcome:
             full_env["TARIBOY_WORKFLOW_OUTCOME"] = outcome
         if token:
-            full_env["GH_TOKEN"] = TOKEN
+            full_env["GITHUB_TOKEN"] = TOKEN
         full_env.update(env or {})
         completed = subprocess.run(
             [str(script)],
@@ -252,7 +252,19 @@ class OpenPullsTests(ScriptCase):
         with FakeGitHub() as github:
             code, result, stderr = self.run_source(github, token=False)
         self.assertEqual((code, result), (1, None))
-        self.assertIn("GH_TOKEN", stderr)
+        self.assertIn("GITHUB_TOKEN is required", stderr)
+
+    def test_gh_token_is_not_accepted(self):
+        with FakeGitHub() as github:
+            code, result, stderr = self.run_script(
+                OPEN_PULLS,
+                env={"GITHUB_API_URL": github.url, "REVIEW_REPOSITORIES": "acme/widget", "GH_TOKEN": TOKEN},
+                token=False,
+            )
+            self.assertEqual(github.requests, [])
+        self.assertEqual((code, result), (1, None))
+        self.assertIn("GITHUB_TOKEN is required", stderr)
+        self.assertNotIn(TOKEN, stderr)
 
 
 class ReviewCheckTests(ScriptCase):
