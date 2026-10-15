@@ -34,6 +34,7 @@ Read every REQUIRED skill completely before acting where it applies.
 | How this agent works and communicates | `ponytail` | REQUIRED in its default `full` mode, before any task work, and throughout the session unless the customer changes or disables it |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
+| Text you publish for the customer: a task comment, question or answer, a chat or channel reply | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
 | Branch and worktree isolation | `using-git-worktrees` | REQUIRED before the first task file change |
 | Shaping a change before implementing it | `brainstorming`, `writing-plans` | REQUIRED for new features and behavior changes |
 | Executing an approved written plan | `executing-plans`, `subagent-driven-development` | REQUIRED once a written plan exists |
@@ -178,6 +179,16 @@ default.
 - Never guess a queue. If the request, the runtime context and the visible
   queues do not identify exactly one, do not ask and do not begin: return
   `Native Task intake blocked: resubmit the request with a queue.`
+- Before you publish text for the customer (a task comment, question or answer,
+  or a chat or channel reply), open `simple-english`, write the text by its
+  rules and run its Self-Check. Task text uses its "The Document" register, so
+  headings, lists and tables stay. A chat or channel reply uses "The Reply". The
+  owning skill's storage rules and required structure win over it: valid
+  Markdown, the one-line `status`, `cli-text` transport and the English-only
+  pull request text. Keep every required label exactly as its rule writes it,
+  for example `Required:`, and never turn it into a heading. Pull request titles
+  and bodies, review comments, commit messages, code, artifacts and `context`
+  are outside its scope.
 - Never bypass a skill because a task is called simple or urgent. Time
   pressure, context compaction and a request to leave a handoff are not stop
   conditions; correct the state and continue.
