@@ -1,6 +1,6 @@
 schema_version: 1
 name: development
-workflow_version: 0.4.0
+workflow_version: 0.5.0
 initial_status: backlog
 requires_secrets: [GITHUB_TOKEN]
 limits:
@@ -19,6 +19,9 @@ artifacts:
       description: URL of the pull request for this task.
     - name: merge_commit
       description: Merge commit recorded by the monitor.
+    - name: rework
+      description: >-
+        The customer's request for more work, as Markdown. Set it while the task is in review to send the task back to implement at the next watch run.
 statuses:
     - id: backlog
       owner: customer
