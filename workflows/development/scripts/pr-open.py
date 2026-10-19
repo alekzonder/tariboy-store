@@ -3,7 +3,9 @@
 merged) pull request, and an open one is the pull request this task's process
 asks for: its head branch is the branch artifact, its head commit is the
 commit the verification artifact names, its base is the repository's default
-branch, and neither its title nor its body names the task key.
+branch, it has no merge conflict, and neither its title nor its body names the
+task key. A merge state GitHub has not calculated yet passes: the review
+status reports a conflict found later.
 
 Messages name no branch, title or body: those come from GitHub."""
 
@@ -117,6 +119,9 @@ def main() -> int:
     base_ref = base.get("ref") if isinstance(base, dict) else None
     if not isinstance(base_ref, str) or not base_ref:
         pr_lib.fail("GitHub pull request has an invalid base branch")
+    mergeable = pull.get("mergeable")
+    if mergeable is not None and not isinstance(mergeable, bool):
+        pr_lib.fail("GitHub pull request has an invalid mergeable flag")
     title = text_or_none(pull.get("title"), "title")
     body = text_or_none(pull.get("body"), "body")
     repository = client.get(f"/repos/{owner}/{repo}")
@@ -134,6 +139,12 @@ def main() -> int:
         return reject(
             f"Pull request {name} does not target the repository's default branch. "
             "Change its base to the default branch and advance again."
+        )
+    if mergeable is False:
+        return reject(
+            f"Pull request {name} has a merge conflict with its base branch. "
+            "Merge the base branch into the task's branch and resolve the conflicts, "
+            "verify the new commit, store that verification, push, and advance again."
         )
     if head_sha not in verified:
         return reject(

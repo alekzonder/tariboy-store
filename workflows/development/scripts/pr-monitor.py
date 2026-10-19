@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Watch script of the review status: reports `merged` when the task's pull
-request merged, `changes_requested` when something on it needs the developer,
-and stays quiet otherwise.
+request merged, `changes_requested` when something on it needs the developer
+or the customer asked for more work, and stays quiet otherwise.
+
+The customer asks for more work by setting the `rework` artifact while the
+task is in review. Only a value the task's customer set during the current
+visit counts; its text is never read into the message or the state file.
 
 Each run observes the pull request completely (the pull request, check runs
 and commit statuses of its head, reviews, review comments, and issue
@@ -66,6 +70,11 @@ URL_RE = re.compile(r"^https://[A-Za-z0-9._~:/?#@!&*+,;=%-]+$")
 TASK_KEY_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9]+$")
 FAILED_CONCLUSIONS = {"failure", "timed_out", "cancelled", "action_required", "startup_failure"}
 FAILED_STATES = {"failure", "error"}
+# Conditions reported again in every visit while they hold.
+STANDING_KINDS = {"closed", "conflict"}
+INSTANT_RE = re.compile(
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$"
+)
 MAX_LISTED = 20
 MESSAGE_BUDGET_BYTES = 3900
 MAX_NAME_CHARS = 100
@@ -207,6 +216,10 @@ def normalize_pr(value: Any, number: int) -> dict[str, Any]:
     closed_at = None
     if state == "closed" and not merged:
         closed_at = nonempty_text_field(item, "closed_at", "pull request")
+    # GitHub reports null until it has calculated the merge state.
+    mergeable = item.get("mergeable")
+    if mergeable is not None and not isinstance(mergeable, bool):
+        fail("GitHub pull request has an invalid mergeable flag")
     head = require_dict(item.get("head"), "pull request head")
     head_sha = head.get("sha")
     if not isinstance(head_sha, str) or not SHA_RE.fullmatch(head_sha):
@@ -222,6 +235,7 @@ def normalize_pr(value: Any, number: int) -> dict[str, Any]:
         "merged": merged,
         "merge_commit_sha": merge_sha,
         "closed_at": closed_at,
+        "conflict": state == "open" and mergeable is False,
         "head_sha": head_sha,
         "head_ref": head_ref,
         "base_ref": base_ref,
@@ -338,12 +352,65 @@ def observe(
                 "closed without merge",
             )
         )
+    if pr["conflict"]:
+        items.append(
+            make_item(
+                f"conflict:{head}",
+                "conflict",
+                f"{owner}/{repo}#{number}",
+                pr_url,
+                "merge conflict with the base branch",
+            )
+        )
     items.extend(failed_checks(checks, head, pr_url))
     items.extend(failed_statuses(statuses, head, pr_url))
     items.extend(review_items(reviews, pr["author"], pr_url))
     items.extend(comment_items(review_comments, "review_comment", pr["author"], pr_url))
     items.extend(comment_items(issue_comments, "issue_comment", pr["author"], pr_url))
     return pr, items
+
+
+def parse_instant(value: Any, label: str) -> tuple[datetime.datetime, int]:
+    """An RFC 3339 time as (UTC second, nanoseconds), so that times with up to
+    nine fraction digits and any offset compare exactly."""
+    match = INSTANT_RE.fullmatch(value) if isinstance(value, str) else None
+    if match is None:
+        fail(f"the task snapshot has an invalid {label}")
+    whole, fraction, offset = match.groups()
+    try:
+        moment = datetime.datetime.fromisoformat(whole + ("+00:00" if offset == "Z" else offset))
+    except ValueError as exc:
+        raise pr_lib.ScriptFailure(f"the task snapshot has an invalid {label}") from exc
+    return moment.astimezone(datetime.timezone.utc), int((fraction or "").ljust(9, "0"))
+
+
+def rework_items(task: dict, pr_url: str) -> list[dict[str, str]]:
+    """The customer's rework request, when it was set during this visit."""
+    customer = task.get("customer")
+    if not isinstance(customer, str) or not customer:
+        return []
+    items = task.get("artifacts")
+    for row in items if isinstance(items, list) else []:
+        if not isinstance(row, dict) or row.get("name") != "rework":
+            continue
+        if row.get("author") != customer:
+            return []
+        created = parse_instant(row.get("created_at"), "rework artifact time")
+        visit = task.get("visit")
+        entered_at = visit.get("entered_at") if isinstance(visit, dict) else None
+        if created < parse_instant(entered_at, "visit entry time"):
+            return []
+        key = task_key_of(task)
+        return [
+            make_item(
+                f"rework:{row['created_at']}",
+                "rework",
+                pr_lib.redact_text(customer),
+                pr_url,
+                f"requested; read: ttasks artifacts show {key} rework",
+            )
+        ]
+    return []
 
 
 # --- State -------------------------------------------------------------------
@@ -583,9 +650,10 @@ def main() -> int:
         if pending is not None and pending["visit_id"] != visit_id:
             known = set(acknowledged)
             for item in pending["items"]:
-                # A close without a merge is a standing condition: it is
-                # reported again in every visit while it holds.
-                if item["kind"] != "closed" and item["id"] not in known:
+                # A close without a merge and a merge conflict are standing
+                # conditions: they are reported again in every visit while
+                # they hold.
+                if item["kind"] not in STANDING_KINDS and item["id"] not in known:
                     acknowledged.append(item["id"])
                     known.add(item["id"])
             state_changed = True
@@ -615,7 +683,7 @@ def main() -> int:
     known = set(acknowledged)
     report = list(replay)
     reported = {item["id"] for item in report}
-    for item in observed:
+    for item in observed + rework_items(task, pr_url):
         if item["id"] not in known and item["id"] not in reported:
             report.append(item)
             reported.add(item["id"])
