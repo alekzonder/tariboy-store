@@ -14,5 +14,10 @@ Choose one outcome:
   sends a new version here. Say what to change, and answer any open question,
   in the message of this outcome; the developer works from that message.
 
+A plan can also be a fix plan: the review watch sent the task back from
+`review` because the open pull request got reviews or comments. A fix plan says
+how the developer handles each of them on the same branch and pull request.
+Approve it, or request changes, in the same way.
+
 Approve only the plan you read. If the scope changes later, request changes
 so that a new plan is written.
