@@ -36,11 +36,11 @@ it. When the pull request merges, the task moves on by itself.
 
 ## When the task came back
 
-Reached by `changes_requested`, the transition message lists one line per
-item: a failed check, requested changes, a review or issue comment, a merge
-conflict, a close without a merge, or the customer's `rework` request. Read
-it in full with `ttasks workflow get KEY --json`, in `visits[].message` of the
-previous visit: the Goal block cuts it. Handle every item of that full list.
+Reached by `rework`, `conflict` or `changes_requested`, the message starts
+with a fixed line saying what to do and lists every item; read it in full with
+`ttasks workflow get KEY --json`, in `visits[].message` of the previous visit,
+and handle every item. Reached by `approved` after a fix plan for review
+feedback, implement it on the same branch, worktree and pull request.
 
 - A failed check: `systematic-debugging`. Review feedback:
   `receiving-code-review`; verify each suggestion yourself first. A comment
