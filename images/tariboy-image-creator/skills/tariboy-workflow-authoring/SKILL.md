@@ -76,6 +76,13 @@ workflows/NAME/
 - The directory is self-contained: no symlink, no path or import outside it
   (not even another workflow's `scripts/`; copy the helper), no root
   `manifest.json`. Every file in it is packaged.
+- Every check, watch and source carries a `description`: one line of plain
+  text, at most 200 characters, that says what the script verifies or waits
+  for ("The pull request is open from the verified commit", not "runs
+  pr-open.py"). The daemon shows it next to the script in Desktop and in the
+  agent's Goal block, and it is the first thing a person reads when the
+  script rejects or fails. It needs tariboy after `0.88.0`; an older daemon
+  rejects the manifest with `description` as an unknown field.
 - Scripts use only the Python 3 standard library, `curl`, `git` and POSIX
   `sh`.
 - Every script gets a test under `tests/`, added as a line of the Makefile
@@ -121,6 +128,7 @@ sources:
     script: ./scripts/incoming-prs.sh
     every: 2m                        # at least 10s, between end of a run and the next start
     timeout: 60s                     # optional, default 60s, at most 30m
+    description: Lists the open pull requests that ask for a review.   # one line, at most 200 characters
 ```
 
 - The daemon runs it for every queue bound to the image, at once after the

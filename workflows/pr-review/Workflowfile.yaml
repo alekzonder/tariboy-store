@@ -1,6 +1,6 @@
 schema_version: 1
 name: pr-review
-workflow_version: 0.2.0
+workflow_version: 0.3.0
 initial_status: review
 requires_secrets: [GITHUB_TOKEN, REVIEW_REPOSITORIES]
 limits:
@@ -24,6 +24,7 @@ sources:
       script: ./scripts/open-pulls.py
       every: 2m
       timeout: 120s
+      description: Lists the open, non-draft pull requests of the repositories named in REVIEW_REPOSITORIES.
 statuses:
     - id: review
       owner: {pool: reviewers}
@@ -35,12 +36,14 @@ statuses:
           checks:
             - script: ./scripts/review-check.py
               timeout: 60s
+              description: The review covers the pull request's current head commit, and every inline comment sits on a changed line.
         - on: no_findings
           to: approval_clean
           requires: [review, head_sha]
           checks:
             - script: ./scripts/review-check.py
               timeout: 60s
+              description: The review covers the pull request's current head commit.
     - id: approval
       owner: customer
       instructions: ./statuses/approval.md
@@ -64,5 +67,6 @@ statuses:
           checks:
             - script: ./scripts/published-check.py
               timeout: 60s
+              description: The approved review is published on the pull request's head commit with all of its inline comments.
     - id: done
       terminal: true
