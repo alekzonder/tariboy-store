@@ -134,7 +134,11 @@ environment to publish.
 This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:
 Tariboy 0.72 or later. Its scripts exit `111` when nothing changed, and its
 `workflows/` sources build only on such a daemon; an older daemon does not
-treat that exit as quiet.
+treat that exit as quiet. The `development` and `pr-review` workflows also
+describe each check, watch and source with a `description`, which the task
+panel and the agent's Goal block show; that field needs a daemon after
+Tariboy 0.88.0, and an older one refuses the manifest with `description` as
+an unknown field.
 
 ## Release publisher
 
