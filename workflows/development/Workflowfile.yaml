@@ -1,6 +1,6 @@
 schema_version: 1
 name: development
-workflow_version: 0.7.0
+workflow_version: 0.8.0
 initial_status: backlog
 requires_secrets: [GITHUB_TOKEN]
 limits:
@@ -68,7 +68,7 @@ statuses:
       transitions:
         - {on: merged, to: complete}
         - {on: rework, to: implement}
-        - {on: review_feedback, to: plan}
+        - {on: review_feedback, to: implement}
         - {on: conflict, to: implement}
         - {on: changes_requested, to: implement}
     - id: complete
