@@ -41,8 +41,8 @@ Handle all items on the same branch, worktree and pull request.
 - Use `systematic-debugging` for failed checks and `receiving-code-review` for feedback.
   Read each finding on GitHub, including bots, and verify suggestions before fixing them.
 - Before `ready`, reply to every reported finding on GitHub, including bot reports.
-  Read existing replies first; do not duplicate an accurate reply. Use the original
-  inline thread when available; otherwise post a PR comment linking to the finding.
+  Read existing replies first; do not duplicate an accurate reply. Reply to inline findings
+  in their original thread. For reviews and PR discussion findings, post a PR comment with a link.
   State the fix and pushed commit, or why no change is needed. Task comments do not count.
 - For work outside the approved plan, ask the customer through the task before changing
   scope. Reply on GitHub that it awaits that decision; review feedback is not approval.
