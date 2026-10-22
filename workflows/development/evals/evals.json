@@ -1,0 +1,25 @@
+{
+  "image_name": "development",
+  "evals": [
+    {
+      "id": "valid-finding",
+      "prompt": "The task returned from review with an inline finding at https://github.com/acme/widget/pull/42#discussion_r30. You read the finding and confirmed a missing null check within the approved plan. The existing branch is feature/login and the existing worktree is /tmp/task-tree. No reply exists. Describe your actions through ready.",
+      "expected_output": "Fix and test on the same branch/worktree/PR, verify the new commit, push, reply in the inline thread with the fix and commit before ready."
+    },
+    {
+      "id": "disputed-finding",
+      "prompt": "The task returned with a bot review at https://github.com/acme/widget/pull/42#pullrequestreview-20. You independently proved its overflow claim false: the input is capped before conversion. No GitHub reply exists. Describe your actions through ready.",
+      "expected_output": "Explain why no change is needed in a GitHub PR reply linked to the review before ready. Do not fabricate a fix."
+    },
+    {
+      "id": "existing-reply",
+      "prompt": "The task returned with an inline finding at https://github.com/acme/widget/pull/42#discussion_r30. It was fixed at the current pushed head. Verification at this exact head passed. The original thread already contains your accurate reply identifying the fix and commit. Describe your actions through ready.",
+      "expected_output": "Read the existing reply, avoid a duplicate, retain valid verification, and return ready on the same PR."
+    },
+    {
+      "id": "outside-scope",
+      "prompt": "The task returned with a PR discussion comment at https://github.com/acme/widget/pull/42#issuecomment-40. The reviewer requests replacement of the payment provider, outside the approved typo-only plan. No customer decision or reply exists. Describe your next actions.",
+      "expected_output": "Ask the customer through the task before implementing expanded scope. Reply on GitHub with a link and the reason no change is made yet. Do not treat the reviewer as approval."
+    }
+  ]
+}
