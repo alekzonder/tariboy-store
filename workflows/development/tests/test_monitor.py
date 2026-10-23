@@ -77,7 +77,9 @@ class Truncated:
 
 class FakeGitHub:
     """A tiny GitHub API with page/per_page pagination of list bodies. A route
-    is (status, body) or (status, body, headers)."""
+    is (status, body) or (status, body, headers). A PUT route is keyed
+    ("PUT", path) and is a function of the JSON request body that returns
+    (status, body)."""
 
     def __init__(self):
         self.routes = {}
@@ -87,7 +89,7 @@ class FakeGitHub:
         class Handler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
                 owner.requests.append(
-                    {"path": self.path, "authorization": self.headers.get("Authorization")}
+                    {"method": "GET", "path": self.path, "authorization": self.headers.get("Authorization")}
                 )
                 parsed = urlparse(self.path)
                 status, body, *extra = owner.routes.get(parsed.path, (404, {"message": "Not Found"}))
@@ -116,6 +118,26 @@ class FakeGitHub:
                 self.end_headers()
                 self.wfile.write(payload)
 
+            def do_PUT(self):
+                length = int(self.headers.get("Content-Length") or 0)
+                body = json.loads(self.rfile.read(length) or b"null")
+                owner.requests.append(
+                    {
+                        "method": "PUT",
+                        "path": self.path,
+                        "authorization": self.headers.get("Authorization"),
+                        "body": body,
+                    }
+                )
+                route = owner.routes.get(("PUT", urlparse(self.path).path))
+                status, answer = route(body) if route else (404, {"message": "Not Found"})
+                payload = json.dumps(answer).encode("utf-8")
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
             def log_message(self, *_):
                 pass
 
@@ -133,13 +155,23 @@ class FakeGitHub:
 
 
 def pull(
-    state="open", merged=False, head=HEAD_SHA, merge_sha=None, closed_at=None, base="main", mergeable=None
+    state="open",
+    merged=False,
+    head=HEAD_SHA,
+    merge_sha=None,
+    closed_at=None,
+    base="main",
+    mergeable=None,
+    mergeable_state="unknown",
+    draft=False,
 ):
     return {
         "number": 42,
         "state": state,
+        "draft": draft,
         "merged": merged,
         "mergeable": mergeable,
+        "mergeable_state": mergeable_state,
         "merge_commit_sha": merge_sha or "abababababababababababababababababababab",
         "html_url": PR_URL,
         "closed_at": closed_at,
@@ -1245,6 +1277,264 @@ class OddDataTests(MonitorCase):
         for path in stale:
             self.assertFalse(path.exists(), path)
         self.assertTrue(keep.exists())
+
+
+VERIFICATION = f"`make check` on `{HEAD_SHA}`: exit 0."
+MERGE_PATH = f"{BASE}/pulls/42/merge"
+
+
+def ready_pull(**kwargs):
+    """An open pull request GitHub reports ready to merge."""
+    return pull(**{"mergeable": True, "mergeable_state": "clean", **kwargs})
+
+
+class AutoMergeTests(MonitorCase):
+    """AUTO_MERGE=true: a run with nothing to report merges the pull request
+    when every condition holds, and reports merged only after GitHub confirms."""
+
+    def setUp(self):
+        super().setUp()
+        self.ready()
+
+    def ready(self, pr=None, checks=None, statuses=(), reviews=(), default_branch="main", merge=None):
+        """Every merge condition holds unless an argument changes it. `merge` is
+        the PUT route; by default GitHub merges and then reports the merge."""
+        pr = pr or ready_pull()
+        self.observe(
+            pr=pr,
+            checks=[check(1, "unit")] if checks is None else checks,
+            statuses=statuses,
+            reviews=reviews,
+        )
+        self.github.routes[BASE] = (200, {"default_branch": default_branch})
+        self.github.routes[("PUT", MERGE_PATH)] = merge or self.merges
+
+    def merges(self, body):
+        self.github.routes[f"{BASE}/pulls/42"] = (
+            200,
+            pull(state="closed", merged=True, merge_sha=MERGE_SHA, closed_at=CLOSED_AT),
+        )
+        return 200, {"sha": MERGE_SHA, "merged": True, "message": "Pull Request successfully merged"}
+
+    def run_auto(self, value="true", verification=VERIFICATION, **kwargs):
+        artifacts = {"pull_request": PR_URL, "verification": verification}
+        return self.run_monitor(artifacts=artifacts, env={"AUTO_MERGE": value}, **kwargs)
+
+    def merge_requests(self):
+        return [request for request in self.github.requests if request["method"] == "PUT"]
+
+    def assert_merged(self, code, result):
+        self.assertEqual(code, 0, result)
+        self.assertEqual(
+            result,
+            {
+                "outcome": "merged",
+                "message": f"Pull request acme/widget#42 merged as {MERGE_SHA[:12]} into the base branch.",
+                "artifacts": {"merge_commit": MERGE_SHA},
+            },
+        )
+
+    def assert_waits(self, reason=None, **kwargs):
+        code, result, _, stderr = self.run_auto(**kwargs)
+        self.assertEqual(code, QUIET, (result, stderr))
+        self.assertIsNone(result)
+        self.assertEqual(self.merge_requests(), [])
+        if reason:
+            self.assertIn(f"automatic merge waits: {reason}", stderr)
+
+    def test_a_ready_pull_request_is_merged_with_a_merge_commit_of_its_head(self):
+        self.assert_merged(*self.run_auto()[:2])
+        requests = self.merge_requests()
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]["body"], {"sha": HEAD_SHA, "merge_method": "merge"})
+        self.assertEqual(requests[0]["authorization"], f"Bearer {TOKEN}")
+        last = self.github.requests[-1]
+        self.assertEqual((last["method"], urlparse(last["path"]).path), ("GET", f"{BASE}/pulls/42"))
+        self.assertEqual(self.state()["head_sha"], HEAD_SHA)
+
+    def test_successful_statuses_alone_or_with_checks_allow_the_merge(self):
+        for checks, statuses in (
+            ([], [commit_status(10, "ci/build", "success")]),
+            (
+                [check(1, "unit"), check(2, "lint")],
+                [commit_status(10, "ci/build", "failure"), commit_status(11, "ci/build", "success")],
+            ),
+        ):
+            with self.subTest(checks=len(checks), statuses=len(statuses)):
+                self.reset_state()
+                self.github.requests.clear()
+                self.ready(checks=checks, statuses=statuses)
+                self.assert_merged(*self.run_auto()[:2])
+
+    def test_disabled_or_unset_never_merges(self):
+        for env in ({"AUTO_MERGE": "false"}, {}):
+            with self.subTest(env=env):
+                artifacts = {"pull_request": PR_URL, "verification": VERIFICATION}
+                code, result, _, _ = self.run_monitor(artifacts=artifacts, env=env)
+                self.assertEqual(code, QUIET, result)
+                self.assertEqual(self.merge_requests(), [])
+
+    def test_an_invalid_value_is_a_failure_before_any_request(self):
+        for value in ("TRUE", "yes", "1", "", " true"):
+            with self.subTest(value=value):
+                code, result, _, stderr = self.run_auto(value=value)
+                self.assertEqual(code, 1)
+                self.assertEqual(self.failure_message(result, stderr), "AUTO_MERGE must be true or false")
+        self.assertEqual(self.github.requests, [])
+
+    def test_a_check_that_is_not_a_success_blocks_the_merge(self):
+        for conclusion, status in (
+            (None, "queued"),
+            (None, "in_progress"),
+            ("skipped", "completed"),
+            ("neutral", "completed"),
+            ("stale", "completed"),
+            ("something_new", "completed"),
+        ):
+            with self.subTest(conclusion=conclusion, status=status):
+                self.ready(checks=[check(1, "unit"), check(2, "lint", conclusion=conclusion, status=status)])
+                self.assert_waits("not every check and commit status of the head commit succeeded")
+
+    def test_a_status_that_is_not_a_success_blocks_the_merge(self):
+        for state in ("pending", "something_new"):
+            with self.subTest(state=state):
+                self.ready(statuses=[commit_status(10, "ci/build", "success"), commit_status(11, "ci/build", state)])
+                self.assert_waits("not every check and commit status of the head commit succeeded")
+
+    def test_no_check_and_no_status_blocks_the_merge(self):
+        self.ready(checks=[])
+        self.assert_waits("not every check and commit status of the head commit succeeded")
+
+    def test_failed_checks_are_reported_not_merged(self):
+        self.ready(checks=[check(1, "unit", conclusion="failure")])
+        code, result, _, _ = self.run_auto(visit=7)
+        self.assert_changes(code, result, "changes_requested")
+        self.assertEqual(self.merge_requests(), [])
+        self.assert_waits("not every check and commit status of the head commit succeeded", visit=8)
+
+    def test_the_pull_request_itself_must_be_ready(self):
+        cases = {
+            "draft": (ready_pull(draft=True), "the pull request is a draft"),
+            "draft unknown": ({**ready_pull(), "draft": None}, "the pull request is a draft"),
+            "mergeable unknown": (ready_pull(mergeable=None), "GitHub does not report the pull request ready to merge"),
+            "blocked": (ready_pull(mergeable_state="blocked"), "GitHub does not report the pull request ready to merge"),
+            "behind": (ready_pull(mergeable_state="behind"), "GitHub does not report the pull request ready to merge"),
+            "unstable": (ready_pull(mergeable_state="unstable"), "GitHub does not report the pull request ready to merge"),
+            "unknown state": (ready_pull(mergeable_state="unknown"), "GitHub does not report the pull request ready to merge"),
+        }
+        for name, (pr, reason) in cases.items():
+            with self.subTest(case=name):
+                self.ready(pr=pr)
+                self.assert_waits(reason)
+
+    def test_has_hooks_allows_the_merge(self):
+        self.ready(pr=ready_pull(mergeable_state="has_hooks"))
+        self.assert_merged(*self.run_auto()[:2])
+
+    def test_the_head_must_be_the_verified_commit(self):
+        for verification in ("", f"`make check` on `{NEW_HEAD_SHA}`: exit 0.", f"on {HEAD_SHA[:12]}"):
+            with self.subTest(verification=verification):
+                self.assert_waits(
+                    "the verification artifact does not name the head commit", verification=verification
+                )
+
+    def test_a_new_head_after_verification_blocks_the_merge(self):
+        self.ready(pr=ready_pull(head=NEW_HEAD_SHA), checks=[check(1, "unit", head=NEW_HEAD_SHA)])
+        self.assert_waits("the verification artifact does not name the head commit")
+
+    def test_the_base_must_be_the_default_branch(self):
+        self.ready(default_branch="trunk")
+        self.assert_waits("the base is not the default branch")
+
+    def test_an_active_change_request_blocks_the_merge_after_it_was_reported(self):
+        self.ready(reviews=[review(20, "CHANGES_REQUESTED")])
+        self.assert_changes(*self.run_auto(visit=7)[:2], "review_feedback")
+        self.assertEqual(self.merge_requests(), [])
+        self.assert_waits("a reviewer requests changes", visit=8)
+
+    def test_a_later_decision_of_the_same_reviewer_replaces_the_change_request(self):
+        for later in ("APPROVED", "DISMISSED"):
+            with self.subTest(later=later):
+                self.reset_state()
+                self.github.requests.clear()
+                self.ready(reviews=[review(20, "CHANGES_REQUESTED"), review(21, "COMMENTED"), review(22, later)])
+                self.assert_changes(*self.run_auto(visit=7)[:2], "review_feedback")
+                self.assert_merged(*self.run_auto(visit=8)[:2])
+
+    def test_an_approval_by_someone_else_keeps_the_change_request(self):
+        self.ready(reviews=[review(20, "CHANGES_REQUESTED"), review(21, "APPROVED", login="bob")])
+        self.assert_changes(*self.run_auto(visit=7)[:2], "review_feedback")
+        self.assert_waits("a reviewer requests changes", visit=8)
+
+    def test_new_feedback_and_rework_are_reported_before_any_merge(self):
+        self.ready()
+        self.observe(pr=ready_pull(), checks=[check(1, "unit")], issue_comments=[comment(40)])
+        self.assert_changes(*self.run_auto(visit=7)[:2], "review_feedback")
+        self.assertEqual(self.merge_requests(), [])
+        self.ready()
+        code, result, _, _ = self.run_auto(visit=8, rework=[rework_row(created_at="2026-10-02T10:30:00Z")])
+        self.assert_changes(code, result, "rework")
+        self.assertEqual(self.merge_requests(), [])
+
+    def test_a_conflict_is_reported_not_merged(self):
+        self.ready(pr=ready_pull(mergeable=False, mergeable_state="dirty"))
+        self.assert_changes(*self.run_auto(visit=7)[:2], "conflict")
+        self.assertEqual(self.merge_requests(), [])
+
+    def test_a_refused_merge_is_a_failure_and_not_merged(self):
+        for status in (405, 409, 422):
+            with self.subTest(status=status):
+                self.github.requests.clear()
+                self.ready(merge=lambda body, status=status: (status, {"message": BODY_TEXT}))
+                code, result, _, stderr = self.run_auto()
+                self.assertEqual(code, 1, result)
+                message = self.failure_message(result, stderr)
+                self.assertIn(f"refused the automatic merge of acme/widget#42 at {HEAD_SHA[:12]}", message)
+                self.assertIn(f"HTTP {status}", message)
+                self.assertNotIn("rm -rf", message)
+                self.assertEqual(len(self.merge_requests()), 1)
+
+    def test_a_forbidden_merge_is_a_failure(self):
+        self.ready(merge=lambda body: (403, {"message": "Resource not accessible by integration"}))
+        code, result, _, stderr = self.run_auto()
+        self.assertEqual(code, 1, result)
+        self.assertEqual(self.failure_message(result, stderr), "GitHub answered HTTP 403")
+
+    def test_a_merge_that_github_confirms_despite_an_error_answer_is_merged(self):
+        def merges_then_fails(body):
+            self.merges(body)
+            return 502, {"message": "Bad Gateway"}
+
+        self.ready(merge=merges_then_fails)
+        self.assert_merged(*self.run_auto()[:2])
+
+    def test_an_uncertain_answer_stays_quiet_and_the_next_run_finds_the_merge(self):
+        self.ready(merge=lambda body: (502, {"message": "Bad Gateway"}))
+        code, result, _, _ = self.run_auto()
+        self.assertEqual(code, QUIET, result)
+        self.assertIsNone(result)
+        self.assertIn("transient_since", self.state())
+        self.observe(pr=pull(state="closed", merged=True, merge_sha=MERGE_SHA, closed_at=CLOSED_AT))
+        self.github.requests.clear()
+        self.assert_merged(*self.run_auto()[:2])
+        self.assertEqual(self.merge_requests(), [])
+        self.assertNotIn("transient_since", self.state())
+
+    def test_an_unconfirmed_accepted_merge_stays_quiet(self):
+        self.ready(merge=lambda body: (200, {"sha": MERGE_SHA, "merged": True}))
+        code, result, _, _ = self.run_auto()
+        self.assertEqual(code, QUIET, result)
+        self.assertIsNone(result)
+
+    def test_a_failed_reread_after_the_merge_stays_quiet(self):
+        def merges_then_unavailable(body):
+            self.github.routes[f"{BASE}/pulls/42"] = (503, {"message": "unavailable"})
+            return 200, {"sha": MERGE_SHA, "merged": True}
+
+        self.ready(merge=merges_then_unavailable)
+        code, result, _, _ = self.run_auto()
+        self.assertEqual(code, QUIET, result)
+        self.assertIn("transient_since", self.state())
 
 
 class TokenTests(MonitorCase):

@@ -54,6 +54,8 @@ RATE_LIMIT_HEADER = "x-ratelimit-remaining"
 COMPONENT_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 PULL_REQUEST_PREFIX = "https://github.com/"
+# A full commit SHA in the verification artifact, not part of a longer hex run.
+VERIFIED_SHA_RE = re.compile(r"(?<![0-9a-fA-F])([0-9a-f]{64}|[0-9a-f]{40})(?![0-9a-fA-F])")
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 TOKEN_FOR_REDACTION = os.environ.get("GITHUB_TOKEN") or ""
 
@@ -155,6 +157,11 @@ def artifact(task: dict, name: str) -> str | None:
             value = item.get("value")
             return value if isinstance(value, str) else None
     return None
+
+
+def verified_shas(task: dict) -> set[str]:
+    """The full commit SHAs the verification artifact names."""
+    return set(VERIFIED_SHA_RE.findall(artifact(task, "verification") or ""))
 
 
 def validate_component(value: str, label: str) -> str:

@@ -1,8 +1,16 @@
 schema_version: 1
 name: development
-workflow_version: 0.8.0
+workflow_version: 0.9.0
 initial_status: backlog
 requires_secrets: [GITHUB_TOKEN]
+# AUTO_MERGE: "true" lets the review watch merge the pull request itself once
+# every check and commit status of the verified head succeeded and nothing
+# needs the developer. Enable it per queue with
+# `ttasks queue env set QUEUE AUTO_MERGE true`; the queue value overrides this
+# default. Only "true" and "false" are valid. GITHUB_TOKEN then needs
+# permission to merge, and the repository must allow merge commits.
+env:
+    AUTO_MERGE: "false"
 limits:
     idle_iterations: 3
     rejected_requests: 5
@@ -63,7 +71,7 @@ statuses:
         script: ./scripts/pr-monitor.py
         every: 120s
         timeout: 60s
-        description: Waits for the pull request to merge; reports the customer's rework request, review feedback, a merge conflict, or failed checks and requested changes.
+        description: Waits for the merge, or merges when AUTO_MERGE is true and all checks passed; reports the customer's rework, review feedback, a merge conflict, or failed checks and requested changes.
       limits: {script_failures: 10}
       transitions:
         - {on: merged, to: complete}
