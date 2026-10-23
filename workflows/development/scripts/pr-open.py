@@ -22,7 +22,6 @@ import pr_lib  # noqa: E402
 
 EXPECTED_FORM = "https://github.com/OWNER/REPO/pull/NUMBER"
 SHA_RE = re.compile(r"^[0-9a-f]{40}([0-9a-f]{24})?$")
-VERIFIED_SHA_RE = re.compile(r"(?<![0-9a-fA-F])([0-9a-f]{64}|[0-9a-f]{40})(?![0-9a-fA-F])")
 
 
 def reject(message: str) -> int:
@@ -67,8 +66,7 @@ def main() -> int:
             "name of the task's branch, exactly as git shows it, with nothing around "
             "it, and advance again."
         )
-    verification = pr_lib.artifact(task, "verification") or ""
-    verified = set(VERIFIED_SHA_RE.findall(verification))
+    verified = pr_lib.verified_shas(task)
     if not verified:
         return reject(
             "The verification artifact is missing or names no full 40-character "

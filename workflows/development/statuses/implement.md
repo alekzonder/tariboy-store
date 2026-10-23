@@ -2,7 +2,7 @@
 
 Implement the approved plan as one pull request. Read it in full with
 `ttasks artifacts show KEY plan`: the Goal block cuts long values.
-Never merge or close the pull request: people or repository automation own the merge.
+Never merge or close the pull request: people, repository automation or the review watch own it.
 
 1. Work in one branch and worktree for this task, never in the main checkout
    and never on the base branch. Before creating them, fetch and fast-forward
@@ -29,8 +29,8 @@ Never merge or close the pull request: people or repository automation own the m
    branch, has no merge conflict and names no task key; if it rejects, fix
    what it names and retry.
 
-After `ready`, the daemon watches checks, reviews, comments, conflicts, customer rework,
-and merge. Do not schedule a monitor. A merge moves the task on automatically.
+After `ready`, the daemon watches checks, reviews, comments, conflicts, customer rework and merge;
+with `AUTO_MERGE=true` it merges a green verified head. Do not schedule a monitor; a merge moves the task on.
 
 ## When the task came back
 
