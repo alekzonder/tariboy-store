@@ -1,6 +1,6 @@
 schema_version: 1
 name: development
-workflow_version: 0.9.0
+workflow_version: 0.9.1
 initial_status: backlog
 requires_secrets: [GITHUB_TOKEN]
 # AUTO_MERGE: "true" lets the review watch merge the pull request itself once
