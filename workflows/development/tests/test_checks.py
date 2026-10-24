@@ -444,8 +444,10 @@ class PullRequestOpenTests(ScriptCase):
         self.assertEqual(
             self.message(result),
             "Pull request acme/widget#42 has a merge conflict with its base branch. "
-            "Merge the base branch into the task's branch and resolve the conflicts, "
-            "verify the new commit, store that verification, push, and advance again.",
+            "Rebase the task's branch onto the fetched base branch and resolve the "
+            "conflicts; make no merge commit. Verify the new commit, store that "
+            "verification, push only the task's branch with --force-with-lease, and "
+            "advance again.",
         )
 
     def test_an_uncalculated_or_clean_merge_state_passes(self):
