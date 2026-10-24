@@ -137,10 +137,11 @@ INSTRUCTIONS = {
     ),
     "conflict": (
         "Outcome conflict: the pull request has a merge conflict with the base"
-        " branch. Fetch the base branch, merge it into the task's branch,"
-        " resolve the conflict, handle every other item below, verify the new"
-        " commit, push, and leave implement with ready; never rebase or"
-        " force-push."
+        " branch. Fetch the base branch and resolve the conflict as the"
+        " implement status says: rebase or merge as the repository rules"
+        " require, and force-push only the task's branch, with"
+        " --force-with-lease. Handle every other item below, verify the new"
+        " commit, push, and leave implement with ready."
     ),
     "changes_requested": (
         "Outcome changes_requested: a check failed or the pull request closed"

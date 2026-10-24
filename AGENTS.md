@@ -25,6 +25,13 @@ skill client contracts, the `cli-text` text checks and consumer check, the
 image check harness, image validation and build against a temporary isolated
 daemon, and `git diff --check`. Inspect the complete diff before committing.
 
+## Branch history
+
+Pull requests land on `main` only by rebase merge, so `main` keeps a linear
+history. To update a task branch, rebase it onto the fetched `origin/main` and
+push it with `git push --force-with-lease`. Force-push only the task branch.
+Never merge `main` into a branch, and never reset, rebase or force-push `main`.
+
 ## Commit messages
 
 - Never add a co-authorship or attribution trailer to a commit message. This
