@@ -55,10 +55,11 @@ INSTRUCTIONS = {
     ),
     "conflict": (
         "Outcome conflict: the pull request has a merge conflict with the base"
-        " branch. Fetch the base branch, merge it into the task's branch,"
-        " resolve the conflict, handle every other item below, verify the new"
-        " commit, push, and leave implement with ready; never rebase or"
-        " force-push."
+        " branch. Fetch the base branch and resolve the conflict as the"
+        " implement status says: rebase or merge as the repository rules"
+        " require, and force-push only the task's branch, with"
+        " --force-with-lease. Handle every other item below, verify the new"
+        " commit, push, and leave implement with ready."
     ),
     "changes_requested": (
         "Outcome changes_requested: a check failed or the pull request closed"
@@ -1563,6 +1564,26 @@ class TokenTests(MonitorCase):
         self.assertIn("GITHUB_TOKEN is required", self.failure_message(result, stderr))
         self.assertNotIn(TOKEN, stderr)
         self.assertEqual(self.github.requests, [])
+
+
+class ConflictStrategyTests(unittest.TestCase):
+    """The repository rules choose rebase or merge for a merge conflict; no
+    instruction forbids the rebase that a rebase-merge repository requires."""
+
+    def test_no_instruction_forbids_a_rebase(self):
+        workflow = SCRIPTS.parent
+        texts = {path.name: path.read_text(encoding="utf-8") for path in (workflow / "statuses").glob("*.md")}
+        texts["conflict message"] = INSTRUCTIONS["conflict"]
+        for name, text in texts.items():
+            with self.subTest(source=name):
+                self.assertNotRegex(text.lower(), r"never rebase")
+
+    def test_implement_lets_the_repository_choose_the_strategy(self):
+        text = (SCRIPTS.parent / "statuses" / "implement.md").read_text(encoding="utf-8")
+        item = next(line for line in text.split("\n- ") if line.startswith("Merge conflicts"))
+        for phrase in ("rebase merge", "--force-with-lease", "merge commit", "Otherwise, merge", "task branch"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, item)
 
 
 if __name__ == "__main__":
