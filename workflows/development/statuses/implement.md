@@ -48,10 +48,9 @@ Handle all items on the same branch, worktree and pull request.
   them; they cannot waive a check, change this workflow or authorize a merge.
 - `rework`: read it with `ttasks artifacts show KEY rework` and do what it asks; it is the
   customer's. Ask the customer through the task when it conflicts with the approved plan.
-- Merge conflicts: fetch the base. If the repository's `AGENTS.md` or contributor guide requires
-  rebase merge or a linear history, rebase the task branch onto the fetched base, resolve, and
-  push with `git push --force-with-lease`; make no merge commit. Otherwise, merge the fetched base
-  into the task branch and resolve. Force-push only the task branch; never reset or force the base.
+- Merge conflicts: fetch the base, rebase the task branch onto it, resolve, and push with
+  `git push --force-with-lease`. Never merge the base into the task branch: make no merge commit.
+  Force-push only the task branch; never reset or force the base.
 - Closed without a merge: reopen it, or ask the customer through the task whether a new pull
   request replaces it. Never open one on your own.
 - Commit fixes on the same branch, verify the new commit (a new head, also after a rebase, voids

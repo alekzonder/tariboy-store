@@ -55,11 +55,10 @@ INSTRUCTIONS = {
     ),
     "conflict": (
         "Outcome conflict: the pull request has a merge conflict with the base"
-        " branch. Fetch the base branch and resolve the conflict as the"
-        " implement status says: rebase or merge as the repository rules"
-        " require, and force-push only the task's branch, with"
-        " --force-with-lease. Handle every other item below, verify the new"
-        " commit, push, and leave implement with ready."
+        " branch. Fetch the base branch, rebase the task's branch onto it and"
+        " resolve the conflict; make no merge commit. Handle every other item"
+        " below, verify the new commit, push only the task's branch with"
+        " --force-with-lease, and leave implement with ready."
     ),
     "changes_requested": (
         "Outcome changes_requested: a check failed or the pull request closed"
@@ -1567,23 +1566,33 @@ class TokenTests(MonitorCase):
 
 
 class ConflictStrategyTests(unittest.TestCase):
-    """The repository rules choose rebase or merge for a merge conflict; no
-    instruction forbids the rebase that a rebase-merge repository requires."""
+    """A merge conflict is always resolved by a rebase onto the base; no
+    instruction forbids the rebase or asks for a merge of the base."""
 
-    def test_no_instruction_forbids_a_rebase(self):
+    def texts(self):
         workflow = SCRIPTS.parent
         texts = {path.name: path.read_text(encoding="utf-8") for path in (workflow / "statuses").glob("*.md")}
         texts["conflict message"] = INSTRUCTIONS["conflict"]
-        for name, text in texts.items():
+        texts["pr-open.py"] = (SCRIPTS / "pr-open.py").read_text(encoding="utf-8")
+        return texts
+
+    def test_no_instruction_forbids_a_rebase(self):
+        for name, text in self.texts().items():
             with self.subTest(source=name):
                 self.assertNotRegex(text.lower(), r"never rebase")
 
-    def test_implement_lets_the_repository_choose_the_strategy(self):
+    def test_no_instruction_merges_the_base_into_the_branch(self):
+        for name, text in self.texts().items():
+            with self.subTest(source=name):
+                self.assertNotRegex(" ".join(text.lower().split()), r"(?<!never )merge (the|it|main|origin)\b")
+
+    def test_implement_always_rebases(self):
         text = (SCRIPTS.parent / "statuses" / "implement.md").read_text(encoding="utf-8")
         item = next(line for line in text.split("\n- ") if line.startswith("Merge conflicts"))
-        for phrase in ("rebase merge", "--force-with-lease", "merge commit", "Otherwise, merge", "task branch"):
+        for phrase in ("rebase the task branch", "--force-with-lease", "make no merge commit", "Force-push only the task branch"):
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, item)
+                self.assertIn(phrase, " ".join(item.split()))
+        self.assertNotIn("Otherwise", item)
 
 
 if __name__ == "__main__":

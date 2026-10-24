@@ -141,8 +141,10 @@ def main() -> int:
     if mergeable is False:
         return reject(
             f"Pull request {name} has a merge conflict with its base branch. "
-            "Merge the base branch into the task's branch and resolve the conflicts, "
-            "verify the new commit, store that verification, push, and advance again."
+            "Rebase the task's branch onto the fetched base branch and resolve the "
+            "conflicts; make no merge commit. Verify the new commit, store that "
+            "verification, push only the task's branch with --force-with-lease, and "
+            "advance again."
         )
     if head_sha not in verified:
         return reject(
