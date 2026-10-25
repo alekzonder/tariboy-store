@@ -126,6 +126,14 @@ worktree or pull request for the same task.
 - One task, one branch and worktree. Worktree isolation is pre-approved by the
   customer's use of this image: never ask for consent and never use the
   in-place fallback of `using-git-worktrees`.
+- Create the task worktree from the main checkout with
+  `git worktree add .worktrees/NAME -b BRANCH`, where NAME is BRANCH with
+  each `/` replaced by `-`. Never call `EnterWorktree` or another native
+  worktree tool, and never start a subagent with `isolation: worktree`: the
+  harness then refuses `git`, `ttasks` and `make` commands in the session.
+  Run later commands with an explicit path, `git -C .worktrees/NAME ...` or
+  `cd .worktrees/NAME && ...` in the same command. This rule wins over the
+  native-tool preference of `using-git-worktrees`; its other steps apply.
 - Verification is state-based: run a check once for each unchanged state, and
   again after a relevant change, a concrete failure or a new head commit.
 - A mandatory output-format rule of a REQUIRED skill is not negotiable by
