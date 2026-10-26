@@ -98,6 +98,7 @@ class StoreSkillsTest(unittest.TestCase):
         expected = {
             "whoami": "From the directory containing this SKILL.md, run `scripts/whoami.sh`",
             "messages": "scripts/messages.sh",
+            "mail": "scripts/mail.sh",
             "schedule": "scripts/schedule.sh",
             "scripts": "scripts/scripts.sh",
             "image-creator": "scripts/image_creator.sh",
@@ -173,6 +174,24 @@ class StoreSkillsTest(unittest.TestCase):
             self.assertEqual(args_path.read_text(), "mine\n--queue\nOPS\n")
         self.assertFalse((ROOT / "tasks/scripts/tasks.py").exists())
 
+    def test_mail_launcher_delegates_to_tmail_and_propagates_exit_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args_path = Path(tmp) / "args"
+            fake = Path(tmp) / "tmail"
+            fake.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$MAIL_ARGS\"\nexit 73\n"
+            )
+            fake.chmod(0o700)
+            process = subprocess.run(
+                [ROOT / "mail/scripts/mail.sh", "reply", "m-1", "done: it's $HOME", "--ask"],
+                env=dict(os.environ, PATH=tmp + os.pathsep + os.environ["PATH"], MAIL_ARGS=args_path),
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(process.returncode, 73)
+            self.assertEqual(args_path.read_text(), "reply\nm-1\ndone: it's $HOME\n--ask\n")
+        self.assertFalse((ROOT / "mail/scripts/mail.py").exists())
+
     def test_context_help_describes_get_and_set(self):
         env = dict(os.environ)
         env.pop("TARIBOY_TOOLS_SOCKET", None)
@@ -242,6 +261,19 @@ class StoreSkillsTest(unittest.TestCase):
         self.assertEqual(
             json.loads(request[1]),
             {"id": "m-1", "text": "delivered status", "type": ""},
+        )
+
+    def test_schedule_add_sends_the_recipient_principal(self):
+        process, request = self.run_script(
+            "schedule/scripts/schedule.sh",
+            ["add", "--kind", "cron", "--spec", "30 9 * * 1-5", "--to", "agent:standup-bot", "--message", '{"subject": "Standup"}'],
+            {},
+        )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(request[0], ["POST", "/tools/schedule/add"])
+        self.assertEqual(
+            json.loads(request[1]),
+            {"kind": "cron", "spec": "30 9 * * 1-5", "to": "agent:standup-bot", "message": {"subject": "Standup"}},
         )
 
     def test_direct_entrypoint_preserves_json_output(self):

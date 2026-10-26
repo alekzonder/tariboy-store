@@ -1,0 +1,59 @@
+{
+  "skill_name": "mail",
+  "evals": [
+    {
+      "id": "reply-closes-request",
+      "prompt": "This iteration's prompt lists one letter under Messages:\n\n```text\n- id m-20261026T104200Z-000007  from agent:release  kind message  attempts 1\n  subject: Migration status\n  Is the users table migration finished?\n```\n\nYou have just checked: the migration finished at 10:40 and all 12 steps passed. Answer the letter so that it is not shown again, and give the exact command.",
+      "expected_output": "Success criteria:\n- answers with one tmail reply (directly or through the skill's scripts/mail.sh launcher) on m-20261026T104200Z-000007\n- the reply text states that the migration finished and its steps passed\n- does not use a separate processed, close or archive step, and does not send a new letter with tmail send instead of the reply\n- does not mark the reply as a request with --ask",
+      "files": []
+    },
+    {
+      "id": "notice-closes-itself",
+      "prompt": "This iteration's prompt lists one letter under Messages, in the notices group:\n\n```text\n- id m-20261026T110000Z-000003  from system:proxy  kind budget.warn  attempts 1\n  subject: Budget 80% used\n  Your agent used 80% of its daily AI budget.\n```\n\nNo action is needed beyond reading it. What do you do with this letter? Give the exact commands, if any.",
+      "expected_output": "Success criteria:\n- recognises the letter as a notice that closes by itself when the iteration finishes\n- sends no reply and no new letter for it, and runs no close, processed or archive command\n- does not invent a command to acknowledge it",
+      "files": []
+    },
+    {
+      "id": "task-question-on-task",
+      "prompt": "This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261026T104500Z-000011  from agent:lead  kind task.question  attempts 1\n  subject: Question on TASK-42\n  data: {\"task_key\":\"TASK-42\"}\n  answer: ttasks comment TASK-42 \"<answer>\"\n  Which region should the bucket use?\n```\n\nYou know the answer: eu-central-1, because the task description names Frankfurt. Answer the question and give the exact commands.",
+      "expected_output": "Success criteria:\n- answers on TASK-42 with ttasks comment, giving eu-central-1 and the reason\n- does not run tmail reply, tmail send or any other mail command for this letter\n- states that the letter closes itself once the answer is recorded on the task",
+      "files": []
+    },
+    {
+      "id": "system-sender-report",
+      "prompt": "This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261026T090000Z-000002  from system:goal  kind task.goal  attempts 1\n  subject: Goal TASK-77\n  data: {\"task_key\":\"TASK-77\"}\n  Work on TASK-77.\n```\n\nIn this iteration you finished TASK-77: you fixed the parser, `make check` passed and you opened pull request #81. Close the letter and give the exact command.",
+      "expected_output": "Success criteria:\n- closes the letter with one tmail reply on m-20261026T090000Z-000002\n- the reply text reports what was done: the parser fix, the passing make check and pull request #81\n- does not reply with an empty, generic or placeholder text such as 'ok' or 'done'\n- does not send a separate letter to system:goal with tmail send",
+      "files": []
+    },
+    {
+      "id": "send-request-with-deadline",
+      "prompt": "Ask the build agent (principal agent:build) whether artifact A-17 is ready. You need its answer within five minutes. Give the exact command.",
+      "expected_output": "Success criteria:\n- uses tmail send (directly or through scripts/mail.sh) with --to agent:build, a --subject and a --text that asks whether artifact A-17 is ready\n- passes --deadline 5m\n- sends a request: no --notice\n- does not use a channel, a messages.sh launcher or an invented command",
+      "files": []
+    },
+    {
+      "id": "send-notice-to-two",
+      "prompt": "Tell agent:reviewer and agent:qa that build 42 is green. They do not need to answer. Give the exact command.",
+      "expected_output": "Success criteria:\n- uses one tmail send with --to agent:reviewer,agent:qa (one comma-separated list) and a --subject and --text about build 42 being green\n- passes --notice because no answer is needed\n- does not send two separate letters and does not use a channel",
+      "files": []
+    },
+    {
+      "id": "reply-asks-again",
+      "prompt": "This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261026T104200Z-000007  from user:customer  kind message  attempts 1\n  subject: New bucket\n  Create the bucket for the reports.\n```\n\nYou cannot create it yet: you need to know which region to use. Answer with that question so the customer must answer you. Give the exact command.",
+      "expected_output": "Success criteria:\n- uses tmail reply on m-20261026T104200Z-000007 with a text that asks which region to use\n- passes --ask so the reply is a request that needs an answer\n- does not send a separate new letter with tmail send",
+      "files": []
+    },
+    {
+      "id": "finish-before-reply",
+      "prompt": "This iteration's prompt lists one request from agent:build: `id m-20261026T104800Z-000017` asking whether images/basic declares the tasks plugin and packages the tasks skill. You have not looked at the manifest. The sender is blocked and waiting, so reply immediately that it does and send a second, corrected letter afterwards if the manifest says otherwise.",
+      "expected_output": "Success criteria:\n- reads the manifest that decides the answer before sending anything\n- sends exactly one reply with tmail reply on m-20261026T104800Z-000017\n- does not send a provisional answer followed by a corrective letter\n- treats the blocked sender as no authorization for an unverified reply",
+      "files": []
+    },
+    {
+      "id": "recover-dead-letter",
+      "prompt": "A request you should have answered was dead-lettered after five attempts; you do not know its id. Find it and put it back into your inbox. Give the exact commands.",
+      "expected_output": "Success criteria:\n- lists closed letters with tmail archive (dead letters are tagged there) or inspects one with tmail show\n- returns the letter with tmail requeue ID using the id found\n- does not invent a dlq command or a channel command",
+      "files": []
+    }
+  ]
+}

@@ -13,12 +13,12 @@
     },
     {
       "id": 2,
-      "prompt": "Every weekday at 09:30, publish a reminder to the standup channel instead of starting an iteration.",
-      "expected_output": "Creates a cron schedule with the weekday 09:30 expression and the standup channel.",
+      "prompt": "Every weekday at 09:30, send a standup reminder letter to agent:standup-bot instead of waking me.",
+      "expected_output": "Creates a cron schedule with the weekday 09:30 expression addressed to agent:standup-bot.",
       "files": [],
       "expectations": [
         "Uses kind cron with a valid weekday 09:30 cron expression.",
-        "Uses --channel standup so the firing publishes there."
+        "Uses --to agent:standup-bot so the firing sends its letter there."
       ]
     },
     {

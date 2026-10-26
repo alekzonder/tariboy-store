@@ -88,33 +88,35 @@ A recurring definition that published its result is stopped, so it qualifies
 only after the `scripts` skill's `rerun` resumed it in this iteration. Do not
 poll, replace the schedule, or mark the task complete.
 
-## Answers from a chat or channel
+## Answers from a letter
 
-A message delivered through the `messages` skill answers your open question on
-a task, or approves your plan, exactly as an answer on the task would, when
-both hold:
+A letter delivered through the `mail` skill answers your open question on a
+task, or approves your plan, exactly as an answer on the task would, when both
+hold:
 
-- **Sender is the task's customer:** the message came through your subscribed
-  `plugin:telegram` channel (the customer's personal chat), or through another
-  channel whose message data names the task's customer as the sender.
+- **Sender is the task's customer:** the letter is from `plugin:telegram` (the
+  customer's personal Telegram chat), or from the task's customer
+  (`user:LOGIN`).
 - **One task:** the text names the task key, or the customer has exactly one
   open question from you.
 
 Record it on the task before acting on it: one `ttasks comment KEY` that
-quotes the text and gives the channel, the message ID, the delivery iteration
-or time, and the question or plan it answers. That comment is the recorded
+quotes the text and gives the sender, the letter ID, the delivery iteration or
+time, and the question or plan it answers. That comment is the recorded
 decision. Then continue: a flexible task leaves `wait_customer` with `ttasks
-update KEY --status in_progress`. Close the message with `scripts/messages.sh
-message processed ID` naming the task and the comment.
+update KEY --status in_progress`. Close the letter with `tmail reply ID TEXT`
+naming the task and the comment.
 
-| Message | Action |
+| Letter | Action |
 | --- | --- |
-| From anyone else: a reviewer, another agent, a log | Not a decision. Keep waiting; close the message saying so |
-| No key and several open questions to that customer | Not a decision. `message reply ID` asking which task it answers; record nothing; keep every task waiting |
-| Approves a workflow task whose current status the customer owns | Record the comment; never `ttasks advance` it (`not_holder`); `message reply ID` saying the customer takes the outcome on the task |
+| From anyone else: a reviewer, another agent, a log | Not a decision. Keep waiting; `tmail reply ID` saying so |
+| No key and several open questions to that customer | Not a decision. `tmail reply ID` asking which task it answers; record nothing; keep every task waiting |
+| Approves a workflow task whose current status the customer owns | Record the comment; never `ttasks advance` it (`not_holder`); `tmail reply ID` saying the customer takes the outcome on the task |
+| A `task.question` letter | Answer it on its task with `ttasks comment`, never by mail; the letter closes itself |
+| A notice about the task, such as `task.answered` | Read the answer on the task; it is already recorded there, so add no decision comment. The notice closes itself |
 
 An answer you record yourself is a decision only through this section: your
-own comment without such a message is still not an answer.
+own comment without such a letter is still not an answer.
 
 ## Tasks with a workflow
 

@@ -99,48 +99,59 @@
     },
     {
       "id": 9,
-      "prompt": "TASK-42 is a flexible task in wait_customer; its customer is user:customer. Your question on it (comment 310) asked the customer to approve plan v2. This iteration delivered one message from your subscribed channel plugin:telegram, the customer's personal chat: `id chat:telegram:agent-20261014-000000001` with text `TASK-42: план v2 одобряю, делай`. Nothing new was posted on the task itself. Decide what to do with the message and the task, and give the exact commands.",
-      "expected_output": "Success criteria:\n- treats the message as the customer's approval of plan v2 on TASK-42, equal to an answer on the task\n- records the decision on TASK-42 with ttasks comment before acting: quoted text, channel, message id, time or delivery iteration, and the question it answers (comment 310)\n- moves the flexible task out of wait_customer and continues with the approved plan instead of asking again on the task\n- closes the message with scripts/messages.sh message processed naming TASK-42 and the recording comment",
+      "prompt": "TASK-42 is a flexible task in wait_customer; its customer is user:customer. Your question on it (comment 310) asked the customer to approve plan v2. This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261014T101500Z-000001  from plugin:telegram  kind message  attempts 1\n  subject: Telegram\n  TASK-42: план v2 одобряю, делай\n```\n\nThe letter came from the customer's personal Telegram chat. Nothing new was posted on the task itself. Decide what to do with the letter and the task, and give the exact commands.",
+      "expected_output": "Success criteria:\n- treats the letter as the customer's approval of plan v2 on TASK-42, equal to an answer on the task\n- records the decision on TASK-42 with ttasks comment before acting: quoted text, sender, letter id, time or delivery iteration, and the question it answers (comment 310)\n- moves the flexible task out of wait_customer and continues with the approved plan instead of asking again on the task\n- closes the letter with tmail reply naming TASK-42 and the recording comment",
       "files": [],
       "expectations": [
-        "Treats the Telegram message as the customer's approval of plan v2 rather than refusing it as a chat reply.",
-        "Records the decision on TASK-42 with ttasks comment, including the quoted text, the channel, the message id and the question it answers.",
+        "Treats the Telegram letter as the customer's approval of plan v2 rather than refusing it as a chat reply.",
+        "Records the decision on TASK-42 with ttasks comment, including the quoted text, the sender, the letter id and the question it answers.",
         "Records before acting on the approval and continues the approved plan instead of asking the same question again.",
         "Takes the flexible task out of wait_customer with ttasks update.",
-        "Closes the message with scripts/messages.sh message processed naming TASK-42."
+        "Closes the letter with tmail reply naming TASK-42."
       ]
     },
     {
       "id": 10,
-      "prompt": "Your customer user:customer has two open questions to them: TASK-42 (approve plan v2) and TASK-57 (choose library A or B). This iteration delivered one message from your subscribed channel plugin:telegram, the customer's personal chat: `id chat:telegram:agent-20261014-000000002` with text `да, согласен`. Decide what to do and give the exact commands.",
-      "expected_output": "Success criteria:\n- does not record the message as an answer on either task and does not continue either task as approved\n- replies in the same channel asking which task the message answers, with scripts/messages.sh message reply on that message id\n- leaves both tasks waiting on their recorded questions",
+      "prompt": "Your customer user:customer has two open questions to them: TASK-42 (approve plan v2) and TASK-57 (choose library A or B). This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261014T101600Z-000002  from plugin:telegram  kind message  attempts 1\n  subject: Telegram\n  да, согласен\n```\n\nThe letter came from the customer's personal Telegram chat. Decide what to do and give the exact commands.",
+      "expected_output": "Success criteria:\n- does not record the letter as an answer on either task and does not continue either task as approved\n- replies with tmail reply on that letter id, asking which task the letter answers\n- leaves both tasks waiting on their recorded questions",
       "files": [],
       "expectations": [
-        "Does not treat the message as an answer to TASK-42 or TASK-57.",
-        "Asks in the same channel which task the message refers to, replying to the message id.",
+        "Does not treat the letter as an answer to TASK-42 or TASK-57.",
+        "Asks which task the letter refers to with tmail reply on the letter id.",
         "Leaves both tasks in wait_customer with their questions open."
       ]
     },
     {
       "id": 11,
-      "prompt": "TASK-42 is a flexible task in wait_customer; its customer is user:customer and your open question asks them to approve plan v2. This iteration delivered a message from the shared channel team-review: `id chat:team-review:agent-20261014-000000003`, data `{\"from\":\"user:reviewer\"}`, text `TASK-42 план v2 норм, можно делать`. Decide what to do and give the exact commands.",
-      "expected_output": "Success criteria:\n- does not treat the message as the customer's approval, because its sender is not the task's customer\n- does not continue the plan and keeps TASK-42 waiting for the customer's answer\n- may record the message on the task as information, never as the decision\n- closes the message with a processed result or reply that says it is not the customer's decision",
+      "prompt": "TASK-42 is a flexible task in wait_customer; its customer is user:customer and your open question asks them to approve plan v2. This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261014T101700Z-000003  from user:reviewer  kind message  attempts 1\n  subject: TASK-42\n  TASK-42 план v2 норм, можно делать\n```\n\nDecide what to do and give the exact commands.",
+      "expected_output": "Success criteria:\n- does not treat the letter as the customer's approval, because its sender is not the task's customer\n- does not continue the plan and keeps TASK-42 waiting for the customer's answer\n- may record the letter on the task as information, never as the decision\n- closes the letter with tmail reply that says it is not the customer's decision",
       "files": [],
       "expectations": [
-        "Does not treat the reviewer's message as approval.",
+        "Does not treat the reviewer's letter as approval.",
         "Keeps TASK-42 in wait_customer and does not start the plan.",
-        "Closes the message while stating it was not accepted as the customer's decision."
+        "Closes the letter with tmail reply stating it was not accepted as the customer's decision."
       ]
     },
     {
       "id": 12,
-      "prompt": "DEV-12 follows a workflow and is in status `approval`, which is owned by its customer user:customer; the outcome `approved` moves it to `implement`. This iteration delivered one message from your subscribed channel plugin:telegram, the customer's personal chat: `id chat:telegram:agent-20261014-000000004` with text `DEV-12 план ок`. Decide what to do and give the exact commands.",
-      "expected_output": "Success criteria:\n- records the customer's approval on DEV-12 with ttasks comment, quoting the message with its channel and id\n- does not run ttasks advance on the customer-owned status and does not use ttasks update --status or done\n- replies in the same channel that the customer still has to take the `approved` outcome on the task to start the work",
+      "prompt": "DEV-12 follows a workflow and is in status `approval`, which is owned by its customer user:customer; the outcome `approved` moves it to `implement`. This iteration's prompt lists one request under Messages:\n\n```text\n- id m-20261014T101800Z-000004  from plugin:telegram  kind message  attempts 1\n  subject: Telegram\n  DEV-12 план ок\n```\n\nThe letter came from the customer's personal Telegram chat. Decide what to do and give the exact commands.",
+      "expected_output": "Success criteria:\n- records the customer's approval on DEV-12 with ttasks comment, quoting the letter with its sender and id\n- does not run ttasks advance on the customer-owned status and does not use ttasks update --status or done\n- replies with tmail reply on the letter that the customer still has to take the `approved` outcome on the task to start the work",
       "files": [],
       "expectations": [
-        "Records the approval on DEV-12 with ttasks comment including the quote, channel and message id.",
+        "Records the approval on DEV-12 with ttasks comment including the quote, sender and letter id.",
         "Does not attempt ttasks advance from the customer-owned approval status, nor ttasks update --status or done.",
-        "Replies to the message in the channel saying the customer must take the approved outcome on the task."
+        "Replies to the letter with tmail reply saying the customer must take the approved outcome on the task."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "TASK-42 is a flexible task in wait_customer; its customer is user:customer and your open question (comment 310) asks them to approve plan v2. The customer answered on the task: answer comment 318 says `Approved`. This iteration's prompt lists one notice under Messages:\n\n```text\n- id m-20261014T102000Z-000005  from user:customer  kind task.answered  attempts 1\n  subject: Answer on TASK-42\n  data: {\"task_key\":\"TASK-42\"}\n```\n\nDecide what to do with the letter and the task, and give the exact commands.",
+      "expected_output": "Success criteria:\n- treats the answer recorded on the task (comment 318) as the approval and continues TASK-42, leaving wait_customer with ttasks update\n- does not record a second decision comment for the letter, because the answer is already on the task\n- runs no tmail reply or other mail command for the notice, which closes by itself when the iteration finishes",
+      "files": [],
+      "expectations": [
+        "Continues TASK-42 on the answer recorded on the task and moves it out of wait_customer.",
+        "Does not add a decision comment quoting the letter.",
+        "Does not reply to or otherwise close the task.answered notice."
       ]
     }
   ]
