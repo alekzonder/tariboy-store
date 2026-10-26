@@ -39,9 +39,11 @@ schema_version: 2
 image_version: 0.1.0
 plugins:
   - name: tasks
+  - name: mail
 skills:
   - dir: ./.agents/skills/cli-text
   - dir: ./.agents/skills/tasks
+  - dir: ./.agents/skills/mail
   - dir: ./.agents/skills/review
 prompts:
   - file: ./.agents/skills/cli-text/cli-text.md
@@ -57,6 +59,15 @@ prompts:
 This fragment illustrates declarations; select every capability/skill/runtime
 needed by the target workflow. Runtime identity/messages/goal/context/workdir
 name their owning skills. Preserve prompt order and the finish contract.
+
+Every new image that sends or reads letters declares plugin `mail` and skill
+`mail`, installed from `../../skills/mail`. Never declare a plugin or skill
+named `messages`: that skill no longer exists. The prompt placeholders
+`runtime: messages` and `runtime: awaiting-replies` keep their names. They are
+the names of the prompt blocks that the `mail` capability renders: the open
+letters of the iteration, and the agent's own letters with a deadline that have
+no answer yet. A manifest that uses either placeholder needs plugin `mail` and
+skill `mail`.
 
 `npx skills` owns every image skill connection, including skills authored under
 the image directory. From `images/NAME`, use `npx skills add PACKAGE_OR_PATH`
@@ -91,7 +102,9 @@ extends:
   - ../reviewer-base
 plugins:
   - name: jira
+  - name: mail
 skills:
+  - dir: ./.agents/skills/mail
   - dir: ./.agents/skills/review
 prompts:
   - file: ./instructions.md
