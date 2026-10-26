@@ -8,7 +8,7 @@ or decide a change is accepted on the customer's behalf.
 ## Scope
 
 Each iteration starts from the selected Native Task, its recorded state and the
-delivered messages. Your configured CWD must be the task-selected Store root
+delivered letters. Your configured CWD must be the task-selected Store root
 containing `images/` and optionally `skills/` and `workflows/`. Keep reusable
 stage knowledge and scripts in skills inside an image; `instructions.md`
 describes the process and explicitly requires those skills. A task's process
@@ -27,7 +27,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Task intake, approval, isolation, publication, recovery | `tariboy-image-delivery` | REQUIRED |
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text you publish for the customer: a task comment, question or answer, a chat or channel reply | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
+| Text you publish for the customer: a task comment, question or answer, a reply to a letter | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
 | Image sources, manifests, `extends` inheritance, versions, iteration-log diagnosis | `tariboy-image-authoring` | REQUIRED |
 | Workflow images: `workflows/NAME/`, `Workflowfile.yaml`, status instructions, check and watch scripts, `workflow_version`, the current workflow documentation | `tariboy-workflow-authoring` | REQUIRED whenever a task creates, changes or publishes a workflow, or asks to put task process into an agent image |
 | Creating or improving one skill | `writing-skills` | REQUIRED for image-local AND independent Store skills |
@@ -37,7 +37,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Pull requests and their monitoring | `github-pr-workflow` | REQUIRED in `PR` (GitHub) mode |
 | Commands outliving the iteration | `scripts` | REQUIRED for the closure monitor in every completion mode |
 | Any success, fix or completion claim | `verification-before-completion` | REQUIRED before publication and completion |
-| Runtime identity, goal, handoff, messages, workdir | `whoami`, `goal`, `context`, `messages`, `workdir` | REQUIRED for that runtime data |
+| Runtime identity, goal, handoff, letters, workdir | `whoami`, `goal`, `context`, `mail`, `workdir` | REQUIRED for that runtime data |
 | Iteration finish | `loop` | REQUIRED as the last action |
 | Plan shaping, isolation mechanics, debugging, review, TDD, parallel execution | `brainstorming`, `writing-plans`, `using-git-worktrees`, `systematic-debugging`, `test-driven-development`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents` | when applicable |
 
@@ -48,7 +48,7 @@ table names them; it does not replace them.
 
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
-| 1 | iteration starts with a selected or supplied task | Intake | `using-superpowers`, `tariboy-image-delivery`, `tasks`, `goal`, `context`, `messages`, `workdir` | the task, its customer and its recorded branch, worktree, PR and monitor are read; with no key, the matching task is claimed or created in an explicitly identified queue |
+| 1 | iteration starts with a selected or supplied task | Intake | `using-superpowers`, `tariboy-image-delivery`, `tasks`, `goal`, `context`, `mail`, `workdir` | the task, its customer and its recorded branch, worktree, PR and monitor are read; with no key, the matching task is claimed or created in an explicitly identified queue |
 | 2 | no recorded approval covers the current scope | Investigate and agree | `tariboy-image-authoring`, `tariboy-workflow-authoring` when applicable, `tasks`, `brainstorming`, `writing-plans`, `simple-english` | a concrete plan — which image, workflow and skills change, why, eval coverage, delivery destination — is published as a task question to its customer, and the flexible task is `wait_customer` |
 | 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `using-git-worktrees` | `Completion mode` and its source are recorded on the task; in `PR` mode GitHub preflight passed, the base is fetched and fast-forwarded, and one task branch and worktree exist and are recorded; in `Customer VCS` mode isolation follows the customer's recorded explanation; a recovered task reuses the recorded one; without GitHub or that explanation the customer is asked with `ttasks ask` and the flexible task is `wait_customer` |
 | 4 | the recorded workspace exists | Change and evaluate | `writing-skills`, `authoring-evals`, `tariboy-image-authoring`, `tariboy-workflow-authoring` when applicable, `image-creator`, `verification-before-completion` | missing evals created in the `evals/evals.json` source contract, baseline observed, the approved change made and the same scenarios rerun with a pinned model; generated run evidence kept in the workdir, not in committed `evals/`; skill and image evidence kept separate; `image_version` bumped for every image whose own directory or consumed local skill source changed; `workflow_version` bumped for every changed `workflows/NAME/`; packaging validated separately from behavior |
@@ -91,7 +91,7 @@ active durable monitor. Read authoritative state once before waiting; never poll
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set a flexible task to `wait_customer`, keep
 the question and one `TASK-KEY next-action-slug` line in context, process every
-delivered message, and after all live commands, evaluators and subagents finish,
+delivered letter, and after all live commands, evaluators and subagents finish,
 run `scripts/loop.sh done` as the exact final action. Never wait for an answer in
 the live session.
 
@@ -99,7 +99,7 @@ When a recorded question is still unanswered, the flexible task must already be
 `wait_customer` with the customer mentioned; if a recovered task is not, record
 that transition in this iteration before finishing, however old the question is.
 A live-session message is never the answer and never a reason to skip it; a
-delivered chat or channel message is one only as the `tasks` skill accepts it.
+delivered letter is one only as the `tasks` skill accepts it.
 
 While a recorded PR or review request is open and its poll source exists, the
 closure monitor must be active before the iteration ends, even when a question
@@ -121,17 +121,17 @@ reason to switch mode. `tariboy-image-delivery` owns mode selection and its one
 customer-named exception.
 
 All proposals, questions, approvals and results go through the Native Task; a
-plain comment is not an answer, and a chat or channel message is a decision
-only as the `tasks` skill's "Answers from a chat or channel" accepts it,
+plain comment is not an answer, and a letter is a decision
+only as the `tasks` skill's "Answers from a letter" accepts it,
 recorded on the task first. A
 workflow-managed packet governs allowed actions and replaces the flexible forms
 above. These Native Task communication and integration rules override generic
 skill chat, worktree fallback and integration menus.
 
 Before you publish text for the customer (a task comment, question or answer, or
-a chat or channel reply), open `simple-english`, write the text by its rules and
+a reply to a letter), open `simple-english`, write the text by its rules and
 run its Self-Check. Task text uses its "The Document" register, so headings,
-lists and tables stay. A chat or channel reply uses "The Reply". The owning
+lists and tables stay. A reply to a letter uses "The Reply". The owning
 skill's storage rules and required structure win over it: valid Markdown, the
 one-line `status`, `cli-text` transport and the English-only pull request text.
 Keep every required label exactly as its rule writes it, for example

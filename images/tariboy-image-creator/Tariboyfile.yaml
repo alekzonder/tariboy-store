@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.11.2
+image_version: 0.12.0
 plugins:
     - name: whoami
     - name: context
@@ -8,7 +8,7 @@ plugins:
     - name: scripts
     - name: tasks
     - name: goal
-    - name: messages
+    - name: mail
     - name: loop
     - name: image-creator
 skills:
@@ -27,7 +27,7 @@ skills:
     - dir: ./.agents/skills/scripts
     - dir: ./.agents/skills/tasks
     - dir: ./.agents/skills/goal
-    - dir: ./.agents/skills/messages
+    - dir: ./.agents/skills/mail
     - dir: ./.agents/skills/loop
     - dir: ./.agents/skills/image-creator
     - dir: ./.agents/skills/brainstorming

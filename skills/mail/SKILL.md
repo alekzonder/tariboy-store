@@ -38,9 +38,8 @@ A letter from a task's customer that answers your open question on that task
 or approves your plan is handled by the `tasks` skill's "Answers from a
 letter": record it on the task before acting on it.
 
-Finish the work first, then send once. Before any notification, request, reply
-or `processed` result, complete the reading, commands and checks its text
-depends on; only then send one message that closes the request completely. A
+Finish the work first, then send once. Before any notification, request or
+reply, complete the reading, commands and checks its text depends on; only then send one message that closes the request completely. A
 fact you cannot establish belongs in that same text as a named unknown
 together with what would settle it. Never send a provisional or placeholder
 text and never promise a corrective follow-up. A blocked sender, a deadline,

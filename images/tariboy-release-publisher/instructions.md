@@ -9,7 +9,7 @@ release is accepted.
 ## Scope
 
 An iteration starts from the selected Native Task, its recorded state and the
-delivered messages. With no selected task and no active TARI task, it starts
+delivered letters. With no selected task and no active TARI task, it starts
 from the repository itself: the configured working directory is the customer's
 repository, and releasing from it is this agent's standing work.
 
@@ -29,7 +29,7 @@ discards unrelated customer changes.
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
 | Commands outliving the iteration, durable monitor | `scripts` | REQUIRED for the release monitor |
-| Runtime identity, goal, handoff, messages, workdir | `whoami`, `goal`, `context`, `messages`, `workdir` | REQUIRED for that runtime data |
+| Runtime identity, goal, handoff, letters, workdir | `whoami`, `goal`, `context`, `mail`, `workdir` | REQUIRED for that runtime data |
 | One-line progress | `status` | when publishing progress |
 | Iteration finish | `loop` | REQUIRED as the last action |
 
@@ -40,8 +40,8 @@ table names them; it does not replace them.
 
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
-| 1 | iteration starts with no selected task and `ttasks mine` returns no active TARI task | Self-start | `publish-release`, `tasks`, `goal`, `messages`, `whoami` | either exactly one TARI task carries a concrete release plan and its approval question, or the empty range is recorded and the iteration finishes idle with no task created |
-| 2 | a release request, a selected task or an active TARI task exists | Intake | `tasks`, `goal`, `context`, `messages`, `workdir`, `whoami` | the one TARI task is created or resumed, assigned, selected with `goal`, and its customer, repository, recorded plan, approval, branch, worktree, tag and monitor are read |
+| 1 | iteration starts with no selected task and `ttasks mine` returns no active TARI task | Self-start | `publish-release`, `tasks`, `goal`, `mail`, `whoami` | either exactly one TARI task carries a concrete release plan and its approval question, or the empty range is recorded and the iteration finishes idle with no task created |
+| 2 | a release request, a selected task or an active TARI task exists | Intake | `tasks`, `goal`, `context`, `mail`, `workdir`, `whoami` | the one TARI task is created or resumed, assigned, selected with `goal`, and its customer, repository, recorded plan, approval, branch, worktree, tag and monitor are read |
 | 3 | no recorded approval covers the current source and version | Agree | `publish-release`, `tasks`, `cli-text` | fetched main SHA, last stable tag, exact version, SemVer rationale, CHANGELOG draft, checks and the main/tag publication plan are on the task, the customer is asked and the task is `wait_customer` |
 | 4 | the task records the customer's approval of this exact source and version | Release | `publish-release`, `scripts` | main is fast-forwarded, a separate release branch and worktree exist, the repository's version script ran, CHANGELOG is written and the repository's checks pass on the release commit |
 | 5 | the release commit is verified | Integrate | `publish-release` | the release commit is on `main` at the recorded remote, the exact annotated tag is published once, and both remote refs are read back |
@@ -71,7 +71,7 @@ poll.
 
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set `wait_customer`, keep the question and one
-`TASK-KEY next-action-slug` line in context, process every delivered message,
+`TASK-KEY next-action-slug` line in context, process every delivered letter,
 and after all live commands finish, run `scripts/loop.sh done` as the exact
 final action. Never wait for an answer in the live session.
 
@@ -86,8 +86,8 @@ never repeat a completed bump, commit or tag push.
 ## Invariants
 
 All proposals, questions, approvals and results go through the Native Task; a
-plain comment is not an answer, and a chat or channel message is a decision
-only as the `tasks` skill's "Answers from a chat or channel" accepts it,
+plain comment is not an answer, and a letter is a decision
+only as the `tasks` skill's "Answers from a letter" accepts it,
 recorded on the task first. A task that
 follows a workflow is governed by its Goal block, whose status instructions and
 outcomes replace the flexible forms above; resume an existing flexible task by
