@@ -25,7 +25,7 @@ load its `cli-text.md` before role instructions. Install it from
 `../../skills/cli-text` with `npx skills add`; declare the resulting
 `skills: [{dir: ./.agents/skills/cli-text}]` and include
 `{file: ./.agents/skills/cli-text/cli-text.md}` in `prompts`. Preserve the existing
-entries and owning skills (tasks, context, messages, status). External Stores
+entries and owning skills (tasks, context, mail, status). External Stores
 must vendor this directory and adapt both paths; rebuilding is required for
 agents to receive the change. Never invent a built-in text-transport skill.
 

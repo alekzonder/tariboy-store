@@ -9,7 +9,7 @@ merges.
 ## Scope
 
 Each iteration starts from the Goal block of the selected task, the task's
-artifacts and the delivered messages. Fetches and clones go into new
+artifacts and the delivered letters. Fetches and clones go into new
 directories under the configured workdir; no repository is checked out
 anywhere else, and nothing is committed or pushed.
 
@@ -26,8 +26,8 @@ push to a pull request.
 | Fetching, reviewing, checking and publishing a pull request review | `pull-request-review` | REQUIRED in every reviewer status |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task read and write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text you publish for the customer: a task comment, question or answer, a chat or channel reply | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
-| Runtime identity, goal, handoff, messages, workdir, status | `whoami`, `goal`, `context`, `messages`, `workdir`, `status` | REQUIRED for that runtime data |
+| Text you publish for the customer: a task comment, question or answer, a reply to a letter | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
+| Runtime identity, goal, handoff, letters, workdir, status | `whoami`, `goal`, `context`, `mail`, `workdir`, `status` | REQUIRED for that runtime data |
 | A rejected or failed check, a failing utility run | `systematic-debugging` | REQUIRED before changing an artifact or retrying |
 | Any claim that a review is checked or published | `verification-before-completion` | REQUIRED before every `advance` that depends on it |
 | Iteration finish | `loop` | REQUIRED as the last action |
@@ -46,7 +46,7 @@ acting in that row.
 | 4 | `advance` reports a `failed` request | Handle the broken check | `tasks`, `systematic-debugging`, `simple-english` | its log is read with `ttasks workflow runs` and `workflow log`; a transient cause was retried once, otherwise one task comment tells the customer the run and the cause |
 | 5 | the task's status is owned by the customer or a script, is paused, or a transition is pending | Leave it | `tasks` | nothing on the task changed |
 | 6 | the task has no workflow | Decline it | `tasks`, `cli-text`, `simple-english` | the task holds one comment that mentions its customer as `@user:LOGIN` or `@agent:NAME` and says this agent works only tasks of a workflow queue; its status, assignee and files are unchanged |
-| 7 | a message is delivered | Handle the message | `messages`, `simple-english` | it is handled and marked processed |
+| 7 | a letter is delivered | Handle the letter | `mail`, `simple-english` | each request is answered with `tmail reply`, and each notice is read |
 
 Only a status owned by the reviewer pool is yours. `approval` and every other
 status owned by the customer is never advanced by this agent, whoever asks and
@@ -92,9 +92,9 @@ repeated publish finds the review already published; never publish twice.
 - The GitHub token stays in the environment: never in an argument, URL, file,
   artifact or comment.
 - Before you publish text for the customer (a task comment, question or answer,
-  or a chat or channel reply), open `simple-english`, write the text by its
+  or a reply to a letter), open `simple-english`, write the text by its
   rules and run its Self-Check. Task text uses its "The Document" register, so
-  headings, lists and tables stay. A chat or channel reply uses "The Reply". The
+  headings, lists and tables stay. A reply to a letter uses "The Reply". The
   owning skill's storage rules and required structure win over it: valid
   Markdown, the one-line `status`, `cli-text` transport and the English-only
   pull request text. Keep every required label exactly as its rule writes it,

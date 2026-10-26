@@ -17,7 +17,6 @@ COMMANDS = {
     "context": "context",
     "status": "status",
     "goal": "goal",
-    "messages": "messages",
     "schedule": "schedule",
     "scripts": "scripts",
     "image-creator": "image_creator",
@@ -97,7 +96,6 @@ class StoreSkillsTest(unittest.TestCase):
     def test_skill_instructions_use_owning_direct_entrypoints(self):
         expected = {
             "whoami": "From the directory containing this SKILL.md, run `scripts/whoami.sh`",
-            "messages": "scripts/messages.sh",
             "mail": "scripts/mail.sh",
             "schedule": "scripts/schedule.sh",
             "scripts": "scripts/scripts.sh",
@@ -215,7 +213,6 @@ class StoreSkillsTest(unittest.TestCase):
             ("context/scripts/context.sh", ["set", "next", "step"], "POST", "/tools/context/set", {"text": "next step"}),
             ("status/scripts/status.sh", ["set", "reviewing"], "POST", "/tools/status/set", {"message": "reviewing"}),
             ("goal/scripts/goal.sh", ["set", "TARI-41"], "POST", "/tools/goal/set", {"key": "TARI-41"}),
-            ("messages/scripts/messages.sh", ["message", "processed", "m-1", "done"], "POST", "/tools/message/processed", {"id": "m-1", "result": "done"}),
             ("schedule/scripts/schedule.sh", ["cancel", "s-1"], "POST", "/tools/schedule/cancel", {"id": "s-1"}),
             ("scripts/scripts/scripts.sh", ["rerun", "scr-1"], "POST", "/tools/script/rerun", {"id": "scr-1"}),
             ("image-creator/scripts/image_creator.sh", ["build", "--name", "reviewer", "--path", "./image"], "POST", "/tools/image/build", {"name": "reviewer", "tag": "latest", "path": "./image"}),
@@ -249,19 +246,6 @@ class StoreSkillsTest(unittest.TestCase):
         )
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertIn("analysis submit --assignment ID --file FILE [--json]", process.stdout)
-
-    def test_message_reply_accepts_positional_text(self):
-        process, request = self.run_script(
-            "messages/scripts/messages.sh",
-            ["message", "reply", "m-1", "delivered", "status"],
-            {},
-        )
-        self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(request[0], ["POST", "/tools/message/reply"])
-        self.assertEqual(
-            json.loads(request[1]),
-            {"id": "m-1", "text": "delivered status", "type": ""},
-        )
 
     def test_schedule_add_sends_the_recipient_principal(self):
         process, request = self.run_script(

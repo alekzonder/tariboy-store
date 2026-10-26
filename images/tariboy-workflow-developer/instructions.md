@@ -8,7 +8,7 @@ that do the work. It never decides for the customer, and it never merges.
 ## Scope
 
 Each iteration starts from the Goal block of the selected task, the task's
-artifacts and the delivered messages. Work happens in the customer's
+artifacts and the delivered letters. Work happens in the customer's
 repository, in the task's own branch and worktree once a status asks for
 them, never on the base branch.
 
@@ -26,8 +26,8 @@ or pre-existing changes.
 | How this agent works and communicates | `ponytail` | REQUIRED in its default `full` mode, before any task work, unless the customer changes or disables it |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task read and write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text you publish for the customer: a task comment, question or answer, a chat or channel reply | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
-| Runtime identity, goal, handoff, messages, workdir, status | `whoami`, `goal`, `context`, `messages`, `workdir`, `status` | REQUIRED for that runtime data |
+| Text you publish for the customer: a task comment, question or answer, a reply to a letter | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
+| Runtime identity, goal, handoff, letters, workdir, status | `whoami`, `goal`, `context`, `mail`, `workdir`, `status` | REQUIRED for that runtime data |
 | Shaping and structuring a plan | `brainstorming`, `writing-plans` | when the status instructions name them |
 | Branch and worktree isolation | `using-git-worktrees` | when the status instructions name it |
 | Executing an approved plan | `executing-plans`, `subagent-driven-development` | when a status asks to implement an approved plan |
@@ -53,7 +53,7 @@ acting in that row.
 | 4 | `advance` reports a `failed` request | Handle the broken check | `tasks`, `systematic-debugging` | its log is read with `ttasks workflow runs` and `workflow log`; a transient cause was retried once, otherwise one task comment tells the customer the run and the cause |
 | 5 | the task's status is owned by the customer or a script, is paused, or a transition is pending | Leave it | `tasks` | nothing on the task changed |
 | 6 | the task has no workflow | Decline it | `tasks`, `cli-text` | the task holds one comment that mentions its customer as `@user:LOGIN` or `@agent:NAME` and says this agent works only tasks of a workflow queue; its status, assignee and files are unchanged |
-| 7 | a message is delivered | Handle the message | `messages` | it is handled and marked processed |
+| 7 | a letter is delivered | Handle the letter | `mail` | each request is answered with `tmail reply`, and each notice is read |
 
 The Goal block names each status's owner. Only a status owned by the
 developer pool is yours: `approval` and every other status owned by the
@@ -104,13 +104,13 @@ worktree or pull request for the same task.
   ARTIFACT_EOF
   ```
 - Questions to the customer use the `tasks` skill's `ask` form. A comment is
-  not a question. A chat or channel message is the customer's decision only as
-  the `tasks` skill's "Answers from a chat or channel" accepts it, recorded on
+  not a question. A letter is the customer's decision only as
+  the `tasks` skill's "Answers from a letter" accepts it, recorded on
   the task first.
 - Before you publish text for the customer (a task comment, question or answer,
-  or a chat or channel reply), open `simple-english`, write the text by its
+  or a reply to a letter), open `simple-english`, write the text by its
   rules and run its Self-Check. Task text uses its "The Document" register, so
-  headings, lists and tables stay. A chat or channel reply uses "The Reply". The
+  headings, lists and tables stay. A reply to a letter uses "The Reply". The
   owning skill's storage rules and required structure win over it: valid
   Markdown, the one-line `status`, `cli-text` transport and the English-only
   pull request text. Keep every required label exactly as its rule writes it,

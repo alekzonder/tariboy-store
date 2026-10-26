@@ -33,7 +33,7 @@
         "Reads task and publish-release",
         "Reuses task and existing durable monitor",
         "Keeps task active awaiting script.result; no bump/push repeat",
-        "Acknowledges delivered messages and finishes iteration only, never closes release task"
+        "Handles delivered letters and finishes iteration only, never closes release task"
       ]
     },
     {
@@ -69,6 +69,11 @@
         "Treats main advancing past the approved source as a reason to re-analyze and ask the customer again on TARI-7, not to publish the old plan unchanged.",
         "Treats a second self-started release while a release task is active as forbidden."
       ]
+    },
+    {
+      "id": "letter-plan-approval",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Flexible Native Task TARI-12 (no workflow), customer user:lena, status wait_customer, assigned to you. Your recorded plan question on TARI-12 is the only open question to user:lena; context holds `TARI-12 await-plan-approval`. No monitor and no live command exists. The Messages block of this iteration prompt shows:\n\n### Requests\n\n- id m-20261026T101500Z-000031  from user:lena  kind request  attempts 1\n  subject: TARI-12 plan\n  TARI-12: release plan approved, publish 1.4.0.\n\n### Notices\n\n- id m-20261026T101530Z-000032  from system:schedule  kind notice\n  subject: Store refreshed\n  The store official was refreshed.\n\nList the skills you read, then every exact command you run for these two letters and for TARI-12, in order, and stop before the planned work itself.",
+      "expected_output": "Success criteria:\n- Reads the mail skill and the tasks skill section \"Answers from a letter\"; does not use a messages skill, `messages.sh` or a `processed` result\n- Treats the request from user:lena as the recorded approval: one `ttasks comment TARI-12` that quotes the text and names the sender, the letter id m-20261026T101500Z-000031 and the plan it answers, before any work command\n- Moves TARI-12 out of wait_customer with `ttasks update TARI-12 --status in_progress`\n- Closes the request with exactly one `tmail reply m-20261026T101500Z-000031 ...` that names TARI-12 and the comment\n- Runs no command and sends no reply for the notice m-20261026T101530Z-000032"
     }
   ]
 }

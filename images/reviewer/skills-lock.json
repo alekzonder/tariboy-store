@@ -21,10 +21,10 @@
       "sourceType": "local",
       "computedHash": "09d8bbcf2122f9d5176cd3d0ed3ffc33155223a2f3cae3c60ee463a6bab549f5"
     },
-    "messages": {
-      "source": "../../skills/messages",
+    "mail": {
+      "source": "../../skills/mail",
       "sourceType": "local",
-      "computedHash": "01cc5ca756222bdad5f9f67c939e8fcf8dd3997a3473ecdd9435344af4a406ee"
+      "computedHash": "b8cc6d79c63db4e88f557a494e87dd8cef02ef09a9012a3665db2b417d839b98"
     },
     "pull-request-review": {
       "source": "./skills/pull-request-review",

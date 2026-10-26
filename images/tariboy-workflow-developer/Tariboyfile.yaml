@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.5.1
+image_version: 0.6.0
 plugins:
     - name: whoami
     - name: context
@@ -7,14 +7,14 @@ plugins:
     - name: workdir
     - name: tasks
     - name: goal
-    - name: messages
+    - name: mail
     - name: loop
 skills:
     - dir: ./.agents/skills/cli-text
     - dir: ./.agents/skills/simple-english
     - dir: ./.agents/skills/whoami
     - dir: ./.agents/skills/loop
-    - dir: ./.agents/skills/messages
+    - dir: ./.agents/skills/mail
     - dir: ./.agents/skills/context
     - dir: ./.agents/skills/status
     - dir: ./.agents/skills/workdir

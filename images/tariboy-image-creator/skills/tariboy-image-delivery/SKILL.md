@@ -16,9 +16,9 @@ intake blocker. Use only declared actions for a workflow-managed packet.
 All customer communication belongs on the Native Task. Flexible questions use
 `ttasks ask KEY user:LOGIN|agent:NAME TEXT`; workflow questions use the packet’s
 assignment-scoped form, revisions and blocking scope. These forms are mutually
-exclusive. A plain comment is not an answer wait. A delivered chat or channel
-message from the customer answers or approves only as the `tasks` skill's
-"Answers from a chat or channel" accepts it, recorded on the task first.
+exclusive. A plain comment is not an answer wait. A delivered letter from the
+customer answers or approves only as the `tasks` skill's
+"Answers from a letter" accepts it, recorded on the task first.
 
 For every new task, use read-only investigation to record a concrete plan:
 which image/skills change, why, evaluation coverage and delivery destination.
@@ -336,14 +336,14 @@ that published its result is stopped, so it counts only after `rerun`. While a
 recorded pull request or review request is open and a closure monitor source
 exists, that monitor must be active before the iteration ends, even when a
 customer question is also open. Read authoritative state once before waiting;
-do not poll. Use `messages` to handle
-and acknowledge every delivered message. Use `loop` to finish only after live commands, evaluators and
+do not poll. Use `mail` to answer every delivered request and read every
+notice. Use `loop` to finish only after live commands, evaluators and
 subagents finish.
 
 For a flexible task waiting on a recorded customer answer, complete this
 transition in the same iteration: mention the customer on the Native Task while
 recording the wait, set `wait_customer`, preserve the question and minimal
-context entry, then process every delivered message. After all live commands,
+context entry, then process every delivered letter. After all live commands,
 evaluators and subagents finish, run the loop skill's `scripts/loop.sh done` as
 the final action. Do not wait for the answer in the live session or stop after a
 chat response; the next iteration resumes from the recorded task answer.
