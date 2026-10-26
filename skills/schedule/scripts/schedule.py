@@ -70,8 +70,8 @@ if "--json" in sys.argv[1:]:
 
 def run(args):
     if args[:1] == ["add"]:
-        flags, _ = parse_flags(args, 1, {"kind", "spec", "channel", "message"})
-        body = {"kind": flags.get("kind", ""), "spec": flags.get("spec", ""), "channel": flags.get("channel", "")}
+        flags, _ = parse_flags(args, 1, {"kind", "spec", "to", "message"})
+        body = {"kind": flags.get("kind", ""), "spec": flags.get("spec", ""), "to": flags.get("to", "")}
         if "message" in flags:
             try:
                 body["message"] = json.loads(flags["message"])
