@@ -134,6 +134,10 @@ worktree or pull request for the same task.
   Run later commands with an explicit path, `git -C .worktrees/NAME ...` or
   `cd .worktrees/NAME && ...` in the same command. This rule wins over the
   native-tool preference of `using-git-worktrees`; its other steps apply.
+- Change code and other files with the Write or Edit tool. Never change a file
+  with inline Python, a `sed` script or a heredoc inside `bash -lc`, `bash -c`
+  or `sh -c`. Run every shell command at the top level, without such a
+  wrapper, as `cli-text` requires.
 - Verification is state-based: run a check once for each unchanged state, and
   again after a relevant change, a concrete failure or a new head commit.
 - A mandatory output-format rule of a REQUIRED skill is not negotiable by

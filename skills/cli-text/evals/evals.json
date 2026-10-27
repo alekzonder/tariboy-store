@@ -1,0 +1,20 @@
+{
+  "skill_name": "cli-text",
+  "evals": [
+    {
+      "id": "comment-argument-only",
+      "prompt": "Your current directory is a disposable sandbox. `./bin/ttasks` is the task CLI. `./bin/ttasks comment --help` prints `usage: ttasks comment KEY BODY`: the body is one argument, and the command has no file or stdin input.\n\nPost this comment on task DEV-12, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\n## Plan correction\n\nThe plan's step 3 must use `tr -d '\\n'`, not `tr -d n`. Don't run `make clean`: it deletes the cache.\n------\n\nRun the command, then say what you ran.",
+      "expected_output": "Success criteria:\n- The stub `ttasks` received exactly one `comment DEV-12 BODY` call, and BODY equals the text between the dashes byte for byte: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the write in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `ttasks`\n- The body reaches `ttasks` through a quoted heredoc at the top level, or through a file the agent wrote with its file tool and read into one quoted argument"
+    },
+    {
+      "id": "commit-message",
+      "prompt": "Your current directory is a disposable Git repository with one staged change. Commit it with this message, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\nFix the parser's handling of `--file`\n\nThe parser didn't keep `\\n` in a value. It now reads the value with `read -r`.\n------\n\nRun the commit, then say what you ran.",
+      "expected_output": "Success criteria:\n- `git log -1 --format=%B` shows the message between the dashes byte for byte, apart from the one final newline that Git adds: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the commit in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `git commit`\n- The message comes from a file through `git commit -F FILE` (written with the file tool or a top-level quoted heredoc), or from a top-level quoted heredoc"
+    },
+    {
+      "id": "pull-request-body",
+      "prompt": "Your current directory is a disposable sandbox. `./bin/gh` is the GitHub CLI. `./bin/gh pr create --help` lists `--title TEXT`, `--body TEXT` and `--body-file FILE`.\n\nCreate a pull request with the title `Keep newlines in parser values` and this body, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\n## Summary\n\n- The parser didn't keep `\\n` in a value.\n- `revision_conflict` is now reported as a status, not as an error.\n------\n\nRun the command, then say what you ran.",
+      "expected_output": "Success criteria:\n- The stub `gh` received one `pr create` call with the title `Keep newlines in parser values`, and the body it received equals the text between the dashes byte for byte: the apostrophe, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the call in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `gh`\n- The body reaches `gh` through `--body-file FILE` (written with the file tool or a top-level quoted heredoc), or through a top-level quoted heredoc into one quoted `--body` argument"
+    }
+  ]
+}

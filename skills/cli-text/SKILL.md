@@ -14,10 +14,25 @@ use only documented arguments and input modes.
 | CLI file/stdin input | A tool-written file or quoted heredoc; e.g. `gh pr create --body-file PATH` |
 | Shell and positional/flag value only | Quoted heredoc into a variable, then one quoted argument |
 
+Common file inputs: a commit message with `git commit -F PATH`, a pull request
+body with `gh pr create --body-file PATH`, a task artifact on stdin or with
+`ttasks artifacts set KEY NAME --file PATH`. `ttasks comment` and `ttasks ask`
+take the text only as an argument: use the heredoc recipe below.
+
 Use the owning skill's storage rules first (Markdown, one-line status, context
 scope). This skill handles transport, not authorization or formatting policy.
 Use `--` for leading-hyphen positional text only if the CLI documents it.
 Shell quoting does not disable option parsing.
+
+## One shell layer
+
+Run a command that carries text at the top level of your shell tool. Never
+wrap it in `bash -lc '...'`, `bash -c`, `sh -c` or `eval`: the outer quotes end
+at the first apostrophe of the text, and backticks or `$()` in it run as
+commands. Put the text in a file that you write with your file tool (Write),
+or in a quoted heredoc at the top level. Change files with your file tools
+(Write, Edit), not with inline Python, `sed` or heredocs inside such a
+wrapper.
 
 ## Bash text argument
 
