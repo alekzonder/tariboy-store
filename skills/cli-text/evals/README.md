@@ -6,7 +6,24 @@ Run the deterministic checks from the Store root:
 python3 -B skills/cli-text/evals/check-text.py baseline
 python3 -B skills/cli-text/evals/check-text.py candidate
 python3 -B skills/cli-text/evals/check-consumers.py
+python3 -B skills/cli-text/evals/check-shell-layer.py
 ```
+
+## One shell layer
+
+`evals.json` holds the behavioral cases for the "One shell layer" rule: a
+`ttasks comment` body, a commit message and a pull request body, each with an
+apostrophe, backticks and a two-character `\n`. The actor runs in a disposable
+sandbox with recording stubs for `ttasks` and `gh`, or a disposable Git
+repository. The evaluator compares the stored bytes and reads the actor's tool
+calls for a `bash -lc`, `bash -c`, `sh -c` or `eval` wrapper. **REQUIRED:** use
+`authoring-evals` before changing a case or launching a run. Run evidence
+belongs in the configured workdir, not here.
+
+`check-shell-layer.py` replays the mechanism of the DEV review failures without
+a model: the quoted-heredoc recipe inside `bash -lc '...'` must lose the text,
+and the same recipe at the top level, or a tool-written file, must keep it
+byte for byte.
 
 `make check` runs these too. They require Python 3, Node.js and Bash, use
 recording CLI stubs in temporary directories, and pass a minimal environment
