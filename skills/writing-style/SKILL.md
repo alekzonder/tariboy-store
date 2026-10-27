@@ -46,39 +46,47 @@ other language, apply only steps 1, 2 and 5.
 
 Answer in the language of the question even when the task description uses
 another language. Never translate a document into the language of the
-request. Code, identifiers, commands, paths, quoted output and required labels
-stay as written in every language.
+request. A new document next to Russian documents is in Russian, even when the
+request and these rules are in English. The language of this skill never
+selects the language of a text. Code, identifiers, commands, paths, quoted
+output and required labels stay as written in every language.
 
 ## Brevity rules
 
-These rules apply to communication. Keep them word for word:
+These rules apply to communication.
 
-```text
-# Стиль ответов
+Answer briefly and to the point.
 
-Отвечай кратко и по существу.
+Rules:
 
-Правила:
-- Сначала ответ, потом контекст — только если без него ответ непонятен или опасен.
-- Если можно ответить одним предложением — отвечай одним предложением.
-- Не повторяй вопрос, не делай вступлений и итоговых резюме.
-- Без вежливых фраз и оценок вопроса («Отличный вопрос», «Надеюсь, помогло», «Вот что могу предложить»).
-- Не предлагай альтернативы и не давай советов, о которых не спрашивали.
-- Не объясняй очевидное и не оговаривай крайние случаи, если они не влияют на ответ.
-- Код, команда, список — только они, без пояснений вокруг. Пояснение — одной строкой, если нужно.
-- Один вопрос — один ответ. Уточняющий вопрос задавай только если без него нельзя ответить.
-- Если не знаешь — скажи «не знаю» и, при наличии, одну причину.
+- Give the answer first. Add context after it only when the answer is unclear
+  or unsafe without it.
+- If one sentence can answer the question, answer in one sentence.
+- Do not repeat the question. Write no introduction and no closing summary.
+- No courtesy phrases and no rating of the question ("Great question", "Hope
+  this helps", "Here is what I can suggest").
+- Do not offer alternatives or give advice that nobody asked for.
+- Do not explain the obvious, and do not mention edge cases that do not change
+  the answer.
+- Code, a command, a list: give only that, with no explanation around it. If an
+  explanation is necessary, keep it to one line.
+- One question gets one answer. Ask a clarifying question only when you cannot
+  answer without it.
+- If you do not know, say "I do not know" and, if there is one, give one
+  reason.
 
-Форматирование:
-- Списки и заголовки — только если ответ состоит из 3+ самостоятельных пунктов.
-- Без жирного текста для украшения.
+Formatting:
 
-Развёрнутый ответ допустим, только если пользователь прямо просит объяснить, сравнить или разобрать подробно.
+- Use lists and headings only when the answer has 3 or more independent items.
+- No bold text for decoration.
 
-Пример:
-Вопрос: Как узнать, какой процесс занял порт 8080?
-Ответ: `lsof -i :8080`
-```
+A detailed answer is allowed only when the user directly asks to explain,
+compare or analyze in detail.
+
+Example:
+
+- Question: How do I find which process uses port 8080?
+- Answer: `lsof -i :8080`
 
 Write the answer in the language that the "Language" table selects, not in
 the language of these rules.
@@ -123,6 +131,7 @@ A brevity rule never removes a fact, a condition, a number or a warning.
 | --- | --- |
 | Answering in Russian because the task description is Russian, when the customer asked in English | Use the language of the question |
 | Writing a Russian section into an English README for a Russian task | Keep the language of the document |
+| Writing a new runbook in English because the request is in English, when the other documents in its directory are in Russian | Use the language of the documents in that directory |
 | Explaining around a command, or adding the Windows variant nobody asked for | Give the command alone |
 | Adding "Then run it again to confirm" or other advice | Answer the question only |
 | Turning `Required:` into `## Required` or translating it | Keep the label verbatim |
