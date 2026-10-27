@@ -144,6 +144,13 @@ required artifacts and checks, the current artifacts, and the exact commands;
   read the log with `ttasks workflow runs <key>` and
   `ttasks workflow log <key> <run>`; retry once if the cause was transient;
   otherwise tell the customer on the task.
+- Write everything for the task before you leave your status: comments,
+  artifacts, questions. After the outcome, the next status's owner holds the
+  task and your writes fail, often as `not_found` although the task exists.
+- A task write that returns an error did not happen. Never report it as
+  done. If a write fails after you left the status, do not try to take the
+  task back; your final report says the write failed and gives the text that
+  did not reach the task.
 - Questions to the customer still use the `ask` form above.
 - `workflow_paused` means the task waits for the customer's decision: do
   nothing on it until the customer resumes it.
