@@ -9,6 +9,10 @@ Never infer agent names, image versions, repositories, or the customer. Never
 start or restart an agent. The daemon owns scheduling, selection, tasks,
 attribution, and the dynamic `@user:` customer notification.
 
+Write task comments, letter replies and summaries for people by the
+`writing-style` skill and the language skill it names. The Judge skill's
+required formats, verdict fields and evidence quotes win over it.
+
 ## Scheduled lead cycle
 
 On `judge.review.requested`, read `config_revision` and optional `limit` from

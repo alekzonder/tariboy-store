@@ -1,0 +1,35 @@
+{
+  "skill_name": "writing-style",
+  "evals": [
+    {
+      "id": "ru-port-one-command",
+      "prompt": "You work on Native Task TASK-31 for the customer user:anna. The task description is in Russian. The customer's latest comment on the task is:\n\n```text\nКак узнать, какой процесс занял порт 8080?\n```\n\nWrite the exact text of the task comment that answers it. Output only that text.",
+      "expected_output": "Success criteria:\n- the comment gives the command `lsof -i :8080` (an equivalent such as `ss -ltnp 'sport = :8080'` is acceptable) as the answer\n- any prose is in Russian and is at most one short line\n- no opener, no restated question, no closing summary, no courtesy phrase\n- no alternatives or advice that the question did not ask for, and no list of edge cases"
+    },
+    {
+      "id": "en-question-short-answer",
+      "prompt": "You work on Native Task TASK-44 for the customer user:mark. The task is in English. The customer's latest comment on the task is:\n\n```text\nWhy does `tariboy image validate` reject the new skill with \"skill name mismatch\"?\n```\n\nYou found the cause: the frontmatter of `skills/writing-style/SKILL.md` says `name: writing_style`, but the directory is `writing-style`. Write the exact text of the task comment that answers the customer. Output only that text.",
+      "expected_output": "Success criteria:\n- the comment is in English\n- the first sentence gives the cause: the frontmatter name `writing_style` does not match the directory name `writing-style`\n- the whole answer is one to three short sentences\n- no opener, no restated question, no closing summary, no courtesy phrase such as 'Great question' or 'Hope this helps'\n- no contractions, no em dash and no decorative bold\n- no unrequested alternatives such as renaming the directory, or other advice beyond the direct fix"
+    },
+    {
+      "id": "ru-completion-comment-labels",
+      "prompt": "You work on Native Task TASK-52 for the customer user:anna. The task description and all customer comments are in Russian. The process requires one completion comment with these labels, each at the start of its own line, exactly as written: `Required:`, `Completed:`, `Verification:`.\n\nFacts:\n- Required: add a health check endpoint `/healthz` to the `billing` service.\n- Completed: the endpoint returns HTTP 200 and the database status; pull request #88 was merged as commit `4f2a9c1`.\n- Verification: `make test` passed, 214 tests; `curl -s localhost:8080/healthz` returned `{\"db\":\"ok\"}`.\n\nWrite the exact text of the completion comment. Output only that text.",
+      "expected_output": "Success criteria:\n- the prose is in Russian\n- the labels `Required:`, `Completed:` and `Verification:` appear verbatim, each at the start of its own line, and none is turned into a heading or translated\n- every fact is kept: `/healthz`, `billing`, HTTP 200, the database status, #88, `4f2a9c1`, `make test`, 214 tests, the curl command and its output\n- identifiers, commands and paths stay unchanged\n- sentences are short (20 words or fewer), with no participial or adverbial-participle phrases and no anglicisms that have a Russian equivalent\n- no opener, no closing summary, no courtesy phrase and no decorative bold"
+    },
+    {
+      "id": "en-question-on-russian-task",
+      "prompt": "You work on Native Task TASK-60 for the customer user:anna. The task description is in Russian:\n\n```text\nДобавь в образ basic скилл cli-text.\n```\n\nThe customer's latest comment on the task is in English:\n\n```text\nDoes the basic image already load cli-text.md before the role prompt?\n```\n\nYou checked: `images/basic/Tariboyfile.yaml` lists `file: ../../skills/cli-text/cli-text.md` as its first prompt. Write the exact text of the task comment that answers the customer. Output only that text.",
+      "expected_output": "Success criteria:\n- the comment is in English, the language of the latest question, not Russian\n- the first sentence answers yes and names the first prompt entry or file\n- the answer is one or two short sentences\n- no opener, no closing summary, no courtesy phrase, no contractions and no em dash\n- no unrequested advice"
+    },
+    {
+      "id": "en-readme-section-for-russian-task",
+      "prompt": "You work on Native Task TASK-71 for the customer user:anna. The task is in Russian:\n\n```text\nДобавь в README раздел про запуск проверок перед коммитом.\n```\n\nThe repository README is in English. Its current text:\n\n```markdown\n# billing\n\nThe billing service computes invoices.\n\n## Build\n\nRun `make build` on a host with Go 1.24.\n```\n\nFacts: the checks run with `make check`; it needs Go 1.24 and Docker; it takes about 3 minutes; a failed check prints the log path `out/check.log`. Write the exact Markdown of the new README section. Output only that section.",
+      "expected_output": "Success criteria:\n- the section is in English, the language of the README, not Russian\n- it has a level-2 heading, consistent with the existing `## Build`\n- it keeps every fact: `make check`, Go 1.24, Docker, about 3 minutes, `out/check.log`\n- steps are imperative, one instruction per sentence, condition before command (for example 'If a check fails, read `out/check.log`.')\n- no should, may, might or could; no contractions, no semicolons and no em dash\n- no decorative bold, no opener and no closing summary"
+    },
+    {
+      "id": "ru-runbook-in-russian-docs",
+      "prompt": "You work on Native Task TASK-80 for the customer user:mark. The task is in English:\n\n```text\nWrite a runbook docs/restart-worker.md for restarting the queue worker.\n```\n\nThe directory `docs/` holds two documents, `docs/deploy.md` and `docs/backup.md`; both are written in Russian. Facts: the worker runs as the systemd unit `queue-worker` on the host `q1`; restart it with `sudo systemctl restart queue-worker`; check it with `systemctl status queue-worker`; if the status is not `active (running)`, read `journalctl -u queue-worker -n 100`; do not restart it during the nightly export from 02:00 to 03:00 UTC, because the export loses its batch. Write the exact Markdown of the new runbook. Output only the document.",
+      "expected_output": "Success criteria:\n- the runbook is in Russian, the language of the other documents in `docs/`, not English\n- it has a title and numbered steps\n- steps use the imperative plural with the verb first (for example 'Запустите', 'Проверьте'), one command per step\n- the warning gives the condition or command first and then the risk (the export loses its batch), and keeps the 02:00 to 03:00 UTC window\n- every command, unit name and host name stays unchanged: `queue-worker`, `q1`, the systemctl and journalctl commands\n- sentences are 20 words or fewer, with no participial phrases and no passive voice in the instructions\n- no opener, no closing summary and no decorative bold"
+    }
+  ]
+}

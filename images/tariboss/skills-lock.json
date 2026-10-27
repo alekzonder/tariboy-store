@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "skills": {
+    "cli-text": {
+      "source": "../../skills/cli-text",
+      "sourceType": "local",
+      "computedHash": "dee295c8be369ea86d2e08d86afe9ba997d6652dfbe733364e6fc8d864f67e72"
+    },
+    "context": {
+      "source": "../../skills/context",
+      "sourceType": "local",
+      "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
+    },
+    "loop": {
+      "source": "../../skills/loop",
+      "sourceType": "local",
+      "computedHash": "09d8bbcf2122f9d5176cd3d0ed3ffc33155223a2f3cae3c60ee463a6bab549f5"
+    },
+    "mail": {
+      "source": "../../skills/mail",
+      "sourceType": "local",
+      "computedHash": "b8cc6d79c63db4e88f557a494e87dd8cef02ef09a9012a3665db2b417d839b98"
+    },
+    "simple-english": {
+      "source": "AminBlg/SimpleEnglish",
+      "sourceType": "github",
+      "skillPath": "skills/simple-english/SKILL.md",
+      "computedHash": "bd1d3cad1bbe29dd289d0e81a10d5ce5c5224f89f769f482f14529b8effdcb90"
+    },
+    "simplified-technical-russian": {
+      "source": "loadkpi/simplified-technical-russian-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "ce964a3d2fbdd9c4701b6d540686bf87eb5bf4b23740a43de042e9a3ee099dca"
+    },
+    "status": {
+      "source": "../../skills/status",
+      "sourceType": "local",
+      "computedHash": "437187bede4b07301069ea76662126deb0b74b14cd74240a60ee3f8aafee6591"
+    },
+    "whoami": {
+      "source": "../../skills/whoami",
+      "sourceType": "local",
+      "computedHash": "1233f523b6296292af951b76a2d947d09f47fb83f57bb61a7d192ae2c1aa24e4"
+    },
+    "workdir": {
+      "source": "../../skills/workdir",
+      "sourceType": "local",
+      "computedHash": "cc348cbd1ef5873dac6ecfae713eb10e40592bf7f7c4d6f17461d756368aabfd"
+    },
+    "writing-style": {
+      "source": "../../skills/writing-style",
+      "sourceType": "local",
+      "computedHash": "6b8557824ddf40d6b71c54b3b9eae1a83f4da4cde1bc738a0c7992b6f7fb0a2e"
+    }
+  }
+}
