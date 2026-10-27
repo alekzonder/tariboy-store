@@ -88,6 +88,12 @@
       "skillPath": "skills/simple-english/SKILL.md",
       "computedHash": "bd1d3cad1bbe29dd289d0e81a10d5ce5c5224f89f769f482f14529b8effdcb90"
     },
+    "simplified-technical-russian": {
+      "source": "loadkpi/simplified-technical-russian-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "ce964a3d2fbdd9c4701b6d540686bf87eb5bf4b23740a43de042e9a3ee099dca"
+    },
     "status": {
       "source": "../../skills/status",
       "sourceType": "local",
@@ -170,6 +176,11 @@
       "sourceType": "github",
       "skillPath": "skills/writing-skills/SKILL.md",
       "computedHash": "e5dfc1a942f56dc757421b0d87ae1f38ab693ebc71138e65268fd408bb5c93d3"
+    },
+    "writing-style": {
+      "source": "../../skills/writing-style",
+      "sourceType": "local",
+      "computedHash": "6b8557824ddf40d6b71c54b3b9eae1a83f4da4cde1bc738a0c7992b6f7fb0a2e"
     }
   }
 }

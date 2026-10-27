@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.5.2
+image_version: 0.6.0
 plugins:
     - name: whoami
     - name: context
@@ -11,7 +11,9 @@ plugins:
     - name: loop
 skills:
     - dir: ./.agents/skills/cli-text
+    - dir: ./.agents/skills/writing-style
     - dir: ./.agents/skills/simple-english
+    - dir: ./.agents/skills/simplified-technical-russian
     - dir: ./.agents/skills/whoami
     - dir: ./.agents/skills/loop
     - dir: ./.agents/skills/mail
@@ -26,6 +28,7 @@ skills:
     - dir: ./.agents/skills/pull-request-review
 prompts:
     - file: ./.agents/skills/cli-text/cli-text.md
+    - file: ./.agents/skills/writing-style/writing-style.md
     - runtime: identity
     - runtime: one-shot
     - runtime: messages

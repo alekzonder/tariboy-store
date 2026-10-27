@@ -59,6 +59,30 @@ existing image digests and images maintained elsewhere do not change automatical
 Behavioral evidence and executable text checks are in `skills/cli-text/evals/`;
 per-image routing evidence is in each image's `evals/cli-text/` directory.
 
+## Writing style in every image
+
+Every image packages `skills/writing-style` with the two language skills it
+names, and loads its `writing-style.md` right after `cli-text.md`. The skill
+covers text for people: task text, letters, `status` and documentation. It
+selects the language of the question or of the changed document, applies
+`simple-english` to English text and `simplified-technical-russian`
+(`loadkpi/simplified-technical-russian-skill`) to Russian text, and keeps the
+brevity rules short. Install all three with `npx skills add` and declare them:
+
+```yaml
+skills:
+  - dir: ./.agents/skills/writing-style
+  - dir: ./.agents/skills/simple-english
+  - dir: ./.agents/skills/simplified-technical-russian
+prompts:
+  - file: ./.agents/skills/cli-text/cli-text.md
+  - file: ./.agents/skills/writing-style/writing-style.md
+```
+
+`scripts/check-writing-style.py`, part of `make check`, fails when an image
+misses one of these entries. Code, commit messages and pull request text are
+outside the skill. Its behavioral cases are in `skills/writing-style/evals/`.
+
 ## Workflow images
 
 A workflow image packages a task workflow: the statuses a task moves through,

@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.4.0
+image_version: 0.5.0
 plugins:
     - name: whoami
     - name: mail
@@ -8,15 +8,19 @@ plugins:
     - name: workdir
     - name: loop
 skills:
-    - dir: ../../skills/cli-text
-    - dir: ../../skills/whoami
-    - dir: ../../skills/mail
-    - dir: ../../skills/context
-    - dir: ../../skills/status
-    - dir: ../../skills/workdir
-    - dir: ../../skills/loop
+    - dir: ./.agents/skills/cli-text
+    - dir: ./.agents/skills/writing-style
+    - dir: ./.agents/skills/simple-english
+    - dir: ./.agents/skills/simplified-technical-russian
+    - dir: ./.agents/skills/whoami
+    - dir: ./.agents/skills/mail
+    - dir: ./.agents/skills/context
+    - dir: ./.agents/skills/status
+    - dir: ./.agents/skills/workdir
+    - dir: ./.agents/skills/loop
 prompts:
-    - file: ../../skills/cli-text/cli-text.md
+    - file: ./.agents/skills/cli-text/cli-text.md
+    - file: ./.agents/skills/writing-style/writing-style.md
     - runtime: identity
     - runtime: messages
     - runtime: context
@@ -24,4 +28,4 @@ prompts:
     - file: ./instructions.md
     - runtime: user-prompt
     - runtime: one-shot
-    - file: ../../skills/loop/finish-iteration.md
+    - file: ./.agents/skills/loop/finish-iteration.md

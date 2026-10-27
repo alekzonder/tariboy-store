@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.12.2
+image_version: 0.13.0
 plugins:
     - name: whoami
     - name: context
@@ -13,7 +13,9 @@ plugins:
     - name: image-creator
 skills:
     - dir: ./.agents/skills/cli-text
+    - dir: ./.agents/skills/writing-style
     - dir: ./.agents/skills/simple-english
+    - dir: ./.agents/skills/simplified-technical-russian
     - dir: ./.agents/skills/tariboy-image-authoring
     - dir: ./.agents/skills/authoring-evals
     - dir: ./.agents/skills/tariboy-image-delivery
@@ -45,6 +47,7 @@ skills:
     - dir: ./.agents/skills/writing-plans
 prompts:
     - file: ./.agents/skills/cli-text/cli-text.md
+    - file: ./.agents/skills/writing-style/writing-style.md
     - runtime: identity
     - runtime: one-shot
     - runtime: messages

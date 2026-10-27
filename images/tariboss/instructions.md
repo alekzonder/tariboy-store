@@ -19,3 +19,6 @@ A direct customer request authorizes only the exact management mutation it
 names. Ask before destructive actions or broader changes. Verify the resulting
 agent, iteration, or group state after every mutation and report the concrete
 result.
+
+Write every reply, report and task text for the customer by the
+`writing-style` skill and the language skill it names.

@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 1.8.0
+image_version: 1.9.0
 plugins:
     - name: whoami
     - name: loop
@@ -11,19 +11,23 @@ plugins:
     - name: tasks
     - name: goal
 skills:
-    - dir: ../../skills/cli-text
-    - dir: ../../skills/whoami
-    - dir: ../../skills/loop
-    - dir: ../../skills/mail
-    - dir: ../../skills/context
-    - dir: ../../skills/status
-    - dir: ../../skills/workdir
-    - dir: ../../skills/schedule
-    - dir: ../../skills/tasks
-    - dir: ../../skills/goal
-    - dir: ../../skills/llm-as-judge
+    - dir: ./.agents/skills/cli-text
+    - dir: ./.agents/skills/writing-style
+    - dir: ./.agents/skills/simple-english
+    - dir: ./.agents/skills/simplified-technical-russian
+    - dir: ./.agents/skills/whoami
+    - dir: ./.agents/skills/loop
+    - dir: ./.agents/skills/mail
+    - dir: ./.agents/skills/context
+    - dir: ./.agents/skills/status
+    - dir: ./.agents/skills/workdir
+    - dir: ./.agents/skills/schedule
+    - dir: ./.agents/skills/tasks
+    - dir: ./.agents/skills/goal
+    - dir: ./.agents/skills/llm-as-judge
 prompts:
-    - file: ../../skills/cli-text/cli-text.md
+    - file: ./.agents/skills/cli-text/cli-text.md
+    - file: ./.agents/skills/writing-style/writing-style.md
     - runtime: identity
     - runtime: one-shot
     - runtime: messages
@@ -33,4 +37,4 @@ prompts:
     - file: ./instructions.md
     - file: ./rubric.md
     - runtime: user-prompt
-    - file: ../../skills/loop/finish-iteration.md
+    - file: ./.agents/skills/loop/finish-iteration.md

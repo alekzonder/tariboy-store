@@ -4,7 +4,7 @@
     "cli-text": {
       "source": "../../skills/cli-text",
       "sourceType": "local",
-      "computedHash": "d8c8c0953cb00ae6cd9450b6f5c9f4a1d9115eca2a55ecbdaf72450c47947395"
+      "computedHash": "dee295c8be369ea86d2e08d86afe9ba997d6652dfbe733364e6fc8d864f67e72"
     },
     "context": {
       "source": "../../skills/context",
@@ -36,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "skills/simple-english/SKILL.md",
       "computedHash": "bd1d3cad1bbe29dd289d0e81a10d5ce5c5224f89f769f482f14529b8effdcb90"
+    },
+    "simplified-technical-russian": {
+      "source": "loadkpi/simplified-technical-russian-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "ce964a3d2fbdd9c4701b6d540686bf87eb5bf4b23740a43de042e9a3ee099dca"
     },
     "status": {
       "source": "../../skills/status",
@@ -74,6 +80,11 @@
       "source": "../../skills/workdir",
       "sourceType": "local",
       "computedHash": "cc348cbd1ef5873dac6ecfae713eb10e40592bf7f7c4d6f17461d756368aabfd"
+    },
+    "writing-style": {
+      "source": "../../skills/writing-style",
+      "sourceType": "local",
+      "computedHash": "6b8557824ddf40d6b71c54b3b9eae1a83f4da4cde1bc738a0c7992b6f7fb0a2e"
     }
   }
 }

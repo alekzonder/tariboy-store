@@ -34,7 +34,7 @@ Read every REQUIRED skill completely before acting where it applies.
 | How this agent works and communicates | `ponytail` | REQUIRED in its default `full` mode, before any task work, and throughout the session unless the customer changes or disables it |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text you publish for the customer: a task comment, question or answer, a reply to a letter | `simple-english` | REQUIRED: open the skill before you draft the first such text, never from memory, and run its Self-Check on each text before the write |
+| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
 | Branch and worktree isolation | `using-git-worktrees` | REQUIRED before the first task file change |
 | Shaping a change before implementing it | `brainstorming`, `writing-plans` | REQUIRED for new features and behavior changes |
 | Executing an approved written plan | `executing-plans`, `subagent-driven-development` | REQUIRED once a written plan exists |
@@ -179,16 +179,16 @@ default.
 - Never guess a queue. If the request, the runtime context and the visible
   queues do not identify exactly one, do not ask and do not begin: return
   `Native Task intake blocked: resubmit the request with a queue.`
-- Before you publish text for the customer (a task comment, question or answer,
-  or a reply to a letter), open `simple-english`, write the text by its
-  rules and run its Self-Check. Task text uses its "The Document" register, so
-  headings, lists and tables stay. A reply to a letter uses "The Reply". The
-  owning skill's storage rules and required structure win over it: valid
-  Markdown, the one-line `status`, `cli-text` transport and the English-only
-  pull request text. Keep every required label exactly as its rule writes it,
-  for example `Required:`, and never turn it into a heading. Pull request titles
-  and bodies, review comments, commit messages, code, artifacts and `context`
-  are outside its scope.
+- Before you write text for a person (a task title, description, comment,
+  question or answer, a letter or its reply, `status`, or documentation), open
+  `writing-style` and the language skill it names, and write the text by their
+  rules. The text is in the language of the question, or of the document you
+  change. The owning skill's storage rules and required structure win over it:
+  valid Markdown, the one-line `status`, `cli-text` transport and the
+  English-only pull request text. Keep every required label exactly as its rule
+  writes it, for example `Required:`, and never turn it into a heading or
+  translate it. Pull request titles and bodies, review comments, commit
+  messages, code, artifacts and `context` are outside its scope.
 - Never bypass a skill because a task is called simple or urgent. Time
   pressure, context compaction and a request to leave a handoff are not stop
   conditions; correct the state and continue.
