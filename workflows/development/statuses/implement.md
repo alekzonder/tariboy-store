@@ -22,10 +22,11 @@ Never merge or close the pull request: people, repository automation or the revi
    form `https://github.com/OWNER/REPO/pull/NUMBER`. Pass it as the VALUE
    argument, `ttasks artifacts set KEY pull_request URL`: standard input keeps
    a trailing newline, which the check rejects.
-6. Leave the status with the outcome `ready`. A check confirms the pull
-   request is open from `branch` at the verified commit, targets the default
-   branch, has no merge conflict and names no task key; if it rejects, fix
-   what it names and retry.
+6. Post every task comment, each difference from the approved plan included, before every
+   `ready`: after it a script owns `review` and your task writes fail, often as `not_found`.
+7. Leave the status with the outcome `ready`. A check confirms the pull request is open from
+   `branch` at the verified commit, targets the default branch, has no merge conflict and
+   names no task key; if it rejects, fix what it names and retry.
 
 After `ready`, the daemon watches checks, reviews, comments, conflicts, customer rework and merge;
 with `AUTO_MERGE=true` it merges a green verified head. Do not schedule a monitor; a merge moves the task on.
