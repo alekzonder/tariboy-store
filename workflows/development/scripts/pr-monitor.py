@@ -49,12 +49,16 @@ its head commit is one the verification artifact names, its base is the
 repository's default branch, GitHub reports it mergeable with the merge state
 `clean` or `has_hooks`, at least one check run or commit status exists, every
 check run completed with `success` and the newest status of every context is
-`success`, and no reviewer's latest decision requests changes. It asks GitHub
+`success`, and no reviewer's latest decision requests changes. With
+AUTO_MERGE_WITHOUT_CHECKS=true as well, a head without any check run or commit
+status also merges, for a repository that runs no CI; a head that has checks
+or statuses still needs every one to succeed. It asks GitHub
 for a merge commit of exactly the observed head SHA, so a concurrent push makes
 GitHub refuse it, then reads the pull request again and reports `merged` only
 when GitHub confirms the merge. A refused merge is a failure; a transient or
 uncertain answer stays quiet like any transient failure, and the next run
-finds the merge if it happened. Any other AUTO_MERGE value is a failure.
+finds the merge if it happened. Both variables accept only "true" and
+"false" (unset reads "false"); any other value is a failure.
 
 One window remains. The state file is written before the result file, so a
 run killed in the milliseconds between the two writes leaves a pending entry
@@ -96,6 +100,7 @@ TASK_KEY_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9]+$")
 FAILED_CONCLUSIONS = {"failure", "timed_out", "cancelled", "action_required", "startup_failure"}
 FAILED_STATES = {"failure", "error"}
 AUTO_MERGE_ENV = "AUTO_MERGE"
+AUTO_MERGE_WITHOUT_CHECKS_ENV = "AUTO_MERGE_WITHOUT_CHECKS"
 # Merge states in which GitHub accepts a merge without bypassing a protection.
 MERGEABLE_STATES = {"clean", "has_hooks"}
 # Review states that are a reviewer's decision; COMMENTED keeps the earlier one.
@@ -410,12 +415,10 @@ def comment_items(
 
 
 def checks_succeeded(checks: list[Any], statuses: list[Any], pr_url: str) -> bool:
-    """At least one check run or commit status exists, every check run
-    completed with success, and the newest status of every context is success.
-    The values were validated by failed_checks and failed_statuses."""
+    """Every check run completed with success and the newest status of every
+    context is success; true when there are none. The values were validated by
+    failed_checks and failed_statuses."""
     newest = newest_statuses(statuses, pr_url)
-    if not checks and not newest:
-        return False
     for check in checks:
         if check.get("status") != "completed" or check.get("conclusion") != "success":
             return False
@@ -476,6 +479,7 @@ def observe(
     items.extend(review_items(reviews, pr["author"], pr_url))
     items.extend(comment_items(review_comments, "review_comment", pr["author"], pr_url))
     items.extend(comment_items(issue_comments, "issue_comment", pr["author"], pr_url))
+    pr["checks_present"] = bool(checks or statuses)
     pr["checks_succeeded"] = checks_succeeded(checks, statuses, pr_url)
     pr["changes_requested"] = changes_requested_active(reviews)
     return pr, items
@@ -709,16 +713,16 @@ def changes_message(outcome: str, key: str, items: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
-def auto_merge_enabled() -> bool:
-    value = os.environ.get(AUTO_MERGE_ENV)
+def env_flag(name: str) -> bool:
+    value = os.environ.get(name)
     if value is None or value == "false":
         return False
     if value == "true":
         return True
-    fail(f"{AUTO_MERGE_ENV} must be true or false")
+    fail(f"{name} must be true or false")
 
 
-def merge_waits_for(pr: dict[str, Any], task: dict) -> str | None:
+def merge_waits_for(pr: dict[str, Any], task: dict, without_checks: bool) -> str | None:
     """Why the pull request cannot be merged automatically yet, or None."""
     if pr["state"] != "open":
         return "the pull request is not open"
@@ -728,6 +732,11 @@ def merge_waits_for(pr: dict[str, Any], task: dict) -> str | None:
         return "the verification artifact does not name the head commit"
     if pr["mergeable"] is not True or pr["mergeable_state"] not in MERGEABLE_STATES:
         return "GitHub does not report the pull request ready to merge"
+    if not pr["checks_present"] and not without_checks:
+        return (
+            "the head commit has no check run or commit status"
+            f" and {AUTO_MERGE_WITHOUT_CHECKS_ENV} is not true"
+        )
     if not pr["checks_succeeded"]:
         return "not every check and commit status of the head commit succeeded"
     if pr["changes_requested"]:
@@ -819,7 +828,8 @@ def transient(
 
 def main() -> int:
     deadline = time.monotonic() + RUN_DEADLINE_SECONDS
-    auto_merge = auto_merge_enabled()
+    auto_merge = env_flag(AUTO_MERGE_ENV)
+    without_checks = env_flag(AUTO_MERGE_WITHOUT_CHECKS_ENV)
     task = pr_lib.load_task()
     visit_id = visit_id_of(task)
     value = pr_lib.artifact(task, "pull_request")
@@ -904,7 +914,7 @@ def main() -> int:
         write_state(state_path, state)
     if not auto_merge:
         return pr_lib.QUIET_EXIT
-    waits_for = merge_waits_for(pr, task)
+    waits_for = merge_waits_for(pr, task, without_checks)
     if waits_for is not None:
         sys.stderr.write(f"automatic merge waits: {waits_for}\n")
         return pr_lib.QUIET_EXIT

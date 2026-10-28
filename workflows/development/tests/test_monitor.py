@@ -1316,9 +1316,12 @@ class AutoMergeTests(MonitorCase):
         )
         return 200, {"sha": MERGE_SHA, "merged": True, "message": "Pull Request successfully merged"}
 
-    def run_auto(self, value="true", verification=VERIFICATION, **kwargs):
+    def run_auto(self, value="true", verification=VERIFICATION, without_checks=None, **kwargs):
         artifacts = {"pull_request": PR_URL, "verification": verification}
-        return self.run_monitor(artifacts=artifacts, env={"AUTO_MERGE": value}, **kwargs)
+        env = {"AUTO_MERGE": value}
+        if without_checks is not None:
+            env["AUTO_MERGE_WITHOUT_CHECKS"] = without_checks
+        return self.run_monitor(artifacts=artifacts, env=env, **kwargs)
 
     def merge_requests(self):
         return [request for request in self.github.requests if request["method"] == "PUT"]
@@ -1402,8 +1405,68 @@ class AutoMergeTests(MonitorCase):
                 self.assert_waits("not every check and commit status of the head commit succeeded")
 
     def test_no_check_and_no_status_blocks_the_merge(self):
+        for without_checks in (None, "false"):
+            with self.subTest(without_checks=without_checks):
+                self.ready(checks=[])
+                self.assert_waits(
+                    "the head commit has no check run or commit status"
+                    " and AUTO_MERGE_WITHOUT_CHECKS is not true",
+                    without_checks=without_checks,
+                )
+
+    def test_without_checks_merges_a_head_that_has_no_check_and_no_status(self):
         self.ready(checks=[])
-        self.assert_waits("not every check and commit status of the head commit succeeded")
+        self.assert_merged(*self.run_auto(without_checks="true")[:2])
+        requests = self.merge_requests()
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]["body"], {"sha": HEAD_SHA, "merge_method": "merge"})
+
+    def test_without_checks_still_needs_every_existing_check_and_status_to_succeed(self):
+        for checks, statuses in (
+            ([check(1, "unit", conclusion=None, status="in_progress")], []),
+            ([], [commit_status(10, "ci/build", "pending")]),
+        ):
+            with self.subTest(checks=checks, statuses=statuses):
+                self.ready(checks=checks, statuses=statuses)
+                self.assert_waits(
+                    "not every check and commit status of the head commit succeeded",
+                    without_checks="true",
+                )
+
+    def test_without_checks_reports_a_failed_check_instead_of_merging(self):
+        self.ready(checks=[check(1, "unit", conclusion="failure")])
+        code, result, _, _ = self.run_auto(without_checks="true")
+        self.assertEqual(code, 0, result)
+        self.assertEqual(result["outcome"], "changes_requested")
+        self.assertEqual(self.merge_requests(), [])
+
+    def test_without_checks_keeps_every_other_merge_condition(self):
+        self.ready(checks=[], pr=ready_pull(draft=True))
+        self.assert_waits("the pull request is a draft", without_checks="true")
+        self.ready(checks=[])
+        self.assert_waits(
+            "the verification artifact does not name the head commit",
+            without_checks="true",
+            verification="Verified commit 0000000000000000000000000000000000000000.",
+        )
+
+    def test_without_checks_alone_never_merges(self):
+        self.ready(checks=[])
+        code, result, _, _ = self.run_auto(value="false", without_checks="true")
+        self.assertEqual(code, QUIET, result)
+        self.assertEqual(self.merge_requests(), [])
+
+    def test_an_invalid_without_checks_value_is_a_failure_before_any_request(self):
+        for auto_merge in ("true", "false"):
+            for value in ("TRUE", "yes", "1", ""):
+                with self.subTest(auto_merge=auto_merge, value=value):
+                    code, result, _, stderr = self.run_auto(value=auto_merge, without_checks=value)
+                    self.assertEqual(code, 1)
+                    self.assertEqual(
+                        self.failure_message(result, stderr),
+                        "AUTO_MERGE_WITHOUT_CHECKS must be true or false",
+                    )
+        self.assertEqual(self.github.requests, [])
 
     def test_failed_checks_are_reported_not_merged(self):
         self.ready(checks=[check(1, "unit", conclusion="failure")])
