@@ -70,11 +70,14 @@ class TransientFailure(ScriptFailure):
 
 
 class GitHubHTTPError(ScriptFailure):
-    """GitHub answered with an HTTP status outside 2xx."""
+    """GitHub answered with an HTTP status outside 2xx. `github_message` is
+    the `message` field of the answer, or None; it is untrusted text, and the
+    exception's own text never contains it."""
 
-    def __init__(self, status: int):
+    def __init__(self, status: int, github_message: str | None = None):
         super().__init__(f"GitHub answered HTTP {status}")
         self.status = status
+        self.github_message = github_message
 
 
 class TransientHTTPError(GitHubHTTPError, TransientFailure):
@@ -85,6 +88,16 @@ def is_transient_status(status: int, rate_limit_remaining: str | None) -> bool:
     if status == 429 or 500 <= status <= 599:
         return True
     return status == 403 and rate_limit_remaining == "0"
+
+
+def error_message(response: bytes) -> str | None:
+    """The `message` field of a GitHub error answer, redacted, or None."""
+    try:
+        value = json.loads(response.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    message = value.get("message") if isinstance(value, dict) else None
+    return redact_text(message) if isinstance(message, str) else None
 
 
 def fail(message: str) -> NoReturn:
@@ -583,7 +596,7 @@ class GitHubClient:
         if status >= 300 or (process.returncode == 22 and status):
             if is_transient_status(status, rate_limit_remaining):
                 raise TransientHTTPError(status)
-            raise GitHubHTTPError(status)
+            raise GitHubHTTPError(status, error_message(response))
         if process.returncode != 0:
             message = f"GitHub request failed (curl exit {process.returncode})"
             if process.returncode in TRANSIENT_CURL_EXITS:

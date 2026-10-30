@@ -1,6 +1,6 @@
 schema_version: 1
 name: development
-workflow_version: 0.10.0
+workflow_version: 0.10.1
 initial_status: backlog
 requires_secrets: [GITHUB_TOKEN]
 # AUTO_MERGE: "true" lets the review watch merge the pull request itself once
@@ -8,7 +8,8 @@ requires_secrets: [GITHUB_TOKEN]
 # needs the developer. Enable it per queue with
 # `ttasks queue env set QUEUE AUTO_MERGE true`; the queue value overrides this
 # default. Only "true" and "false" are valid. GITHUB_TOKEN then needs
-# permission to merge, and the repository must allow merge commits.
+# permission to merge. The watch uses the first merge method the repository
+# allows: a merge commit, else a rebase, else a squash.
 # AUTO_MERGE_WITHOUT_CHECKS: "true" together with AUTO_MERGE lets the watch
 # also merge a verified head that has no check run or commit status at all, for
 # a repository without CI. A head with checks or statuses still needs every one

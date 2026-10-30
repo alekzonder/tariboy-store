@@ -53,9 +53,13 @@ check run completed with `success` and the newest status of every context is
 AUTO_MERGE_WITHOUT_CHECKS=true as well, a head without any check run or commit
 status also merges, for a repository that runs no CI; a head that has checks
 or statuses still needs every one to succeed. It asks GitHub
-for a merge commit of exactly the observed head SHA, so a concurrent push makes
-GitHub refuse it, then reads the pull request again and reports `merged` only
-when GitHub confirms the merge. A refused merge is a failure; a transient or
+to merge exactly the observed head SHA, so a concurrent push makes GitHub
+refuse it, with the first method the repository settings allow: a merge
+commit, else a rebase, else a squash; a repository that allows none, or whose
+settings the token cannot read, is a failure. It then reads the pull request
+again and reports `merged` only when GitHub confirms the merge. A refused
+merge is a failure that names the method and quotes GitHub's refusal text
+when that text is one plain line without shell or Markdown syntax. A transient or
 uncertain answer stays quiet like any transient failure, and the next run
 finds the merge if it happened. Both variables accept only "true" and
 "false" (unset reads "false"); any other value is a failure.
@@ -107,6 +111,16 @@ MERGEABLE_STATES = {"clean", "has_hooks"}
 DECISION_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
 # HTTP statuses with which GitHub refuses a merge request it understood.
 MERGE_REFUSED_STATUSES = {405, 409, 422}
+# Merge methods in their order of preference, each with the repository setting
+# that allows it and its name in a failure message.
+MERGE_METHODS = (
+    ("merge", "allow_merge_commit", "merge commit"),
+    ("rebase", "allow_rebase_merge", "rebase merge"),
+    ("squash", "allow_squash_merge", "squash merge"),
+)
+# A refusal text of GitHub that may be quoted in a failure message: one plain
+# sentence-like line, no shell or Markdown syntax.
+SAFE_GITHUB_MESSAGE_RE = re.compile(r"^[A-Za-z0-9 .,:;'()-]{1,200}$")
 # Conditions reported again in every visit while they hold.
 STANDING_KINDS = {"closed", "conflict"}
 INSTANT_RE = re.compile(
@@ -754,6 +768,26 @@ def report_merged(path: Path, state: dict[str, Any], name: str, merge_sha: str) 
     return 0
 
 
+def merge_method(repository: dict[str, Any], name: str) -> tuple[str, str]:
+    """The first merge method the repository allows, with its message name."""
+    for method, setting, label in MERGE_METHODS:
+        if repository.get(setting) is True:
+            return method, label
+    fail(
+        f"GitHub reports no merge method that the repository allows for {name}"
+        " (merge, rebase or squash); allow one in the repository settings"
+        " or merge the pull request by hand"
+    )
+
+
+def github_says(exc: pr_lib.GitHubHTTPError) -> str:
+    """GitHub's refusal text as a quoted suffix, or nothing when it is unsafe."""
+    text = exc.github_message
+    if isinstance(text, str) and SAFE_GITHUB_MESSAGE_RE.fullmatch(text):
+        return f'; GitHub says: "{text}"'
+    return ""
+
+
 def merge(
     client: pr_lib.GitHubClient,
     owner: str,
@@ -763,8 +797,9 @@ def merge(
     path: Path,
     state: dict[str, Any],
 ) -> int:
-    """Request a merge commit of the observed head and report `merged` only
-    after GitHub confirms it; quiet while the merge is not confirmed."""
+    """Request a merge of the observed head with the first method the
+    repository allows and report `merged` only after GitHub confirms it;
+    quiet while the merge is not confirmed."""
     root = f"/repos/{owner}/{repo}"
     name = f"{owner}/{repo}#{number}"
     repository = require_dict(client.get(root), "repository")
@@ -774,13 +809,14 @@ def merge(
     if pr["base_ref"] != default_branch:
         sys.stderr.write("automatic merge waits: the base is not the default branch\n")
         return pr_lib.QUIET_EXIT
+    method, label = merge_method(repository, name)
     uncertain: pr_lib.TransientFailure | None = None
     refused: pr_lib.GitHubHTTPError | None = None
     try:
         client.request(
             "PUT",
             f"{root}/pulls/{number}/merge",
-            body={"sha": pr["head_sha"], "merge_method": "merge"},
+            body={"sha": pr["head_sha"], "merge_method": method},
         )
     except pr_lib.TransientFailure as exc:
         uncertain = exc
@@ -795,8 +831,9 @@ def merge(
         raise uncertain
     if refused is not None:
         fail(
-            f"GitHub refused the automatic merge of {name} at {pr['head_sha'][:12]}"
-            f" (HTTP {refused.status}); the next run checks the pull request again"
+            f"GitHub refused the automatic {label} of {name} at {pr['head_sha'][:12]}"
+            f" (HTTP {refused.status}){github_says(refused)};"
+            " the next run checks the pull request again"
         )
     # GitHub accepted the request but does not show the merge yet.
     return pr_lib.QUIET_EXIT

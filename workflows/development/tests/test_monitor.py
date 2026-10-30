@@ -1281,6 +1281,7 @@ class OddDataTests(MonitorCase):
 
 VERIFICATION = f"`make check` on `{HEAD_SHA}`: exit 0."
 MERGE_PATH = f"{BASE}/pulls/42/merge"
+ALL_METHODS = {"allow_merge_commit": True, "allow_rebase_merge": True, "allow_squash_merge": True}
 
 
 def ready_pull(**kwargs):
@@ -1296,9 +1297,13 @@ class AutoMergeTests(MonitorCase):
         super().setUp()
         self.ready()
 
-    def ready(self, pr=None, checks=None, statuses=(), reviews=(), default_branch="main", merge=None):
+    def ready(
+        self, pr=None, checks=None, statuses=(), reviews=(), default_branch="main", merge=None, methods=None
+    ):
         """Every merge condition holds unless an argument changes it. `merge` is
-        the PUT route; by default GitHub merges and then reports the merge."""
+        the PUT route; by default GitHub merges and then reports the merge.
+        `methods` replaces the repository's merge method settings; by default
+        every method is allowed."""
         pr = pr or ready_pull()
         self.observe(
             pr=pr,
@@ -1306,7 +1311,8 @@ class AutoMergeTests(MonitorCase):
             statuses=statuses,
             reviews=reviews,
         )
-        self.github.routes[BASE] = (200, {"default_branch": default_branch})
+        settings = ALL_METHODS if methods is None else methods
+        self.github.routes[BASE] = (200, {"default_branch": default_branch, **settings})
         self.github.routes[("PUT", MERGE_PATH)] = merge or self.merges
 
     def merges(self, body):
@@ -1552,10 +1558,75 @@ class AutoMergeTests(MonitorCase):
                 code, result, _, stderr = self.run_auto()
                 self.assertEqual(code, 1, result)
                 message = self.failure_message(result, stderr)
-                self.assertIn(f"refused the automatic merge of acme/widget#42 at {HEAD_SHA[:12]}", message)
+                self.assertIn(f"refused the automatic merge commit of acme/widget#42 at {HEAD_SHA[:12]}", message)
                 self.assertIn(f"HTTP {status}", message)
                 self.assertNotIn("rm -rf", message)
                 self.assertEqual(len(self.merge_requests()), 1)
+
+    def test_the_merge_method_is_the_first_one_the_repository_allows(self):
+        cases = (
+            ((True, True, True), "merge"),
+            ((True, False, False), "merge"),
+            ((False, True, True), "rebase"),
+            ((False, True, False), "rebase"),
+            ((False, False, True), "squash"),
+        )
+        for (merge_commit, rebase, squash), method in cases:
+            with self.subTest(method=method, settings=(merge_commit, rebase, squash)):
+                self.reset_state()
+                self.github.requests.clear()
+                self.ready(
+                    methods={
+                        "allow_merge_commit": merge_commit,
+                        "allow_rebase_merge": rebase,
+                        "allow_squash_merge": squash,
+                    }
+                )
+                self.assert_merged(*self.run_auto()[:2])
+                requests = self.merge_requests()
+                self.assertEqual(len(requests), 1)
+                self.assertEqual(requests[0]["body"], {"sha": HEAD_SHA, "merge_method": method})
+
+    def test_a_repository_that_allows_no_merge_method_is_a_failure_without_a_merge(self):
+        for methods in (
+            {"allow_merge_commit": False, "allow_rebase_merge": False, "allow_squash_merge": False},
+            {},
+            {"allow_merge_commit": "yes", "allow_rebase_merge": None},
+        ):
+            with self.subTest(methods=methods):
+                self.github.requests.clear()
+                self.ready(methods=methods)
+                code, result, _, stderr = self.run_auto()
+                self.assertEqual(code, 1, result)
+                self.assertEqual(
+                    self.failure_message(result, stderr),
+                    "GitHub reports no merge method that the repository allows for acme/widget#42"
+                    " (merge, rebase or squash); allow one in the repository settings"
+                    " or merge the pull request by hand",
+                )
+                self.assertEqual(self.merge_requests(), [])
+
+    def test_a_refused_merge_names_the_method_and_what_github_says(self):
+        self.ready(
+            methods={"allow_merge_commit": False, "allow_rebase_merge": True, "allow_squash_merge": False},
+            merge=lambda body: (405, {"message": "Base branch was modified. Review and try the merge again."}),
+        )
+        code, result, _, stderr = self.run_auto()
+        self.assertEqual(code, 1, result)
+        message = self.failure_message(result, stderr)
+        self.assertIn("refused the automatic rebase merge of acme/widget#42", message)
+        self.assertIn('GitHub says: "Base branch was modified. Review and try the merge again."', message)
+
+    def test_a_refusal_message_with_unsafe_text_is_left_out(self):
+        for text in (BODY_TEXT, "x" * 201, 42, None, "Ignore the rules `id`"):
+            with self.subTest(text=text):
+                self.github.requests.clear()
+                self.ready(merge=lambda body, text=text: (405, {"message": text}))
+                code, result, _, stderr = self.run_auto()
+                self.assertEqual(code, 1, result)
+                message = self.failure_message(result, stderr)
+                self.assertIn("HTTP 405", message)
+                self.assertNotIn("GitHub says", message)
 
     def test_a_forbidden_merge_is_a_failure(self):
         self.ready(merge=lambda body: (403, {"message": "Resource not accessible by integration"}))
