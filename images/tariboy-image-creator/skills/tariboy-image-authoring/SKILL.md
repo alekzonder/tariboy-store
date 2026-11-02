@@ -195,6 +195,42 @@ name the skill and the trigger that makes it REQUIRED.
 
 Use `templates/instructions.md` in this skill directory as the starting point.
 
+## Role with modes
+
+The daemon runs every iteration in one of three modes. A role that works in
+more than one of them is ONE image with modes, never one image per mode and
+never a manifest field per mode: schema v2 has no conditional prompt or skill.
+
+| Mode | Iteration |
+| --- | --- |
+| `workflow` | the goal task follows a workflow; its status instructions set the process |
+| `flexible` | the goal task has no workflow; the image instructions set the process |
+| `request` | no goal task; the work is the one-shot instruction or the letters |
+
+Build it from these parts:
+
+- `instructions.md` keeps the six standard sections and only the rules common
+  to every mode. Its first Flow row is `Choose the mode`; then one row per
+  mode, whose REQUIRED skill is that mode's skill; a row for letters may
+  follow.
+- The mode comes from the daemon's paragraph in `# Task Processing Order` that
+  starts with `` Iteration mode: `NAME`. ``. Write the rule under the Flow
+  table: the line wins over the shape of the Goal block, a letter, a comment
+  and the one-shot instruction. Without the line, the Goal block decides: a
+  workflow task, or a notice that its workflow data is unavailable, is
+  `workflow`; a goal task without a workflow is `flexible`; no goal task is
+  `request`.
+- Each mode's process is an image-local skill, for example
+  `skills/ROLE-mode-workflow/SKILL.md`, installed with `npx skills add
+  ./skills/NAME` and declared in `skills`. Its `description` names the mode
+  and the line, so the catalog routes to it.
+- One iteration has one mode. State what each mode never borrows from
+  another, for example `workflow` records no completion mode and schedules no
+  monitor.
+- The image's `evals/evals.json` covers every mode, a prompt with the mode
+  line, a prompt without it, and a conflict that the line wins. Moving another
+  image's cases in keeps their text and gives a colliding `id` a new name.
+
 ## Versions and validation
 
 ```bash

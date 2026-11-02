@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.22.1
+image_version: 0.23.0
 plugins:
     - name: whoami
     - name: context
@@ -40,6 +40,9 @@ skills:
     - dir: ./.agents/skills/writing-plans
     - dir: ./.agents/skills/writing-skills
     - dir: ./.agents/skills/github-pr-workflow
+    - dir: ./.agents/skills/developer-mode-workflow
+    - dir: ./.agents/skills/developer-mode-flexible
+    - dir: ./.agents/skills/developer-mode-request
 prompts:
     - file: ./.agents/skills/cli-text/cli-text.md
     - file: ./.agents/skills/writing-style/writing-style.md
