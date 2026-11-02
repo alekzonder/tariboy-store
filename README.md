@@ -39,16 +39,21 @@ changed content.
 
 ## ROLE.md
 
-`ROLE.md` is the customer's text about what a role must do. It is a file next
-to the manifest:
+`ROLE.md` is the customer's text that says what a role is and why the image or
+workflow exists. It is a file next to the manifest:
 
 - `images/<name>/ROLE.md`, next to `Tariboyfile.yaml`;
 - `workflows/<name>/ROLE.md`, next to `Workflowfile.yaml`.
 
-The file is Markdown in UTF-8. It has no required structure. It usually gives
-the purpose of the role, what the customer requires from the agent, and what
-is outside the role. Keep a draft at 8 KB or less. The technical size limit
-comes from the Tariboy build and is at least 16 KB.
+A `ROLE.md` in this Store obeys these rules:
+
+- The file is Markdown in UTF-8 and the text is in English.
+- The file has 500 characters or fewer. Count the characters with `wc -m`.
+- The text says only what the role is and why the image or workflow exists.
+- The text does not describe the work format, the process, the skills, the
+  commands or the rules. The instructions, skills and status instructions
+  already describe them.
+- The text has no draft mark, such as "Draft. The customer approves."
 
 Only the customer writes and approves `ROLE.md`. An agent prepares a draft and
 puts in the approved text without changes. The agent prompt does not include
