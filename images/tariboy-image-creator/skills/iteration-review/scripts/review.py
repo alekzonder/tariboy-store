@@ -4,7 +4,10 @@
 Subcommands (all JSON on stdout, diagnostics on stderr):
   tick       --state FILE [--period SECONDS]     schedule body: quiet (111) until a period passed
   cost       --agent NAME --since TIME            total cost of the cycle so far
-  candidates --dir DIR --agents A,B --since TIME --assessor NAME
+  candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--target N]
+             the cycle's selection: last 24 h, problem iterations first, then even per agent x image version
+  coverage   --agents A,B --since TIME --assessor NAME [--window S] [--target N]
+             metric 1: active pairs agent x image version and pairs with enough assessments
   pack       --dir DIR [--limit N]                evidence packs for the next N candidates
   tasks      --dir DIR --assessor NAME            done tasks that are ready for a task assessment
   validate   --dir DIR                            check every DIR/out/*.json before it is written
@@ -127,34 +130,195 @@ def has_assessment(assessor, iteration="", task=""):
     return any(not r.get("iteration_id") for r in rows)
 
 
-def cmd_candidates(a):
-    d = Path(a.dir)
-    rows, skipped = [], {"running": 0, "assessed": 0, "own_review": 0}
-    for agent in [x.strip() for x in a.agents.split(",") if x.strip()]:
-        data = tb("iteration", "ls", agent, "--started-after", a.since, check=False) or {}
-        for it in data.get("iterations") or []:
-            if it.get("status") == "running":
-                skipped["running"] += 1
+def parse_time(text):
+    """RFC 3339 with up to nanoseconds -> aware datetime; empty -> None."""
+    if not text:
+        return None
+    text = text.strip().replace("Z", "+00:00")
+    m = re.match(r"^(.*T\d\d:\d\d:\d\d)(\.\d+)?(.*)$", text)
+    if m:
+        text = m.group(1) + ((m.group(2) or "")[:7]) + m.group(3)
+    t = dt.datetime.fromisoformat(text)
+    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)
+
+
+def iso(t):
+    return t.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+CMD_RE = r"(?:^|[;&|(]\s*|\n\s*)(?:ttasks|tasks)\s+{}\b"
+
+
+def transcript_problems(agent, iteration):
+    """Problem marks from the transcript: a `ttasks ask`, an `advance` whose result says rejected."""
+    data = tb("transcript", agent, iteration, check=False) or {}
+    marks, advances = set(), set()
+    for call in data.get("calls") or []:
+        for msg in call.get("delta") or []:
+            for b in msg.get("blocks") or []:
+                if (b.get("type") == "tool_result" and b.get("tool_use_id") in advances
+                        and re.search(r"\brejected\b", b.get("text") or "")):
+                    marks.add("check_rejected")
+        for b in (call.get("response") or {}).get("blocks") or []:
+            if b.get("type") != "tool_use":
                 continue
-            if has_assessment(a.assessor, iteration=it["id"]):
-                skipped["assessed"] += 1
+            cmd = str((b.get("input") or {}).get("command", "")) if isinstance(b.get("input"), dict) else ""
+            if re.search(CMD_RE.format("ask"), cmd):
+                marks.add("question")
+            if re.search(CMD_RE.format("advance"), cmd):
+                advances.add(b.get("tool_use_id"))
+    return sorted(marks)
+
+
+def problems_of(row):
+    """Problem kinds of one iteration row, in the order the selection names them."""
+    found = []
+    if row.get("status") == "harness_error":
+        found.append("harness_error")
+    if row.get("productive") is False:
+        found.append("unproductive")
+    found += [m for m in row.get("marks") or [] if m in ("check_rejected", "question")]
+    return found
+
+
+def select(rows, now, window, target):
+    """Pick the cycle's candidates from gathered iteration rows.
+
+    Each row: agent, id, status, productive, ended_at, image_version, assessed, marks.
+    1. Only iterations finished in the last `window` seconds; older unassessed ones are skipped.
+    2. Unassessed iterations with a problem come first, newest first.
+    3. Then a round-robin over the pairs agent x image_version, newest first, until each pair has
+       `target` assessments (assessed, problem candidates and picks together) or no iteration left.
+    An already assessed iteration is never a candidate.
+    """
+    start = now - dt.timedelta(seconds=window)
+    skipped = {"running": 0, "assessed": 0, "older_than_window": 0, "not_selected": 0}
+    recent, pairs = [], {}
+    for r in rows:
+        if r.get("status") == "running":
+            skipped["running"] += 1
+            continue
+        ended = parse_time(r.get("ended_at")) or parse_time(r.get("started_at"))
+        if ended is None or ended < start or ended > now:
+            if not r.get("assessed"):
+                skipped["older_than_window"] += 1
+            continue
+        r = dict(r, _ended=ended, problems=problems_of(r))
+        pair = (r["agent"], r.get("image_version") or "")
+        pairs.setdefault(pair, {"total": 0, "assessed": 0, "chosen": 0, "rest": []})
+        pairs[pair]["total"] += 1
+        if r.get("assessed"):
+            skipped["assessed"] += 1
+            pairs[pair]["assessed"] += 1
+            continue
+        recent.append(r)
+    newest = lambda r: (r["_ended"], r["id"])
+    problem = sorted((r for r in recent if r["problems"]), key=newest, reverse=True)
+    for r in problem:
+        pairs[(r["agent"], r.get("image_version") or "")]["chosen"] += 1
+    for r in sorted((r for r in recent if not r["problems"]), key=newest, reverse=True):
+        pairs[(r["agent"], r.get("image_version") or "")]["rest"].append(r)
+    sample, rnd = [], 0
+    while True:
+        took = False
+        for pair in sorted(pairs, key=lambda p: (pairs[p]["assessed"] + pairs[p]["chosen"], p)):
+            st = pairs[pair]
+            if rnd < len(st["rest"]) and st["assessed"] + st["chosen"] < target:
+                sample.append(dict(st["rest"][rnd], reason="pair_sample"))
+                st["chosen"] += 1
+                took = True
+        rnd += 1
+        if not took and all(rnd >= len(st["rest"]) for st in pairs.values()):
+            break
+    chosen_ids = {r["id"] for r in sample}
+    skipped["not_selected"] = sum(1 for r in recent if not r["problems"] and r["id"] not in chosen_ids)
+    picked = [dict(r, reason="problem") for r in problem] + sample
+    out_rows = []
+    for r in picked:
+        r = {k: v for k, v in r.items() if not k.startswith("_") and k != "assessed"}
+        out_rows.append(r)
+    pair_rows = [{"agent": a, "image_version": v, "iterations": st["total"], "assessed": st["assessed"],
+                  "planned": st["chosen"]} for (a, v), st in sorted(pairs.items())]
+    return out_rows, skipped, pair_rows, {"from": iso(start), "to": iso(now)}
+
+
+def gather(agents, since, assessor, now, window, marks=True):
+    """Iteration rows of the agents that may fall in the window, with assessment state and problem marks."""
+    floor = now - dt.timedelta(seconds=window) - dt.timedelta(hours=6)  # an iteration may run hours before it ends
+    since_t = parse_time(since)
+    after = max(floor, since_t) if since_t else floor
+    rows = []
+    for agent in [x.strip() for x in agents.split(",") if x.strip()]:
+        data = tb("iteration", "ls", agent, "--started-after", iso(after), check=False) or {}
+        for it in data.get("iterations") or []:
+            row = {"agent": agent, "id": it["id"], "status": it.get("status", ""), "started_at": it.get("started_at", ""),
+                   "productive": it.get("productive")}
+            if row["status"] == "running":
+                rows.append(row)
                 continue
             info = tb("iteration", "inspect", agent, it["id"], check=False) or {}
             info = info.get("iteration", info)
+            row.update(ended_at=info.get("ended_at", ""), image_version=info.get("image_version", ""))
+            ended = parse_time(row["ended_at"]) or parse_time(row["started_at"])
+            if ended and ended < now - dt.timedelta(seconds=window):
+                row["assessed"] = False
+                rows.append(row)
+                continue
+            row["assessed"] = has_assessment(assessor, iteration=it["id"])
             prompt = ""
             try:
                 prompt = Path(info.get("prompt_path", "")).read_text()
             except OSError:
                 pass
-            if agent == a.assessor and 'Script "review-cycle"' in prompt:
-                skipped["own_review"] += 1
-                continue
-            key, source = task_key_of(prompt)
-            rows.append({"agent": agent, "id": it["id"], "started_at": it.get("started_at", ""),
-                         "status": it.get("status", ""), "task_key": key, "task_source": source})
-    rows.sort(key=lambda r: r["started_at"])
-    write_json(d / "candidates.json", rows)
-    out({"candidates": len(rows), "skipped": skipped, "file": str(d / "candidates.json")})
+            if agent == assessor and 'Script "review-cycle"' in prompt:
+                continue  # the cycle's own iterations are not assessed
+            row["task_key"], row["task_source"] = task_key_of(prompt)
+            if marks and not row["assessed"]:
+                row["marks"] = transcript_problems(agent, it["id"])
+            rows.append(row)
+    return rows
+
+
+def now_arg(a):
+    return parse_time(a.now) if getattr(a, "now", None) else dt.datetime.now(dt.timezone.utc)
+
+
+def cmd_candidates(a):
+    d = Path(a.dir)
+    now = now_arg(a)
+    rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window)
+    picked, skipped, pairs, window = select(rows, now, a.window, a.target)
+    write_json(d / "candidates.json", picked)
+    write_json(d / "pairs.json", pairs)
+    out({"window": window, "candidates": len(picked),
+         "problem": sum(r["reason"] == "problem" for r in picked), "skipped": skipped,
+         "active_pairs": len(pairs), "file": str(d / "candidates.json")})
+
+
+def coverage(rows, now, window, target):
+    start = now - dt.timedelta(seconds=window)
+    pairs = {}
+    for r in rows:
+        if r.get("status") == "running":
+            continue
+        ended = parse_time(r.get("ended_at")) or parse_time(r.get("started_at"))
+        if ended is None or ended < start or ended > now:
+            continue
+        st = pairs.setdefault((r["agent"], r.get("image_version") or ""), {"total": 0, "assessed": 0})
+        st["total"] += 1
+        st["assessed"] += bool(r.get("assessed"))
+    covered = [p for p, st in pairs.items() if st["assessed"] >= min(target, st["total"])]
+    return {"window": {"from": iso(start), "to": iso(now)}, "active_pairs": len(pairs), "covered_pairs": len(covered),
+            "share": round(len(covered) / len(pairs), 4) if pairs else None,
+            "assessed_iterations": sum(st["assessed"] for st in pairs.values()),
+            "pairs": [{"agent": a, "image_version": v, **st, "covered": (a, v) in covered}
+                      for (a, v), st in sorted(pairs.items())]}
+
+
+def cmd_coverage(a):
+    now = now_arg(a)
+    rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window, marks=False)
+    out(coverage(rows, now, a.window, a.target))
 
 
 # ---------------------------------------------------------------- pack
@@ -435,15 +599,22 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("tick"); s.add_argument("--state", required=True); s.add_argument("--period", type=int, default=86400)
     s = sub.add_parser("cost"); s.add_argument("--agent", required=True); s.add_argument("--since", required=True)
-    s = sub.add_parser("candidates")
-    for x in ("--dir", "--agents", "--since", "--assessor"):
-        s.add_argument(x, required=True)
+    for name in ("candidates", "coverage"):
+        s = sub.add_parser(name)
+        if name == "candidates":
+            s.add_argument("--dir", required=True)
+        for x in ("--agents", "--since", "--assessor"):
+            s.add_argument(x, default="")
+        s.add_argument("--window", type=int, default=86400, help="seconds; only iterations that ended inside it")
+        s.add_argument("--target", type=int, default=3, help="assessments per pair agent x image_version")
+        s.add_argument("--now", default="", help="RFC 3339 end of the window (tests)")
+        s.add_argument("--input", default="", help="gathered iteration rows as JSON instead of the daemon (tests)")
     s = sub.add_parser("pack"); s.add_argument("--dir", required=True); s.add_argument("--limit", type=int, default=10)
     s = sub.add_parser("tasks"); s.add_argument("--dir", required=True); s.add_argument("--assessor", required=True)
     s = sub.add_parser("validate"); s.add_argument("--dir", required=True)
     s = sub.add_parser("add"); s.add_argument("--dir", required=True)
     a = p.parse_args()
-    {"tick": cmd_tick, "cost": cmd_cost, "candidates": cmd_candidates, "pack": cmd_pack, "tasks": cmd_tasks,
+    {"tick": cmd_tick, "cost": cmd_cost, "candidates": cmd_candidates, "coverage": cmd_coverage, "pack": cmd_pack, "tasks": cmd_tasks,
      "validate": cmd_validate, "add": cmd_add}[a.cmd](a)
 
 
