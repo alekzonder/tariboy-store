@@ -24,7 +24,7 @@ with `review_mode: off`, review mode is off.
 review_mode: on
 agents: AGENT, AGENT, ...
 since: RFC 3339 time — the date the cycle was enabled
-budget_usd: 5
+budget_usd: 6.5
 cycle_task: TASK-KEY
 model: haiku
 ```
@@ -74,10 +74,17 @@ holds only cycle work.
    selects the cycle's iterations and orders them:
    - only iterations that ended in the last 24 hours; an older iteration
      outside an earlier selection is skipped for good;
-   - first every iteration with a problem: `harness_error`, not
-     productive, a refused check, a question to the customer; newest first;
-   - then, round by round over each pair agent × image version, the newest
-     iterations until the pair has 3 assessments or no iteration is left.
+   - each pair agent × image version has a quota of 3 assessments in the
+     window, already written ones included; a pair with fewer iterations
+     gets all of them;
+   - inside the quota of a pair, iterations with a problem come first, then
+     the others, newest first. A problem is an end without `loop.sh done`
+     (`harness_error`, `timeout`, `no_i_am_done`), a refused check or a
+     question to the customer. An idle iteration (`loop.sh done --idle`) is
+     not a problem;
+   - problem iterations over the quota of their pair are not assessed;
+   - the order is the problem picks of all pairs, newest first, then the
+     other picks round by round over the pairs.
    An iteration with an assessment from this assessor is processed: never
    assess it again, and never tag it.
 3. Repeat while candidates remain:
