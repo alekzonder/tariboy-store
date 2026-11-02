@@ -29,7 +29,8 @@ part is an incomplete change, however small the edit:
 4. **Tests** — `workflows/NAME/tests/test_*.py` for every new or changed
    script, and its line in the Makefile `check` target.
 5. **Verification** — `tariboy workflow validate --path workflows/NAME`, the
-   tests, `make check`.
+   tests, `make check`, and the model run of the workflow's eval cases,
+   `make workflow-eval WORKFLOW=NAME` (see "Status instruction evals").
 6. **Hand-over** — the operator's build and queue-binding commands, see below.
 
 The plan ends by asking the customer for approval as a task question (`ttasks
@@ -115,6 +116,28 @@ manifest. A build does not need it.
 
 A `ROLE.md` change is a change under `workflows/NAME/` and bumps
 `workflow_version` like any other.
+
+## Status instruction evals
+
+A status instruction is tested like an image: by a case that runs one real
+iteration of the actor on the real Goal block. The cases are the entries with
+a `status` field in `workflows/NAME/evals/evals.json`; the Store README,
+section "Workflow evals", is the format, and `authoring-evals` owns how to
+write and run them.
+
+- Every status a `pool` owns has at least one case; a new pool status gets
+  its case in the same delivery. Customer and `script` statuses need none.
+- Before publishing a workflow whose `statuses/`, scripts, transitions or
+  artifacts changed, run `make workflow-eval WORKFLOW=NAME` (Haiku by
+  default) on the task's final commit. Every case passes, or each failure is
+  explained on the task. A green `make check` is not this run: its
+  `--render-only` pass proves only that each case reaches its status and gets
+  its Goal block.
+- Put the runner's output, per case `PASS`/`FAIL`, model and cost, and the
+  summary line, into the delivery report.
+- A new case must fail on a broken instruction: run it once with
+  `--status-override STATUS=FILE` on a copy without the step the case tests,
+  and report that `FAIL`.
 
 ## Script protocol
 
@@ -220,3 +243,5 @@ A workflow-only change bumps no `image_version`; an `images/` change bumps no
 | Source stores reported keys to skip them | The daemon deduplicates by key; keep only state the poll needs |
 | Renaming a source "for clarity" | The name keys the seen items; keep it, or bump `major` and expect duplicates |
 | Working around `field sources not found` | Old tariboy: blocker and question to the customer |
+| Publishing a changed status instruction after `make check` alone | Run `make workflow-eval WORKFLOW=NAME` and report its output |
+| A pool status without an eval case | Add a case with a `status` field and script criteria |

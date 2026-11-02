@@ -1,0 +1,274 @@
+#!/usr/bin/env python3
+"""Offline tests of scripts/workflow-eval.py and its fake GitHub.
+
+They run no daemon and no model: the case schema of every Store workflow, the
+criteria on recorded task states, the request history, the fixture values,
+and the fake GitHub against a real fixture repository."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+STORE = HERE.parent
+
+
+def load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+runner = load("workflow_eval", HERE / "workflow-eval.py")
+fake = load("fake_curl", HERE / "workflow_eval" / "fake_curl.py")
+ACTOR = "agent:eval-000"
+
+
+def snapshot(**fields):
+    snap = {
+        "status": "approval",
+        "requests": [],
+        "artifacts": {},
+        "artifacts_before": {},
+        "comments": [],
+        "waits": [],
+        "repo": {
+            "branches": ["main"],
+            "worktrees": 1,
+            "main": "a" * 40,
+            "clean": True,
+            "contains": {},
+            "origin_branches": ["main"],
+        },
+    }
+    snap.update(fields)
+    return snap
+
+
+def failed(results):
+    return [name for name, passed, _ in results if not passed]
+
+
+class SchemaTest(unittest.TestCase):
+    def test_every_store_workflow_case_is_valid(self):
+        for workflow_dir in sorted((STORE / "workflows").iterdir()):
+            if not (workflow_dir / "Workflowfile.yaml").is_file():
+                continue
+            statuses = runner.workflow_statuses(workflow_dir)
+            for case in runner.load_cases(workflow_dir):
+                with self.subTest(workflow=workflow_dir.name, case=case.get("id")):
+                    self.assertEqual(runner.validate_case(case, statuses, workflow_dir), [])
+
+    def test_development_has_cases_for_every_pool_status(self):
+        workflow_dir = STORE / "workflows" / "development"
+        statuses = runner.workflow_statuses(workflow_dir)
+        pool = {name for name, owner in statuses.items() if isinstance(owner, dict)}
+        covered = {case["status"] for case in runner.load_cases(workflow_dir)}
+        self.assertEqual(pool, {"plan", "implement", "complete"})
+        self.assertLessEqual(pool, covered)
+
+    def test_case_on_a_customer_status_is_refused(self):
+        workflow_dir = STORE / "workflows" / "development"
+        statuses = runner.workflow_statuses(workflow_dir)
+        case = dict(runner.load_cases(workflow_dir)[0], status="approval")
+        errors = runner.validate_case(case, statuses, workflow_dir)
+        self.assertTrue(any("not owned by an agent pool" in error for error in errors))
+
+    def test_unknown_criterion_and_step_are_refused(self):
+        workflow_dir = STORE / "workflows" / "development"
+        statuses = runner.workflow_statuses(workflow_dir)
+        case = dict(runner.load_cases(workflow_dir)[0])
+        case["criteria"] = {"vibes": True}
+        case["path"] = [{"teleport": "plan"}]
+        errors = " ".join(runner.validate_case(case, statuses, workflow_dir))
+        self.assertIn("unknown criteria", errors)
+        self.assertIn("path[0]", errors)
+
+
+class SubstituteTest(unittest.TestCase):
+    def test_fixture_values_replace_only_known_names(self):
+        value = runner.substitute({"a": ["${repo}/x", "^\\d+$"]}, {"repo": "/r"})
+        self.assertEqual(value, {"a": ["/r/x", "^\\d+$"]})
+
+    def test_unknown_fixture_value_fails(self):
+        with self.assertRaises(runner.EvalError):
+            runner.substitute("${missing}", {})
+
+
+class RequestsTest(unittest.TestCase):
+    def test_history_from_visits_and_a_rejected_last_request(self):
+        workflow = {
+            "visits": [
+                {"sequence": 1, "status": "backlog", "outcome": "start", "entered_by": "user:customer"},
+                {"sequence": 2, "status": "plan", "outcome": "planned", "entered_by": "user:customer"},
+                {"sequence": 3, "status": "approval", "entered_by": ACTOR},
+            ],
+            "last_request": {"outcome": "approved", "actor": "user:customer", "state": "rejected"},
+        }
+        requests = runner.requests_of(workflow)
+        self.assertEqual(
+            [(r["outcome"], r["actor"], r["state"]) for r in requests],
+            [("start", "user:customer", "applied"), ("planned", ACTOR, "applied"), ("approved", "user:customer", "rejected")],
+        )
+
+    def test_artifacts_from_the_list_form(self):
+        workflow = {"artifacts": [{"id": 1, "name": "plan", "value": "## Steps\n"}]}
+        self.assertEqual(runner.artifacts_of(workflow), {"plan": "## Steps\n"})
+
+
+class CriteriaTest(unittest.TestCase):
+    PLAN = "## How it works\n\nx\n\n## Steps\n\nx\n\n## Verification\n\nx\n\n## Limitations\n\nx\n"
+
+    def test_planned_with_four_headings_passes(self):
+        criteria = {
+            "outcome": {"name": "planned", "state": "applied"},
+            "status": "approval",
+            "artifacts": {"plan": {"headings": ["How it works", "Steps", "Verification", "Limitations"]}},
+            "repo": {"branches": ["main"], "worktrees": 1, "clean": True, "main": "a" * 40},
+        }
+        snap = snapshot(
+            requests=[{"outcome": "planned", "actor": ACTOR, "state": "applied"}],
+            artifacts={"plan": self.PLAN},
+        )
+        self.assertEqual(failed(runner.check_criteria(criteria, snap, ACTOR)), [])
+
+    def test_missing_heading_and_wrong_outcome_fail(self):
+        criteria = {
+            "outcome": {"name": "planned", "state": "applied"},
+            "artifacts": {"plan": {"headings": ["Limitations"]}},
+        }
+        snap = snapshot(
+            requests=[{"outcome": "planned", "actor": ACTOR, "state": "rejected"}],
+            artifacts={"plan": "## Steps\n"},
+        )
+        self.assertEqual(failed(runner.check_criteria(criteria, snap, ACTOR)), ["outcome", "artifact plan"])
+
+    def test_customer_requests_are_not_the_actor_outcome(self):
+        criteria = {"outcome": {"name": "planned"}, "no_outcome": ["ready"]}
+        snap = snapshot(requests=[{"outcome": "planned", "actor": "user:customer", "state": "applied"}])
+        self.assertEqual(failed(runner.check_criteria(criteria, snap, ACTOR)), ["outcome"])
+
+    def test_no_outcome_and_question(self):
+        criteria = {"no_outcome": ["cleaned"], "question": True}
+        asked = [{"requesting_principal": ACTOR, "expected_principal": "user:customer"}]
+        ok = snapshot(waits=asked)
+        bad = snapshot(requests=[{"outcome": "cleaned", "actor": ACTOR, "state": "applied"}])
+        self.assertEqual(failed(runner.check_criteria(criteria, ok, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, bad, ACTOR)), ["no_outcome", "question"])
+
+    def test_unchanged_artifact_fails_changed(self):
+        criteria = {"artifacts": {"plan": {"changed": True, "contains": ["--format"]}}}
+        snap = snapshot(artifacts={"plan": "--json"}, artifacts_before={"plan": "--json"})
+        result = runner.check_criteria(criteria, snap, ACTOR)
+        self.assertEqual(failed(result), ["artifact plan"])
+        self.assertIn("unchanged", result[0][2])
+
+    def test_comment_labels_and_repo_state(self):
+        labels = ["Required:", "Completed:", "Verification:", "Integration:", "Cleanup:"]
+        criteria = {
+            "comments": {"labels": labels},
+            "repo": {"branches": ["main"], "worktrees": 1, "main_contains": "m" * 40},
+        }
+        good = snapshot(
+            comments=[{"author": ACTOR, "body": "\n".join(f"{label} x" for label in labels)}],
+            repo=dict(snapshot()["repo"], contains={"m" * 40: True}),
+        )
+        bad = snapshot(
+            comments=[{"author": "user:customer", "body": "\n".join(labels)}],
+            repo=dict(snapshot()["repo"], branches=["main", "feature"], worktrees=2, contains={"m" * 40: False}),
+        )
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, bad, ACTOR)), ["comments", "repo"])
+
+
+class WorktreeCommentTest(unittest.TestCase):
+    def test_worktree_named_absolute_or_relative(self):
+        repo = dict(snapshot()["repo"], linked_worktrees=[{"absolute": "/r/.worktrees/x", "relative": ".worktrees/x"}])
+        criteria = {"comments": {"worktree_path": True}}
+        for body in ("Worktree: `/r/.worktrees/x`", "worktree `.worktrees/x` of the main checkout"):
+            snap = snapshot(repo=repo, comments=[{"author": ACTOR, "body": body}])
+            self.assertEqual(failed(runner.check_criteria(criteria, snap, ACTOR)), [], body)
+        snap = snapshot(repo=repo, comments=[{"author": ACTOR, "body": "PR opened"}])
+        self.assertEqual(failed(runner.check_criteria(criteria, snap, ACTOR)), ["comments"])
+
+    def test_no_linked_worktree_fails(self):
+        snap = snapshot(comments=[{"author": ACTOR, "body": "x"}])
+        self.assertEqual(failed(runner.check_criteria({"comments": {"worktree_path": True}}, snap, ACTOR)), ["comments"])
+
+
+class GoalBlockTest(unittest.TestCase):
+    def test_goal_block_needs_key_status_and_instructions(self):
+        workflow_dir = STORE / "workflows" / "development"
+        prompt = "## Goal\n\nkey: DEV-1\nstatus: plan\n\n# Plan\n\nProduce a plan\n"
+        self.assertEqual(runner.goal_block_check(prompt, "DEV-1", "plan", workflow_dir), (True, "ok"))
+        passed, detail = runner.goal_block_check(prompt, "DEV-1", "complete", workflow_dir)
+        self.assertFalse(passed)
+        self.assertIn("status complete", detail)
+
+
+class FakeGitHubTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        env = dict(
+            os.environ,
+            EVAL_DIR=str(self.dir),
+            EVAL_GITHUB_STATE=str(self.dir / "github.json"),
+            EVAL_VARS=str(self.dir / "vars.json"),
+        )
+        script = STORE / "workflows" / "development" / "evals" / "fixtures" / "widget-repo.sh"
+        subprocess.run(["bash", str(script), "pr-open"], env=env, check=True, capture_output=True)
+        self.vars = json.loads((self.dir / "vars.json").read_text())
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_pull_reports_the_pushed_head(self):
+        status, pull = fake.handle(self.dir, "GET", "/repos/eval/widget/pulls/7", "", None)
+        self.assertEqual(status, 200)
+        self.assertEqual(pull["head"]["sha"], self.vars["head_sha"])
+        self.assertEqual(pull["head"]["ref"], self.vars["branch"])
+        self.assertEqual(pull["base"]["ref"], "main")
+
+    def test_create_lists_and_refuses_a_duplicate(self):
+        status, _ = fake.handle(self.dir, "POST", "/repos/eval/widget/pulls", "", json.dumps({"head": self.vars["branch"], "base": "main", "title": "t"}))
+        self.assertEqual(status, 422)
+        query = f"state=all&head=eval:{self.vars['branch']}&base=main&per_page=100&page=1"
+        status, found = fake.handle(self.dir, "GET", "/repos/eval/widget/pulls", query, None)
+        self.assertEqual((status, [p["number"] for p in found]), (200, [7]))
+        status, _ = fake.handle(self.dir, "POST", "/repos/eval/widget/pulls", "", json.dumps({"head": "nope", "base": "main", "title": "t"}))
+        self.assertEqual(status, 422)
+
+    def test_curl_entry_point_writes_the_status_marker(self):
+        shutil_copy = self.dir / "fake_curl.py"
+        shutil_copy.write_bytes((HERE / "workflow_eval" / "fake_curl.py").read_bytes())
+        shutil_copy.chmod(0o755)
+        marker = "\n#tariboy-http-status:%{http_code}"
+        result = subprocess.run(
+            [str(shutil_copy), "--silent", "--fail-with-body", "--write-out", marker, "https://api.github.com/repos/eval/widget"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        body, _, status = result.stdout.rpartition("\n#tariboy-http-status:")
+        self.assertEqual((result.returncode, status), (0, "200"))
+        self.assertEqual(json.loads(body)["default_branch"], "main")
+        missing = subprocess.run(
+            [str(shutil_copy), "--fail-with-body", "https://api.github.com/repos/eval/other"],
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(missing.returncode, 22)
+
+
+if __name__ == "__main__":
+    unittest.main()
