@@ -70,14 +70,20 @@ Do the cycle first in the iteration, before any goal work, so that its cost
 holds only cycle work.
 
 1. Set `START` to the current UTC time and `DIR="$WORKDIR/review/START"`.
-2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor tariboy-image-creator`.
-   It keeps every finished iteration (`done`, `timeout`; not `running`)
-   without an assessment from this assessor, oldest first. An iteration
-   with an assessment is processed: never assess it again, and never tag it.
+2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor tariboy-image-creator`
+   selects the cycle's iterations and orders them:
+   - only iterations that ended in the last 24 hours; an older iteration
+     outside an earlier selection is skipped for good;
+   - first every iteration with a problem: `harness_error`, not
+     productive, a refused check, a question to the customer; newest first;
+   - then, round by round over each pair agent × image version, the newest
+     iterations until the pair has 3 assessments or no iteration is left.
+   An iteration with an assessment from this assessor is processed: never
+   assess it again, and never tag it.
 3. Repeat while candidates remain:
    1. `REVIEW cost --agent tariboy-image-creator --since START` gives `spent`.
       `N = floor((budget_usd - spent) / 0.08)`, at most 10. When `N` is 0,
-      stop: the rest waits for the next cycle.
+      stop: the rest of the selection is not assessed.
    2. `REVIEW pack --dir "$DIR" --limit N` writes one evidence pack for each
       of the next `N` candidates and prints `pack` and `out` paths.
    3. Start one subagent on the configured `model` with the assessor prompt
@@ -91,10 +97,12 @@ holds only cycle work.
    no task assessment. Assess them with the same subagent, `validate` and
    `add` steps, inside the same budget.
 5. `REVIEW cost --agent tariboy-image-creator --since START` gives the cycle
-   cost. Post one comment on `cycle_task` with: the period (`since` to now),
-   iterations assessed, task assessments, write failures, candidates left
-   for the next cycle, the cycle cost, and the cost of one assessment = cycle
-   cost / assessments written.
+   cost, and `REVIEW coverage --agents AGENTS --since SINCE --assessor tariboy-image-creator`
+   gives metric 1. Post one comment on `cycle_task` with: the window, active
+   pairs agent × image version, pairs with coverage (3 assessments, or all
+   iterations of the pair), iterations assessed, task assessments, write
+   failures, candidates not assessed, the cycle cost, and the cost of one
+   assessment = cycle cost / assessments written.
 6. `scripts/scripts.sh rerun SCRIPT_ID` of `review-cycle`. Then continue with
    the other letters and the goal of the iteration.
 
@@ -127,4 +135,5 @@ an assessment stays in the assessment:
 | "This violation needs an improvement task now." | The assessment is the record. Improvement tasks come from the customer. |
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
 | "I will assess this one again with better evidence." | An iteration with an assessment is processed. |
-| "The budget is nearly spent, but the queue is short." | Stop at the budget; the oldest wait for the next cycle. |
+| "The budget is nearly spent, but the queue is short." | Stop at the budget; what is left is not assessed. |
+| "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
