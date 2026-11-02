@@ -88,13 +88,12 @@ build. Commit `skills-lock.json` and any canonical local skill sources, not
 be unique, and use lowercase words/digits with hyphens. `SKILL.md` requires
 YAML `name` and `description`; symlinks and special files are rejected.
 
-## ROLE.md: the customer's requirements
+## ROLE.md: what the role is and why it exists
 
-`images/NAME/ROLE.md`, beside `Tariboyfile.yaml`, is what the customer
-requires from the role: its purpose, what the agent must do and what is
-outside it. Only the customer writes and approves it. It is not part of the
-agent's prompt; the build only puts it in the manifest. A build does not need
-it.
+`images/NAME/ROLE.md`, beside `Tariboyfile.yaml`, is the customer's short text
+on what the role is and why the image exists. Only the customer writes and
+approves it. It is not part of the agent's prompt; the build only puts it in
+the manifest. A build does not need it.
 
 - Read `ROLE.md` before you plan or make any change to the image.
 - Check `instructions.md`, the skills and `evals/evals.json` against it, and
@@ -106,8 +105,13 @@ it.
 - Never edit, rewrite or create `ROLE.md` on your own, whoever asks. Put in
   only a text the customer approved on the task, unchanged. Without one, at
   most offer a draft for the customer's approval.
+- A draft you offer is English, at most 500 characters (`wc -m`), and says
+  only what the role is and why the image exists. It names no work format,
+  process, skill, command or rule, because `instructions.md` and the skills
+  hold them, and it carries no draft mark. Cut a longer, non-English or
+  process-laden source down to that before you offer it.
 - Never copy `ROLE.md` whole into `instructions.md`, a skill or a prompt file.
-  Turn each requirement into the rule of the stage or skill that owns it.
+  Keep them consistent with it instead.
 
 ## Inheritance with `extends`
 

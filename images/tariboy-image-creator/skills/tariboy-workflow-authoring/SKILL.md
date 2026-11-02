@@ -88,12 +88,12 @@ workflows/NAME/
 - Every script gets a test under `tests/`, added as a line of the Makefile
   `check` target beside the existing workflow tests.
 
-## ROLE.md: the customer's requirements
+## ROLE.md: what the workflow is and why it exists
 
-`workflows/NAME/ROLE.md`, beside `Workflowfile.yaml`, is what the customer
-requires from the process. Only the customer writes and approves it. No status
-instruction includes it; the build only puts it in the manifest. A build does
-not need it.
+`workflows/NAME/ROLE.md`, beside `Workflowfile.yaml`, is the customer's short
+text on what the workflow is and why it exists. Only the customer writes and
+approves it. No status instruction includes it; the build only puts it in the
+manifest. A build does not need it.
 
 - Read `ROLE.md` before you plan or make any change to the workflow.
 - Check the statuses, outcomes, artifacts, checks, status instructions and
@@ -105,8 +105,13 @@ not need it.
 - Never edit, rewrite or create `ROLE.md` on your own, whoever asks. Put in
   only a text the customer approved on the task, unchanged. Without one, at
   most offer a draft for the customer's approval.
-- Never copy `ROLE.md` whole into a status instruction. Turn each requirement
-  into the status, check or instruction that owns it.
+- A draft you offer is English, at most 500 characters (`wc -m`), and says
+  only what the workflow is and why it exists. It names no work format,
+  process, status, skill, command or rule, because `Workflowfile.yaml` and the
+  status instructions hold them, and it carries no draft mark. Cut a longer,
+  non-English or process-laden source down to that before you offer it.
+- Never copy `ROLE.md` whole into a status instruction. Keep the statuses and
+  their instructions consistent with it instead.
 
 A `ROLE.md` change is a change under `workflows/NAME/` and bumps
 `workflow_version` like any other.
