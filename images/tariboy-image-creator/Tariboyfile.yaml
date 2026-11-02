@@ -11,6 +11,7 @@ plugins:
     - name: mail
     - name: loop
     - name: image-creator
+    - name: assessments
 skills:
     - dir: ./.agents/skills/cli-text
     - dir: ./.agents/skills/writing-style
@@ -20,6 +21,7 @@ skills:
     - dir: ./.agents/skills/authoring-evals
     - dir: ./.agents/skills/tariboy-image-delivery
     - dir: ./.agents/skills/tariboy-workflow-authoring
+    - dir: ./.agents/skills/iteration-review
     - dir: ./.agents/skills/writing-skills
     - dir: ./.agents/skills/github-pr-workflow
     - dir: ./.agents/skills/whoami

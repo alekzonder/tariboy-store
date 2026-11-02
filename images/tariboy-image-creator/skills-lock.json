@@ -55,6 +55,11 @@
       "sourceType": "local",
       "computedHash": "3ef0c1b6271144f479440263ee42d1a67965d07121b6c2b2a68521baf80b74ad"
     },
+    "iteration-review": {
+      "source": "./skills/iteration-review",
+      "sourceType": "local",
+      "computedHash": "62e946e98711edbe4f8629efe44aac689535331ab2d7a9c16485848153cdc1fe"
+    },
     "loop": {
       "source": "../../skills/loop",
       "sourceType": "local",
