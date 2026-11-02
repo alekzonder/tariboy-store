@@ -185,6 +185,85 @@ publishes reviews. The queue needs the secrets `GITHUB_TOKEN` and
 `REVIEW_REPOSITORIES`; the reviewer agents need `GITHUB_TOKEN` in their own
 environment to publish.
 
+### Workflow evals
+
+A workflow eval case tests the instructions of one status. The runner puts one
+task into that status, runs one real iteration of the actor image on the real
+Goal block, and then checks the result with scripts. No model judges the
+result.
+
+A case is an entry in `workflows/<name>/evals/evals.json` that has a `status`
+field. An entry without `status` is a case that describes a scenario in words,
+and the runner skips it. A workflow case has these fields:
+
+| Field | Content |
+| --- | --- |
+| `id` | Lowercase words joined by hyphens |
+| `status` | A status that an agent pool owns |
+| `actor` | `{"image": "developer", "model": "haiku"}`. `model` and `effort` are optional |
+| `task` | The `title` and `description` of the task |
+| `fixture` | `{"script": "evals/fixtures/<file>.sh", "args": [...]}`, the script that creates the repository of the actor |
+| `path` | The steps that bring the task from `backlog` to `status` |
+| `criteria` | The checks that the run must pass |
+| `prompt`, `expected_output` | The scenario and the success criteria in words, as for every eval |
+| `timeout_s` | Optional limit for the iteration, in seconds |
+
+The fixture script writes only inside `$EVAL_DIR`. It creates the repository
+of the actor in `$EVAL_DIR/repo`, the state of the fake GitHub in
+`$EVAL_GITHUB_STATE`, and a JSON object of values in `$EVAL_VARS`. The `task`,
+`path` and `criteria` fields can use these values as `${name}`. The
+`development` fixture `widget-repo.sh` gives the variants `plain`, `pr-open`,
+`pr-merged` and `pr-diverged`.
+
+A `path` step is one of these:
+
+- `{"move": "STATUS"}` moves the task as the operator.
+- `{"artifact": ["NAME", "VALUE"]}` sets an artifact.
+- `{"advance": {"outcome": "...", "from": "...", "message": "..."}}` declares an outcome as the customer.
+- `{"comment": "TEXT"}` adds a comment as the customer.
+- `{"wait_status": "STATUS"}` waits until a watch script moves the task.
+
+After the iteration, the runner checks these `criteria`:
+
+- `status`: the status of the task.
+- `outcome`: `{"name": ..., "state": "applied"}`, the last outcome that the actor declared.
+- `no_outcome`: outcomes that the actor must not declare.
+- `artifacts`: per artifact, `headings`, `contains`, `matches` (a regular expression), `equals`, `changed` or `absent`.
+- `question`: `true` if the actor must ask the customer through the task, `false` if it must not.
+- `comments`: `labels` that one comment of the actor must contain, `contains` text, or `worktree_path: true`, which needs each linked worktree named by its absolute path or its path relative to the main checkout.
+- `repo`: the main checkout after the iteration: `branches`, `branches_include`, `worktrees`, `min_worktrees`, `clean`, `main`, `main_contains`, `origin_branches_include`.
+
+The runner starts its own `tariboyd` with a new base directory and a new
+runtime directory, a Unix socket and no HTTP listener. It stops if that daemon
+has agents or queues other than the default `TASK` queue. It never touches the
+live daemon. It replaces GitHub with a fake: the actor reaches it through
+`TARIBOY_GITHUB_CURL_BIN`, and the scripts of the workflow reach it through
+their `GITHUB_API_URL` test seam. The fake reads the heads of pull requests
+from a local bare repository, which is the `origin` of the fixture repository.
+
+Run the cases of a workflow:
+
+```bash
+make workflow-eval WORKFLOW=development
+make workflow-eval WORKFLOW=development ARGS='--case plan-new-task --repeat 3'
+python3 scripts/workflow-eval.py --workflow development --model sonnet
+python3 scripts/workflow-eval.py --workflow development --case complete-squash-merge \
+  --status-override complete=/path/to/changed-complete.md
+```
+
+The default model is `haiku`. Each run of a case starts an agent and spends AI
+budget. The runner prints `PASS` or `FAIL` for each run, each criterion with
+its detail, the cost of each run and the total cost. It keeps the records of
+each run in the directory that `--out` names, or in a new temporary directory:
+the prompt with the Goal block, the transcript, the task state and the request
+log of the fake GitHub. It exits with 0 when every run passes and 1 when a run
+fails. `--status-override STATUS=FILE` replaces a status instruction in the
+evaluated copy only. Use it to test a changed instruction before you commit it,
+or to show that a case fails on a broken instruction.
+
+Run the cases of a workflow before you publish a changed workflow. The
+`tariboy-workflow-authoring` skill requires this run.
+
 ## Developer modes
 
 `official/developer` is one image for the three iteration modes of the
@@ -250,3 +329,10 @@ The check also fails when an image or a workflow has no `ROLE.md`, an empty
 `ROLE.md`, or a `ROLE.md` of more than 500 characters. Two images have no
 `ROLE.md` because they will be removed: `llm-as-judge` and
 `tariboy-workflow-developer`.
+
+The check also tests the workflow eval runner and runs it with
+`--render-only` for every workflow. This mode runs no model and costs nothing:
+the actor uses the `stub` harness from `scripts/workflow_eval/`. It brings each
+case to its status and makes sure that the prompt carries the Goal block of
+that status. A broken fixture or `path` fails the check. The run with a model
+is `make workflow-eval`, which is not part of the check.

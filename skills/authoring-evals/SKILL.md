@@ -1,6 +1,6 @@
 ---
 name: authoring-evals
-description: Use when creating, revising, consolidating, or running behavioral eval suites for Tariboy images or Agent Skills.
+description: Use when creating, revising, consolidating, or running behavioral eval suites for Tariboy images, workflow status instructions or Agent Skills.
 ---
 
 # Authoring Evals
@@ -59,12 +59,43 @@ A source case contains:
 | --- | --- |
 | One image-local or independent Store skill makes a wrong decision | That skill's `evals/` |
 | Image skips a required skill, approval stage or delivery branch | That image's `evals/` |
+| A workflow status instruction leads the actor to a wrong outcome, artifact, question or repository state | That workflow's `workflows/NAME/evals/evals.json`, as a workflow case |
 | Manifest, path or build error | Packaging validation, separate from behavioral scores |
 
 Keep skill and image suites separate. A skill actor receives that skill and the
 necessary raw inputs; an image actor receives the exact role prompt and skill
 catalog, with permission to read the referenced skills. Never give an actor the
 rubric, expected answer, previous verdict or proposed fix.
+
+## Workflow cases
+
+A workflow case tests one status instruction end to end; it is not a prompt to
+a hand-built actor. Its entry in `workflows/NAME/evals/evals.json` adds
+`status`, `actor`, `task`, `fixture`, `path` and `criteria` to the source
+contract; the Store README, section "Workflow evals", lists every field, step
+and criterion. Entries without `status` stay scenario descriptions in words.
+
+- Run workflow cases only with the Store runner, `scripts/workflow-eval.py`
+  (`make workflow-eval WORKFLOW=NAME`): it starts an isolated daemon, builds
+  the actor image and the workflow from a copy, walks the task to its status,
+  runs one real iteration on the real Goal block and checks `criteria` by
+  script. Never run a workflow case on a live daemon, queue or repository,
+  and never replace the run by asking a model to describe what it would do.
+- Criteria are observable task and repository state: the outcome the actor
+  declared, its artifacts, its question, its comments, branches, worktrees and
+  the base branch. Do not add a model judge to a workflow case.
+- The actor is the image that runs the status, for `development` the
+  `developer` image; `basic` fits a case that tests only the instruction. The
+  model rule below applies: Haiku by default, `--model` for another.
+- Baseline and candidate: run the unchanged instruction, then the change with
+  the same cases and model. `--status-override STATUS=FILE` evaluates a
+  candidate or broken instruction without a commit.
+- Each run keeps its records outside the Store, in `--out` under the
+  configured workdir: prompt, transcript, task state, fake GitHub log and
+  `results.json`. Report the printed per-case lines and the summary.
+- A failure that repeats on Haiku is rerun on a stronger model before it is
+  called an instruction defect, when the task says so; record each model and
+  cost.
 
 ## Select the eval model
 
@@ -149,3 +180,5 @@ unavailable actor or unrun case is a limitation, not a pass.
 | Inheriting the parent's premium model by omitting it | Pass model and effort explicitly on both launches |
 | Passing the rubric to the actor | Withhold `expected_output`; give it only to the evaluator |
 | Calling a successful build or YAML parse a behavioral pass | Report packaging separately; unrun cases are limitations |
+| Testing a status instruction by asking a model what it would do | Add a workflow case and run `scripts/workflow-eval.py` |
+| Calling `make check` a workflow eval | Its `--render-only` pass runs no model; run `make workflow-eval` |
