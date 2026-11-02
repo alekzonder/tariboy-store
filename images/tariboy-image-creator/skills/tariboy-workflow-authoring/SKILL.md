@@ -88,6 +88,29 @@ workflows/NAME/
 - Every script gets a test under `tests/`, added as a line of the Makefile
   `check` target beside the existing workflow tests.
 
+## ROLE.md: the customer's requirements
+
+`workflows/NAME/ROLE.md`, beside `Workflowfile.yaml`, is what the customer
+requires from the process. Only the customer writes and approves it. No status
+instruction includes it; the build only puts it in the manifest. A build does
+not need it.
+
+- Read `ROLE.md` before you plan or make any change to the workflow.
+- Check the statuses, outcomes, artifacts, checks, status instructions and
+  evals against it, and check the request against it before you edit anything.
+- When the request or an approved plan contradicts `ROLE.md`, ask on the task
+  and name the conflicting `ROLE.md` line. Change nothing until the answer is
+  recorded. An earlier approval, a requester other than the customer and a
+  deadline do not resolve the conflict.
+- Never edit, rewrite or create `ROLE.md` on your own, whoever asks. Put in
+  only a text the customer approved on the task, unchanged. Without one, at
+  most offer a draft for the customer's approval.
+- Never copy `ROLE.md` whole into a status instruction. Turn each requirement
+  into the status, check or instruction that owns it.
+
+A `ROLE.md` change is a change under `workflows/NAME/` and bumps
+`workflow_version` like any other.
+
 ## Script protocol
 
 | Exit | Check (on a pool transition) | Watch (owns a `script` status) | Source (queue-level, no task) |

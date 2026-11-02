@@ -37,6 +37,38 @@ The default tag is the manifest's `image_version`. Update an existing source
 with `tariboy image version update patch --path images/<name>` before publishing
 changed content.
 
+## ROLE.md
+
+`ROLE.md` is the customer's text about what a role must do. It is a file next
+to the manifest:
+
+- `images/<name>/ROLE.md`, next to `Tariboyfile.yaml`;
+- `workflows/<name>/ROLE.md`, next to `Workflowfile.yaml`.
+
+The file is Markdown in UTF-8. It has no required structure. It usually gives
+the purpose of the role, what the customer requires from the agent, and what
+is outside the role. Keep a draft at 8 KB or less. The technical size limit
+comes from the Tariboy build and is at least 16 KB.
+
+Only the customer writes and approves `ROLE.md`. An agent prepares a draft and
+puts in the approved text without changes. The agent prompt does not include
+`ROLE.md`. The daemon only adds the file to the image manifest and shows it.
+
+A build does not need `ROLE.md`: an image or workflow without it builds. In
+this Store, every image and every workflow must have a `ROLE.md` after the
+customer approves it.
+
+The image creator follows these rules for each image and workflow:
+
+1. Read `ROLE.md` before a change.
+2. Compare `instructions.md`, the skills, the status instructions and the evals
+   with `ROLE.md`.
+3. Do not change or create `ROLE.md` without the customer's approval.
+4. Do not copy all of `ROLE.md` into `instructions.md`, a skill or a status
+   instruction.
+5. If a request contradicts `ROLE.md`, ask a question on the task. Do not
+   change `ROLE.md`.
+
 ## CLI text in every image
 
 Every image packages `skills/cli-text` and loads its `cli-text.md` before role
