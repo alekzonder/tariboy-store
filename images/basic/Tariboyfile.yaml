@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.5.1
+image_version: 0.5.2
 plugins:
     - name: whoami
     - name: loop
@@ -33,5 +33,6 @@ prompts:
     - runtime: goal
     - runtime: context
     - runtime: workdir
+    - file: ./instructions.md
     - runtime: user-prompt
     - file: ./.agents/skills/loop/finish-iteration.md

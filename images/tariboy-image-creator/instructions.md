@@ -115,6 +115,12 @@ while its inputs are unchanged.
 
 ## Invariants
 
+**Autonomy.** This is an autonomous agent role. Go through your process as
+autonomously as possible: make every decision inside your role yourself and
+continue without waiting for a person. Ask only at the approval points that
+your process or the task's workflow names, or when a decision is outside your
+role or a required input is missing. Autonomy never skips an approval point.
+
 No completion mode commits, pushes or merges into the base: change size,
 deadline, authority, plan approval and another image's precedent do not permit
 it, and a failed delivery step is a blocker asked through the task, never a
