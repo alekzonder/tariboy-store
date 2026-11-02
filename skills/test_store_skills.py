@@ -20,7 +20,6 @@ COMMANDS = {
     "schedule": "schedule",
     "scripts": "scripts",
     "image-creator": "image_creator",
-    "llm-as-judge": "judge",
 }
 
 
@@ -216,7 +215,6 @@ class StoreSkillsTest(unittest.TestCase):
             ("schedule/scripts/schedule.sh", ["cancel", "s-1"], "POST", "/tools/schedule/cancel", {"id": "s-1"}),
             ("scripts/scripts/scripts.sh", ["rerun", "scr-1"], "POST", "/tools/script/rerun", {"id": "scr-1"}),
             ("image-creator/scripts/image_creator.sh", ["build", "--name", "reviewer", "--path", "./image"], "POST", "/tools/image/build", {"name": "reviewer", "tag": "latest", "path": "./image"}),
-            ("llm-as-judge/scripts/judge.sh", ["work", "claim"], "POST", "/tools/judge/action/work.claim", {}),
         ]
         for relative, args, method, route, body in cases:
             with self.subTest(relative=relative):
@@ -224,28 +222,6 @@ class StoreSkillsTest(unittest.TestCase):
                 self.assertEqual(process.returncode, 0, process.stderr)
                 self.assertEqual(request[0], [method, route])
                 self.assertEqual(request[1], b"" if body is None else json.dumps(body).encode())
-
-    def test_judge_evidence_get_sends_stable_string_locator(self):
-        process, request = self.run_script(
-            "llm-as-judge/scripts/judge.sh",
-            ["evidence", "get", "--assignment", "a-1", "--artifact", "audit", "--locator", "line:17"],
-            {},
-        )
-        self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(request[0], ["POST", "/tools/judge/action/evidence.get"])
-        self.assertEqual(json.loads(request[1]), {"assignment_id": "a-1", "artifact": "audit", "locator": "line:17"})
-
-    def test_judge_command_help_names_required_submission_flags(self):
-        env = dict(os.environ)
-        env.pop("TARIBOY_TOOLS_SOCKET", None)
-        process = subprocess.run(
-            [ROOT / "llm-as-judge/scripts/judge.sh", "analysis", "submit", "--help"],
-            env=env,
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertIn("analysis submit --assignment ID --file FILE [--json]", process.stdout)
 
     def test_schedule_add_sends_the_recipient_principal(self):
         process, request = self.run_script(
