@@ -1,6 +1,6 @@
 {
   "consumer_proposals": 8,
-  "image_proposals": 6,
+  "image_proposals": 5,
   "structured_proposals": 2,
   "file_and_stdin_proposals": 4,
   "tasks_newlines": {

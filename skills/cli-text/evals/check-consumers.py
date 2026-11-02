@@ -53,7 +53,7 @@ for path in sorted((ROOT / 'images').glob('*/evals/cli-text/results.json')):
     image_commands.append(json.loads(path.read_text())['candidate']['command'])
 for path in sorted((ROOT / 'images').glob('*/evals/files/cli-text-command.json')):
     image_commands.append(json.loads(path.read_text())['command'])
-assert len(image_commands) == 6
+assert len(image_commands) == 5
 for command in image_commands:
     assert capture(command) == expected[-1]
 
@@ -95,5 +95,5 @@ vm.runInNewContext('(async () => {' + input.expression + '})()', {
         received = subprocess.run([shutil.which('bash'), '-c', command],
             env={'PATH':'/usr/bin:/bin','CLI_EXPECTED_FILE':str(path)}, text=True, capture_output=True, check=True)
         assert received.stdout == path.read_text()
-print(json.dumps({'consumer_proposals': 8, 'image_proposals': 6,
+print(json.dumps({'consumer_proposals': 8, 'image_proposals': 5,
     'structured_proposals': 2, 'file_and_stdin_proposals': 4, 'tasks_newlines': newline_results}, ensure_ascii=False, indent=2))

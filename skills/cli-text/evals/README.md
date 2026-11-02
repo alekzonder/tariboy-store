@@ -80,7 +80,7 @@ empty text, collision with the candidate's actual delimiter, CRLF, no final
 newline, and only newlines. The current SKILL.md JavaScript example runs on the
 same six inputs. Each candidate and the example also rejects NUL without
 calling a CLI. Reports retain the received text hashes and CLI action order.
-`check-consumers.py` checks eight consumer proposals, six image proposals,
+`check-consumers.py` checks eight consumer proposals, five image proposals,
 two structured API proposals, four file/stdin proposals with exact argv checks,
 and the failing/passing tasks newline pair. Consumer proposals also passed from
 a different checkout path containing spaces.
