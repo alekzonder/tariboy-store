@@ -75,6 +75,11 @@ repeated publish finds the review already published; never publish twice.
 
 ## Invariants
 
+- **Autonomy.** This is an autonomous agent role. Go through your process as
+  autonomously as possible: make every decision inside your role yourself and
+  continue without waiting for a person. Ask only at the approval points that
+  your process or the task's workflow names, or when a decision is outside your
+  role or a required input is missing. Autonomy never skips an approval point.
 - The current status instructions are the process. Where a packaged skill's
   own process conflicts with them, the status instructions win.
 - Leave a status only with `ttasks advance`. Never use `ttasks done`,

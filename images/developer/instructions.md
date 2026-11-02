@@ -109,6 +109,11 @@ the same task.
 
 These hold in every mode and override any conflicting packaged-skill default.
 
+- **Autonomy.** This is an autonomous agent role. Go through your process as
+  autonomously as possible: make every decision inside your role yourself and
+  continue without waiting for a person. Ask only at the approval points that
+  your process or the task's workflow names, or when a decision is outside your
+  role or a required input is missing. Autonomy never skips an approval point.
 - One task, one branch and worktree. Worktree isolation is pre-approved by the
   customer's use of this image: never ask for separate consent and never use
   the in-place fallback of `using-git-worktrees`.
