@@ -99,6 +99,15 @@ manifest. A build does not need it.
 - Read `ROLE.md` before you plan or make any change to the workflow.
 - Check the statuses, outcomes, artifacts, checks, status instructions and
   evals against it, and check the request against it before you edit anything.
+- Carry the meaning of `ROLE.md` into the status instructions. Each one opens
+  with one or two new sentences addressed to the agent: what the workflow is
+  for, and what this status adds to that purpose. Reuse no `ROLE.md` sentence
+  word for word. When you create or rewrite a status instruction, check that
+  this opening is there.
+- In every task, check the change against `ROLE.md` and keep the workflow on
+  its purpose. A status, outcome, artifact or check that adds work outside
+  that purpose, or weakens a step that serves it, contradicts `ROLE.md` even
+  when no line forbids it in words.
 - When the request or an approved plan contradicts `ROLE.md`, ask on the task
   and name the conflicting `ROLE.md` line. Change nothing until the answer is
   recorded. An earlier approval, a requester other than the customer and a
