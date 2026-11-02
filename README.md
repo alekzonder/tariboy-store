@@ -208,3 +208,8 @@ scans workflow manifests, scripts and status instructions for the same
 forbidden paths. A workflow that fails validation fails the check and prints
 the daemon's error list. The check never uses the live Tariboy base directory,
 runtime directory, or HTTP listener.
+
+The check also fails when an image or a workflow has no `ROLE.md`, an empty
+`ROLE.md`, or a `ROLE.md` of more than 500 characters. Two images have no
+`ROLE.md` because they will be removed: `llm-as-judge` and
+`tariboy-workflow-developer`.

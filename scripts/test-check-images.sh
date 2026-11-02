@@ -105,3 +105,67 @@ case "$output" in
     exit 1
     ;;
 esac
+
+rm -rf -- "$fixture"
+mkdir -p "$fixture/images/example" "$fixture/images/llm-as-judge" "$fixture/workflows/flow"
+printf '%s\n' 'schema_version: 2' >"$fixture/images/example/Tariboyfile.yaml"
+printf '%s\n' 'schema_version: 2' >"$fixture/images/llm-as-judge/Tariboyfile.yaml"
+printf '%s\n' 'schema_version: 1' 'name: flow' >"$fixture/workflows/flow/Workflowfile.yaml"
+printf '%s\n' '# example' '' 'The example agent exists for tests.' >"$fixture/images/example/ROLE.md"
+printf '%s\n' '# flow' '' 'The flow workflow exists for tests.' >"$fixture/workflows/flow/ROLE.md"
+if ! output=$("$root/scripts/check-images.sh" --roles-only "$fixture" 2>&1); then
+  printf 'expected ROLE.md files within the limit to pass: %s\n' "$output" >&2
+  exit 1
+fi
+
+python3 -c 'print("x" * 500, end="")' >"$fixture/images/example/ROLE.md"
+if ! output=$("$root/scripts/check-images.sh" --roles-only "$fixture" 2>&1); then
+  printf 'expected a ROLE.md of exactly 500 characters to pass: %s\n' "$output" >&2
+  exit 1
+fi
+
+python3 -c 'print("я" * 501, end="")' >"$fixture/images/example/ROLE.md"
+if output=$("$root/scripts/check-images.sh" --roles-only "$fixture" 2>&1); then
+  printf '%s\n' 'expected a ROLE.md over 500 characters to fail' >&2
+  exit 1
+fi
+case "$output" in
+  *'images/example/ROLE.md has 501 characters, the limit is 500'*) ;;
+  *)
+    printf 'unexpected diagnostic: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac
+
+printf '%s\n' '' '  ' >"$fixture/images/example/ROLE.md"
+if output=$("$root/scripts/check-images.sh" --roles-only "$fixture" 2>&1); then
+  printf '%s\n' 'expected an empty ROLE.md to fail' >&2
+  exit 1
+fi
+case "$output" in
+  *'images/example/ROLE.md is empty'*) ;;
+  *)
+    printf 'unexpected diagnostic: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac
+
+printf '%s\n' '# example' >"$fixture/images/example/ROLE.md"
+rm -- "$fixture/workflows/flow/ROLE.md"
+if output=$("$root/scripts/check-images.sh" --roles-only "$fixture" 2>&1); then
+  printf '%s\n' 'expected a workflow without ROLE.md to fail' >&2
+  exit 1
+fi
+case "$output" in
+  *'workflows/flow/ROLE.md is missing'*) ;;
+  *)
+    printf 'unexpected diagnostic: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac
+case "$output" in
+  *'llm-as-judge'*)
+    printf 'exempt image reported: %s\n' "$output" >&2
+    exit 1
+    ;;
+esac

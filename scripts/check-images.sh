@@ -56,18 +56,54 @@ PY
   done
 }
 
+# Every image and workflow carries the customer's ROLE.md: English text of at
+# most 500 characters (`wc -m`), see README.md. The images listed in
+# role_exempt are being removed from the Store and get no ROLE.md.
+role_exempt=' llm-as-judge tariboy-workflow-developer '
+check_roles() {
+  local source=$1
+  local dir
+  local name
+  local failed=0
+  for dir in "$source"/images/* "$source"/workflows/*; do
+    test -f "$dir/Tariboyfile.yaml" || test -f "$dir/Workflowfile.yaml" || continue
+    name=$(basename -- "$dir")
+    case "$role_exempt" in *" $name "*) test "${dir%/*}" = "$source/images" && continue ;; esac
+    python3 -B - "$source" "$dir/ROLE.md" <<'PY' || failed=1
+import pathlib
+import sys
+
+source, role = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+shown = role.relative_to(source)
+if not role.is_file():
+    sys.exit(f"{shown} is missing")
+text = role.read_text(encoding="utf-8")
+if not text.strip():
+    sys.exit(f"{shown} is empty")
+if len(text) > 500:
+    sys.exit(f"{shown} has {len(text)} characters, the limit is 500")
+PY
+  done
+  return "$failed"
+}
+
 if test "${1:-}" = "--paths-only"; then
   check_paths "${2:-$repo_root}"
   warn_stale_installs "${2:-$repo_root}"
   exit
 fi
+if test "${1:-}" = "--roles-only"; then
+  check_roles "${2:-$repo_root}"
+  exit
+fi
 if test "$#" -ne 0; then
-  printf 'usage: %s [--paths-only [STORE_ROOT]]\n' "$0" >&2
+  printf 'usage: %s [--paths-only [STORE_ROOT] | --roles-only [STORE_ROOT]]\n' "$0" >&2
   exit 64
 fi
 
 check_paths "$repo_root"
 warn_stale_installs "$repo_root"
+check_roles "$repo_root"
 
 tariboy_bin=$(command -v "${TARIBOY_BIN:-tariboy}")
 tariboyd_bin=$(command -v "${TARIBOYD_BIN:-tariboyd}")
