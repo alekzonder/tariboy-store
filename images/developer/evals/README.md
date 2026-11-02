@@ -4,6 +4,17 @@
 and routing cases for `developer`. Individual skill behavior belongs to
 `../skills/*/evals/evals.json`.
 
+The cases cover the three iteration modes:
+
+- `workflow`: the `WORKFLOW-*` cases, moved from `tariboy-workflow-developer`
+  with their text unchanged, and `MODE-LINE-WORKFLOW-FALLBACK`.
+- `flexible`: the cases without a prefix and `MODE-LINE-FLEXIBLE-VS-LETTER`.
+- `request`: the `REQUEST-*` cases.
+
+The `MODE-LINE-*` cases put the daemon line `` Iteration mode: `NAME`. `` in
+the prompt and make the Goal block, or a letter, say a different mode. The
+other cases have no mode line, so the agent must use the Goal block.
+
 **REQUIRED:** Use `authoring-evals` before changing a case or launching a run.
 It owns the source contract, the skill-versus-image boundary, the eval model
 selection and the matched baseline/candidate protocol. Generated run evidence —

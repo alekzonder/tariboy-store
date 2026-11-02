@@ -17,6 +17,21 @@
       "sourceType": "local",
       "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
     },
+    "developer-mode-flexible": {
+      "source": "./skills/developer-mode-flexible",
+      "sourceType": "local",
+      "computedHash": "2f3fa5ef9323d92ff7c78f1e9f7c9ff19a99e88dc44840103d5be82312cdc505"
+    },
+    "developer-mode-request": {
+      "source": "./skills/developer-mode-request",
+      "sourceType": "local",
+      "computedHash": "f842393e218621c80263a8ef9631c8b831f88ff1ad6d3fbb9097b813b091eb0d"
+    },
+    "developer-mode-workflow": {
+      "source": "./skills/developer-mode-workflow",
+      "sourceType": "local",
+      "computedHash": "273538fdbdcdbe97ee0290dc5e6e13b5c15504a5f530d7f0ba880da699aa9eac"
+    },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
       "sourceType": "github",

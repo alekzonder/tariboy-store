@@ -127,12 +127,7 @@ example `official/basic`.
 The `development` workflow holds the whole development process: planning,
 approval, implementation, the pull request watch and cleanup, and its checks
 prove the plan's sections, the branch, the verified head commit and the pull
-request's text. Run it with `official/tariboy-workflow-developer`, an agent
-image with the tools that do the work and no process of its own: it works only
-tasks of a workflow queue, and its `github-pr-workflow` skill proves GitHub
-access and finds or creates the task's one pull request without a monitor.
-`official/developer` also works such tasks, beside its own process for
-tasks without a workflow.
+request's text. Run it with `official/developer`.
 
 A task of a queue bound to the `development` workflow starts in `backlog`, a
 status the customer owns: no agent takes it until the customer starts it with
@@ -152,6 +147,28 @@ approved review on GitHub as one `COMMENT` review. Run it with
 publishes reviews. The queue needs the secrets `GITHUB_TOKEN` and
 `REVIEW_REPOSITORIES`; the reviewer agents need `GITHUB_TOKEN` in their own
 environment to publish.
+
+## Developer modes
+
+`official/developer` is one image for the three iteration modes of the
+daemon. Each mode has its own skill in the image:
+
+| Mode | Iteration | Skill |
+| --- | --- | --- |
+| `workflow` | The goal task follows a workflow. The status instructions set the process. | `developer-mode-workflow` |
+| `flexible` | The goal task has no workflow. The skill sets the process: plan, approval, one pull request, its monitor and completion. | `developer-mode-flexible` |
+| `request` | No goal task. The agent answers the one-shot instruction or the letters, and records a change request as a task in the queue that the request names. | `developer-mode-request` |
+
+The agent reads its mode from the daemon line `` Iteration mode: `NAME`. `` in
+the `# Task Processing Order` block. That line wins over the Goal block. If the
+line is not in the prompt, the agent uses the Goal block: a workflow task is
+`workflow`, a task without a workflow is `flexible`, and no goal task is
+`request`.
+
+`official/tariboy-workflow-developer` is the older image for workflow tasks
+only. It stays in the Store without changes while agents move to
+`official/developer`. A separate change removes it two weeks after the last
+agent moves, if no agent moves back.
 
 ## Daemon version
 
