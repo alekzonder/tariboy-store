@@ -26,7 +26,9 @@ branch, and never discard unrelated or pre-existing changes.
 
 ## Skills
 
-Read every REQUIRED skill completely before acting where it applies.
+Read every REQUIRED skill completely before acting where it applies. If a
+read is truncated, read the omitted parts before using the skill. The
+autonomy rules under Working rules govern skill-driven questions and waits.
 
 | Decision or subject | Owning skill | When |
 | --- | --- | --- |
@@ -37,7 +39,7 @@ Read every REQUIRED skill completely before acting where it applies.
 | Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
 | Branch and worktree isolation | `using-git-worktrees` | REQUIRED before the first task file change |
 | Shaping a change before implementing it | `brainstorming`, `writing-plans` | REQUIRED for new features and behavior changes |
-| Executing an approved written plan | `executing-plans`, `subagent-driven-development` | REQUIRED once a written plan exists |
+| Executing an approved written plan | `executing-plans` or `subagent-driven-development` | Choose the execution method yourself; the chosen skill is REQUIRED before implementation |
 | Implementing a feature or bugfix | `test-driven-development` | REQUIRED before implementation code |
 | Any bug, test failure or unexpected behavior | `systematic-debugging` | REQUIRED before proposing or implementing a fix |
 | Asking for and acting on review feedback | `requesting-code-review`, `receiving-code-review` | REQUIRED when its trigger applies |
@@ -154,7 +156,49 @@ keep the task active, post the exact failure on it, and continue from there.
 ## Working rules
 
 These hold in every process and override any conflicting packaged-skill
-default.
+instruction, including a skill's mandatory dialogue or approval gate. The
+task's workflow still governs its statuses, allowed actions and approvals.
+
+- Use `brainstorming` to investigate requirements, compare approaches and
+  identify constraints, and `writing-plans` to prepare concrete implementation
+  steps and checks. Read the project and choose a recommended approach yourself.
+  Do not ask permission to investigate or ask the customer to choose among
+  technical approaches before you can present a plan.
+- Present the design, implementation plan, explicit assumptions, tradeoffs
+  and any material open questions together for approval. Unless the workflow
+  explicitly separates them, do not add separate design approval, plan
+  approval and execution-method selection stages. A reasonable proposed default
+  belongs in the plan; it is not a customer decision until approved. Ask an
+  earlier question only when a fact or decision only the customer can supply
+  prevents a coherent proposal. Do not guess consequential requirements.
+- An approved plan authorizes its execution within its recorded scope. Choose
+  Native or Subagent-driven execution yourself, respecting any recorded customer
+  constraint and available tools. Use Native for a small, coupled change; use
+  subagents when independent work benefits from them. Never stop an approved
+  task to ask which execution method to use, to approve unchanged design or
+  plan content again, or to permit the next implementation step. Preserve the
+  chosen skill's testing, review and artifact requirements; an artifact format
+  does not create another approval gate.
+- Resolve implementation details and repair failures within the approved scope
+  autonomously. If the required result, scope or material constraints change,
+  explain the change and request approval of the revised plan before performing
+  that expansion. Preserve existing work and continue independent authorized
+  work only when the current workflow status permits it. Autonomy never lets
+  you take over a customer-owned status, waive checks or accept or merge a PR.
+- Before asking the customer to solve a problem, diagnose it and try available,
+  authorized remedies. Missing evidence is a reason to investigate, not proof
+  of an external blocker: for missing final-head CI, read the checks, statuses
+  and relevant logs through authorized GitHub access before asking for help.
+  Do not substitute an old-head result or a local test for required CI. Ask only
+  when progress needs unavailable access, authority or a customer-owned fact or
+  decision; state what you tried and what is still needed. Once that dependency
+  is established, use the recorded question or workflow wait, not repeated
+  retries. Keep the customer's recorded `user:` or `agent:` identity unchanged.
+- Customer questions are for plan approval or revision, decisions explicitly
+  required by the workflow or delivery process, and blockers described above.
+  Skill conversation scripts, preference menus and requests to approve routine
+  progress add no other reasons to wait. Use the existing wait and recovery
+  contract; do not replace a workflow's monitor or invent a new process.
 
 - One task, one branch and worktree. Worktree isolation is pre-approved by the
   customer's use of this image: never ask for separate consent and never use
