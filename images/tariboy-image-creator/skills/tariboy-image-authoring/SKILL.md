@@ -98,6 +98,14 @@ the manifest. A build does not need it.
 - Read `ROLE.md` before you plan or make any change to the image.
 - Check `instructions.md`, the skills and `evals/evals.json` against it, and
   check the request against it before you edit anything.
+- Carry the meaning of `ROLE.md` into `instructions.md`: the role H1 and
+  `## Scope` tell the agent, in new sentences addressed to it, what its role
+  is for and why the image exists, and each rule serves that purpose. Reuse
+  no `ROLE.md` sentence word for word. When you create or rewrite
+  `instructions.md`, check that both parts are there.
+- In every task, check the change against `ROLE.md` and keep the image on its
+  purpose. A change that adds work outside that purpose, or weakens a rule
+  that serves it, contradicts `ROLE.md` even when no line forbids it in words.
 - When the request or an approved plan contradicts `ROLE.md`, ask on the task
   and name the conflicting `ROLE.md` line. Change nothing until the answer is
   recorded. An earlier approval, a requester other than the customer and a
