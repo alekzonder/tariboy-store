@@ -5,7 +5,7 @@ Subcommands (all JSON on stdout, diagnostics on stderr):
   tick       --state FILE [--period SECONDS]     schedule body: quiet (111) until a period passed
   cost       --agent NAME --since TIME            total cost of the cycle so far
   candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--target N]
-             the cycle's selection: last 24 h, problem iterations first, then even per agent x image version
+             the cycle's selection: last 24 h, a quota per agent x image version, problems first inside it
   coverage   --agents A,B --since TIME --assessor NAME [--window S] [--target N]
              metric 1: active pairs agent x image version and pairs with enough assessments
   pack       --dir DIR [--limit N]                evidence packs for the next N candidates
@@ -171,12 +171,14 @@ def transcript_problems(agent, iteration):
 
 
 def problems_of(row):
-    """Problem kinds of one iteration row, in the order the selection names them."""
+    """Problem kinds of one iteration row, in the order the selection names them.
+
+    An idle iteration (`loop.sh done --idle`: done, not productive) is not a problem.
+    """
     found = []
-    if row.get("status") == "harness_error":
-        found.append("harness_error")
-    if row.get("productive") is False:
-        found.append("unproductive")
+    status = row.get("status") or ""
+    if status not in ("done", "running", ""):
+        found.append(status)  # harness_error, timeout, no_i_am_done: ended without `loop.sh done`
     found += [m for m in row.get("marks") or [] if m in ("check_rejected", "question")]
     return found
 
@@ -186,14 +188,17 @@ def select(rows, now, window, target):
 
     Each row: agent, id, status, productive, ended_at, image_version, assessed, marks.
     1. Only iterations finished in the last `window` seconds; older unassessed ones are skipped.
-    2. Unassessed iterations with a problem come first, newest first.
-    3. Then a round-robin over the pairs agent x image_version, newest first, until each pair has
-       `target` assessments (assessed, problem candidates and picks together) or no iteration left.
+    2. Each pair agent x image_version has a quota of `target` assessments, assessed ones included;
+       a pair with fewer iterations gets all of them.
+    3. Inside the quota of a pair: problem iterations first, then the rest, newest first.
+       Problem iterations over the quota are not selected.
+    4. Output order: the problem picks of all pairs newest first, then the other picks round by round
+       over the pairs, so a budget stop leaves the pairs even.
     An already assessed iteration is never a candidate.
     """
     start = now - dt.timedelta(seconds=window)
-    skipped = {"running": 0, "assessed": 0, "older_than_window": 0, "not_selected": 0}
-    recent, pairs = [], {}
+    skipped = {"running": 0, "assessed": 0, "older_than_window": 0, "not_selected": 0, "problem_over_quota": 0}
+    pairs = {}
     for r in rows:
         if r.get("status") == "running":
             skipped["running"] += 1
@@ -205,38 +210,33 @@ def select(rows, now, window, target):
             continue
         r = dict(r, _ended=ended, problems=problems_of(r))
         pair = (r["agent"], r.get("image_version") or "")
-        pairs.setdefault(pair, {"total": 0, "assessed": 0, "chosen": 0, "rest": []})
-        pairs[pair]["total"] += 1
+        st = pairs.setdefault(pair, {"total": 0, "assessed": 0, "open": []})
+        st["total"] += 1
         if r.get("assessed"):
             skipped["assessed"] += 1
-            pairs[pair]["assessed"] += 1
+            st["assessed"] += 1
             continue
-        recent.append(r)
+        st["open"].append(r)
     newest = lambda r: (r["_ended"], r["id"])
-    problem = sorted((r for r in recent if r["problems"]), key=newest, reverse=True)
-    for r in problem:
-        pairs[(r["agent"], r.get("image_version") or "")]["chosen"] += 1
-    for r in sorted((r for r in recent if not r["problems"]), key=newest, reverse=True):
-        pairs[(r["agent"], r.get("image_version") or "")]["rest"].append(r)
+    problem, rest = [], {}
+    for pair, st in pairs.items():
+        ordered = sorted((r for r in st["open"] if r["problems"]), key=newest, reverse=True)
+        ordered += sorted((r for r in st["open"] if not r["problems"]), key=newest, reverse=True)
+        chosen = ordered[:max(0, target - st["assessed"])]
+        st["chosen"] = len(chosen)
+        skipped["not_selected"] += len(ordered) - len(chosen)
+        skipped["problem_over_quota"] += sum(1 for r in ordered[len(chosen):] if r["problems"])
+        problem += [r for r in chosen if r["problems"]]
+        rest[pair] = [r for r in chosen if not r["problems"]]
+    problem.sort(key=newest, reverse=True)
     sample, rnd = [], 0
-    while True:
-        took = False
-        for pair in sorted(pairs, key=lambda p: (pairs[p]["assessed"] + pairs[p]["chosen"], p)):
-            st = pairs[pair]
-            if rnd < len(st["rest"]) and st["assessed"] + st["chosen"] < target:
-                sample.append(dict(st["rest"][rnd], reason="pair_sample"))
-                st["chosen"] += 1
-                took = True
+    while any(rnd < len(v) for v in rest.values()):
+        for pair in sorted(rest):
+            if rnd < len(rest[pair]):
+                sample.append(dict(rest[pair][rnd], reason="pair_sample"))
         rnd += 1
-        if not took and all(rnd >= len(st["rest"]) for st in pairs.values()):
-            break
-    chosen_ids = {r["id"] for r in sample}
-    skipped["not_selected"] = sum(1 for r in recent if not r["problems"] and r["id"] not in chosen_ids)
     picked = [dict(r, reason="problem") for r in problem] + sample
-    out_rows = []
-    for r in picked:
-        r = {k: v for k, v in r.items() if not k.startswith("_") and k != "assessed"}
-        out_rows.append(r)
+    out_rows = [{k: v for k, v in r.items() if not k.startswith("_") and k != "assessed"} for r in picked]
     pair_rows = [{"agent": a, "image_version": v, "iterations": st["total"], "assessed": st["assessed"],
                   "planned": st["chosen"]} for (a, v), st in sorted(pairs.items())]
     return out_rows, skipped, pair_rows, {"from": iso(start), "to": iso(now)}

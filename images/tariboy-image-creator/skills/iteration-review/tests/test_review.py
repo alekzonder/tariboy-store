@@ -37,12 +37,31 @@ def run(cmd, rows, *extra):
 
 class Selection(unittest.TestCase):
     def test_problem_iterations_come_first_newest_first(self):
-        rows = [it("a", 1, 1), it("a", 2, 2, status="harness_error"), it("a", 3, 3, productive=False),
+        rows = [it("a", 1, 1), it("a", 2, 2, status="harness_error"), it("a", 3, 3, status="timeout"),
                 it("b", 1, 4, marks=["question"]), it("b", 2, 5, marks=["check_rejected"]), it("b", 3, 6)]
         _, picked = run("candidates", rows)
         self.assertEqual([r["id"] for r in picked[:4]], ["b-2", "b-1", "a-3", "a-2"])
         self.assertTrue(all(r["reason"] == "problem" for r in picked[:4]))
         self.assertEqual({r["id"] for r in picked[4:]}, {"a-1", "b-3"})
+
+    def test_idle_iteration_is_not_a_problem(self):
+        rows = [it("a", n, n) for n in range(1, 5)] + [it("a", 9, 0, productive=False)]
+        _, picked = run("candidates", rows)
+        self.assertEqual([r["id"] for r in picked], ["a-4", "a-3", "a-2"])
+        self.assertTrue(all(r["reason"] == "pair_sample" for r in picked))
+
+    def test_problems_over_the_pair_quota_are_not_selected(self):
+        rows = [it("a", n, n, status="harness_error") for n in range(1, 6)] + [it("a", 8, 8), it("a", 9, 9)]
+        rows += [it("b", 1, 1, marks=["question"]), it("b", 2, 2), it("b", 3, 3), it("b", 4, 4)]
+        summary, picked = run("candidates", rows)
+        self.assertEqual([r["id"] for r in picked], ["a-5", "a-4", "a-3", "b-1", "b-4", "b-3"])
+        self.assertEqual(summary["skipped"]["problem_over_quota"], 2)
+        self.assertEqual(summary["skipped"]["not_selected"], 2 + 2 + 1)
+
+    def test_a_pair_with_fewer_iterations_than_the_quota_gets_all(self):
+        rows = [it("a", 1, 1), it("a", 2, 2, marks=["question"])]
+        _, picked = run("candidates", rows)
+        self.assertEqual([r["id"] for r in picked], ["a-2", "a-1"])
 
     def test_even_sample_per_agent_and_version(self):
         rows = [it("a", n, n) for n in range(1, 11)]                     # 10 iterations of a 1.0.0
