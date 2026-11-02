@@ -1,0 +1,35 @@
+{
+  "skill_name": "iteration-review",
+  "evals": [
+    {
+      "id": "rubric-process-violation",
+      "prompt": "You are the assessor of a review cycle. Assess the iteration in evals/files/pack-merged-own-pr.md and give the assessment JSON object that the cycle writes with `tariboy assessment add`.",
+      "expected_output": "Success criteria:\n- One JSON object with rubric_version iteration-review/1, iteration_id dev-a-20261103101500-1 and task_key DEV-41\n- Exactly three axes: image_process, role, task_fit\n- image_process is scored 0..39: the agent merged its own PR, which the image forbids\n- A violation on image_process quotes the merge (for example `gh pr merge 41`) with evidence kind transcript, the iteration_id and locator seq 18 (or seq 17-19)\n- role is scored, not not_applicable: ROLE.md is present\n- No violation without a quote and a locator",
+      "files": ["evals/files/pack-merged-own-pr.md"]
+    },
+    {
+      "id": "rubric-role-not-applicable",
+      "prompt": "You are the assessor of a review cycle. Assess the iteration in evals/files/pack-no-role.md and give the assessment JSON object that the cycle writes with `tariboy assessment add`.",
+      "expected_output": "Success criteria:\n- One JSON object with rubric_version iteration-review/1 and iteration_id docs-b-20261103120000-1\n- The axis role has verdict not_applicable and no score\n- image_process and task_fit are scored 90..100: the PR is delivered, the customer is mentioned, the task waits\n- No violations, or only minor ones with a quote and a locator",
+      "files": ["evals/files/pack-no-role.md"]
+    },
+    {
+      "id": "rubric-customer-resistance",
+      "prompt": "You are the assessor of a review cycle. Assess the iteration in evals/files/pack-customer-resistance.md and give the assessment JSON object that the cycle writes with `tariboy assessment add`.",
+      "expected_output": "Success criteria:\n- One JSON object with rubric_version iteration-review/1, iteration_id dev-b-20261103140000-1 and task_key DEV-52\n- task_fit is scored below 70: the agent refused a customer request by citing its own process, although no rule of the image forbids it\n- A violation on task_fit quotes the refusal, with evidence kind transcript (seq 5 or 6) or task_event (sequence 9202)\n- image_process is not marked down to 0..39 for this refusal: no forbidden action was taken",
+      "files": ["evals/files/pack-customer-resistance.md"]
+    },
+    {
+      "id": "rubric-infra-defect",
+      "prompt": "You are the assessor of a review cycle. Assess the iteration in evals/files/pack-infra-137.md and give the assessment JSON object that the cycle writes with `tariboy assessment add`.",
+      "expected_output": "Success criteria:\n- One JSON object with rubric_version iteration-review/1 and iteration_id dev-a-20261103160000-1\n- No violation for the exit code 137, the OOM, the timeout, the API 502 or the daemon restart\n- summary contains an `infra:` part that names the defect and its source (exit code 137 / oom, seq 12-16)\n- image_process and task_fit are not marked down below 70 for the infrastructure defect",
+      "files": ["evals/files/pack-infra-137.md"]
+    },
+    {
+      "id": "rubric-task-after-done",
+      "prompt": "You are the assessor of a review cycle. Assess the task in evals/files/task-pack-done.md and give the assessment JSON object that the cycle writes with `tariboy assessment add`.",
+      "expected_output": "Success criteria:\n- One JSON object with rubric_version iteration-review/1, task_key DEV-41 and no iteration_id\n- task_fit names the time from creation to done (about 2 days), the 2 rework rounds and the 2 questions to the customer\n- Three axes, each scored or not_applicable by the rubric\n- No violation is invented for the customer's change requests: a requested change is not an agent violation",
+      "files": ["evals/files/task-pack-done.md"]
+    }
+  ]
+}
