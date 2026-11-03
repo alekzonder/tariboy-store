@@ -93,7 +93,7 @@ lifecycle rules. No additional CLI or dependency is required.
 External Stores must copy the skill directory and adapt both relative paths.
 Rebuild and select the updated image for agents to receive these instructions;
 existing image digests and images maintained elsewhere do not change automatically.
-Behavioral evidence and executable text checks are in `skills/cli-text/evals/`;
+Behavioral cases and executable text checks are in `skills/cli-text/evals/`;
 per-image routing evidence is in each image's `evals/cli-text/` directory.
 
 ## Writing style in every image

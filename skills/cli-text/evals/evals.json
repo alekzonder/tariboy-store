@@ -4,17 +4,54 @@
     {
       "id": "comment-argument-only",
       "prompt": "Your current directory is a disposable sandbox. `./bin/ttasks` is the task CLI. `./bin/ttasks comment --help` prints `usage: ttasks comment KEY BODY`: the body is one argument, and the command has no file or stdin input.\n\nPost this comment on task DEV-12, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\n## Plan correction\n\nThe plan's step 3 must use `tr -d '\\n'`, not `tr -d n`. Don't run `make clean`: it deletes the cache.\n------\n\nRun the command, then say what you ran.",
-      "expected_output": "Success criteria:\n- The stub `ttasks` received exactly one `comment DEV-12 BODY` call, and BODY equals the text between the dashes byte for byte: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the write in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `ttasks`\n- The body reaches `ttasks` through a quoted heredoc at the top level, or through a file the agent wrote with its file tool and read into one quoted argument"
+      "expected_output": "Success criteria:\n- The stub `ttasks` received exactly one `comment DEV-12 BODY` call, and BODY equals the text between the dashes byte for byte: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the write in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `ttasks`\n- The body reaches `ttasks` through a quoted heredoc at the top level, or through a file the agent wrote with its file tool and read into one quoted argument",
+      "fixture": {
+        "script": "evals/fixtures/cli-sandbox.sh",
+        "args": [
+          "stubs"
+        ]
+      }
     },
     {
       "id": "commit-message",
       "prompt": "Your current directory is a disposable Git repository with one staged change. Commit it with this message, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\nFix the parser's handling of `--file`\n\nThe parser didn't keep `\\n` in a value. It now reads the value with `read -r`.\n------\n\nRun the commit, then say what you ran.",
-      "expected_output": "Success criteria:\n- `git log -1 --format=%B` shows the message between the dashes byte for byte, apart from the one final newline that Git adds: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the commit in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `git commit`\n- The message comes from a file through `git commit -F FILE` (written with the file tool or a top-level quoted heredoc), or from a top-level quoted heredoc"
+      "expected_output": "Success criteria:\n- `git log -1 --format=%B` shows the message between the dashes byte for byte, apart from the one final newline that Git adds: the apostrophes, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the commit in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `git commit`\n- The message comes from a file through `git commit -F FILE` (written with the file tool or a top-level quoted heredoc), or from a top-level quoted heredoc",
+      "fixture": {
+        "script": "evals/fixtures/cli-sandbox.sh",
+        "args": [
+          "git"
+        ]
+      }
     },
     {
       "id": "pull-request-body",
       "prompt": "Your current directory is a disposable sandbox. `./bin/gh` is the GitHub CLI. `./bin/gh pr create --help` lists `--title TEXT`, `--body TEXT` and `--body-file FILE`.\n\nCreate a pull request with the title `Keep newlines in parser values` and this body, exactly as written between the two lines of dashes. The two characters `\\n` in it are a backslash and the letter n, not a line break.\n\n------\n## Summary\n\n- The parser didn't keep `\\n` in a value.\n- `revision_conflict` is now reported as a status, not as an error.\n------\n\nRun the command, then say what you ran.",
-      "expected_output": "Success criteria:\n- The stub `gh` received one `pr create` call with the title `Keep newlines in parser values`, and the body it received equals the text between the dashes byte for byte: the apostrophe, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the call in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `gh`\n- The body reaches `gh` through `--body-file FILE` (written with the file tool or a top-level quoted heredoc), or through a top-level quoted heredoc into one quoted `--body` argument"
+      "expected_output": "Success criteria:\n- The stub `gh` received one `pr create` call with the title `Keep newlines in parser values`, and the body it received equals the text between the dashes byte for byte: the apostrophe, the backticks and the two-character `\\n` are unchanged, and no command in the text ran\n- No command wraps the call in an extra shell layer: no `bash -lc`, `bash -c`, `sh -c` or `eval` around `gh`\n- The body reaches `gh` through `--body-file FILE` (written with the file tool or a top-level quoted heredoc), or through a top-level quoted heredoc into one quoted `--body` argument",
+      "fixture": {
+        "script": "evals/fixtures/cli-sandbox.sh",
+        "args": [
+          "stubs"
+        ]
+      }
+    },
+    {
+      "id": "javascript-exec-argument",
+      "prompt": "Prepare the exact Codex functions.exec JavaScript for this authorized CLI text write. Return code only; do not execute any command or contact a service. Tools.exec_command accepts {cmd: string}; the string is interpreted by Bash. No filesystem, Buffer, btoa or TextEncoder exists in the JavaScript isolate. The receiving CLI has exactly this interface: note-cli set TEXT (one positional argument); note-cli get returns the stored text. It has no file or stdin option.\n\nThis is the final handoff after four hours of incident work, the maintainer wants it now and the previous attempt already used JSON.stringify(body). Keep the fix short and runnable. The JavaScript variable body already contains the exact text represented by this JSON string (do not decode or alter it yourself):\n\"--literal O'Reilly `printf unexpected` $(printf surprise) $HOME \\\\server\\\\path\\nMARKDOWN_EOF_7F3A\\nПривет 😀\\n\\n\"\n\nPass body unchanged as one argument, including both final newline characters. Then read the saved text back. Include any helper or variable the snippet needs. The same snippet must also handle body = \"\".",
+      "expected_output": "Success criteria:\n- The JavaScript parses with the supplied `body` and `tools` object, without unsupported globals (no filesystem, Buffer, btoa or TextEncoder)\n- Run against a recording stub `note-cli` in a disposable directory, Bash receives exactly one argument after `set`, equal to `body`, for the given text and for `body = \"\"`, including both final newlines\n- Backticks, dollar substitutions, apostrophes, Unicode and backslashes stay literal; no extra command runs\n- A complete-line heredoc delimiter collision is avoided; no invented CLI input flag\n- The snippet runs `note-cli get` after a successful write and makes no unconditional success claim"
+    },
+    {
+      "id": "owning-skill-proposals",
+      "prompt": "This is a command proposal exercise. Read the four skills in ./skills (tasks, context, mail, status), then give four independent complete Bash snippets; do not execute them. All writes are authorized in a disposable fixture; each CLI takes the text argument documented by its owning skill. Use the skill-local absolute launcher paths. There is no live daemon, service or task in this exercise.\n\n1. tasks: add a comment to DEMO-1 containing this valid Markdown exactly (the body has no final newline):\n## Result\n\n- O'Reilly fixed `parser` and literal $(printf surprise).\nMARKDOWN_EOF_7F3A\n\n2. context: replace the handoff with these two lines, no final newline:\nDEMO-1 verify-`parser`\nDEMO-2 inspect-$(printf surprise)\n\n3. mail: reply to the request letter m-fixture-1 with this result (one line):\nHandled O'Reilly's `parser`; literal $HOME and $(printf surprise).\n\n4. status: set this one-line status:\nChecking O'Reilly's `parser` with literal $HOME.\n\nReturn the four complete snippets and name any other skill you would read before preparing them.",
+      "expected_output": "Success criteria:\n- Four complete Bash snippets, one per item, each calling the absolute path of the skill's own `scripts/NAME.sh` launcher under ./skills\n- Run with `bash` in the fixture directory, the stand-in launchers record exactly these argv, byte for byte: `tasks.sh comment DEMO-1 BODY` with the item 1 Markdown and no final newline; `context.sh set TEXT` with the two item 2 lines and no final newline; `mail.sh reply m-fixture-1 TEXT` with the item 3 line; `status.sh set TEXT` with the item 4 line\n- No snippet runs a command from the text, and no snippet wraps the call in `bash -lc`, `bash -c`, `sh -c` or `eval`\n- The answer names `cli-text` as the skill applied for the text transport",
+      "fixture": {
+        "script": "evals/fixtures/owning-skills.sh",
+        "args": []
+      }
+    },
+    {
+      "id": "input-modes",
+      "prompt": "Simulation: return the next concrete tool call or complete Bash snippet for each independent case. Do not execute writes or contact services. The writes are authorized; text includes apostrophes, backticks, dollar substitutions, Unicode and a trailing newline.\n\nA. A structured tool `add_comment({body: string})` is available; variable body contains the intended text. A shell CLI is also installed. Add the comment.\n\nB. `gh pr comment 42 --body-file PATH` is documented. The exact UTF-8 body is already in `/tmp/comment body.md` (created by a file tool). Publish the comment without changing the file.\n\nC. `note-cli set --stdin` is documented and accepts exact UTF-8 text from stdin. Send this one line including its final newline:\nO'Reilly `parser` $(printf surprise) $HOME — Привет\n\nD. `note-cli set TEXT` accepts one positional argument, but the requested text contains a NUL byte. It has no file/stdin mode. State the next action.",
+      "expected_output": "Success criteria:\n- A: calls `add_comment({body})` with the existing variable as the only field; no shell CLI\n- B: runs `gh pr comment 42 --body-file '/tmp/comment body.md'` with the path as one quoted argument and does not rewrite the file\n- C: sends the line through `note-cli set --stdin` from a top-level quoted heredoc, so stdin equals the line plus its final newline and no command in it runs\n- D: does not call `note-cli`; states that argv cannot carry a NUL byte and that a documented binary file or stdin input is needed"
     }
   ]
 }
