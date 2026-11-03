@@ -2,7 +2,6 @@
 """Review cycle helper for the iteration-review skill.
 
 Subcommands (all JSON on stdout, diagnostics on stderr):
-  tick       --state FILE [--period SECONDS]     schedule body: quiet (111) until a period passed
   cost       --agent NAME --since TIME            total cost of the cycle so far
   candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--size N]
              the cycle's selection: last 24 h, not idle, problems first, then even over agent x image version, at most N
@@ -11,7 +10,7 @@ Subcommands (all JSON on stdout, diagnostics on stderr):
   pack       --dir DIR [--limit N]                evidence packs for the next N candidates
   tasks      --dir DIR --assessor NAME            done tasks that are ready for a task assessment
   validate   --dir DIR                            check every DIR/out/*.json before it is written
-  add        --dir DIR                            write every valid, not yet written assessment
+  add        --dir DIR [--assessor NAME]          write every valid assessment the assessor has not written yet
 
 Only `add` writes to the daemon (`tariboy assessment add`). Everything else reads.
 """
@@ -22,7 +21,6 @@ import os
 import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 RUBRIC = "iteration-review/1"
@@ -71,17 +69,7 @@ def clip(text, n):
     return text if len(text) <= n else text[: n - 15] + " …[clipped]"
 
 
-# ---------------------------------------------------------------- tick / cost
-
-def cmd_tick(a):
-    state = Path(a.state)
-    last = read_json(state, {}).get("last_wake", 0)
-    now = time.time()
-    if now - last < a.period:
-        sys.exit(int(os.environ.get("TARIBOY_QUIET_EXIT", "111")))
-    write_json(state, {"last_wake": now})
-    out({"review_cycle": "due", "at": dt.datetime.now(dt.timezone.utc).isoformat()})
-
+# ---------------------------------------------------------------- cost
 
 def cmd_cost(a):
     data = tb("usage", "--agent", a.agent, "--since", a.since)
@@ -282,7 +270,7 @@ def gather(agents, since, assessor, now, window, marks=True):
                 prompt = Path(info.get("prompt_path", "")).read_text()
             except OSError:
                 pass
-            if agent == assessor and 'Script "review-cycle"' in prompt:
+            if agent == assessor and (info.get("trigger") == "schedule" or 'Script "review-cycle"' in prompt):
                 continue  # the cycle's own iterations are not assessed
             row["task_key"], row["task_source"] = task_key_of(prompt)
             if marks and not row["assessed"]:
@@ -551,10 +539,26 @@ def check(obj):
     return errs
 
 
+def out_files(d):
+    """Assessor outputs in DIR/out. A `*.nolink.json` left there by review.py 0.18.0 or older is not an output."""
+    return [f for f in sorted((d / "out").glob("*.json")) if not f.name.endswith(".nolink.json")]
+
+
+def written_by(assessor, obj):
+    """ID of an assessment this assessor already wrote for the same iteration, or the same whole task, and rubric."""
+    if obj.get("iteration_id"):
+        rows = (tb("assessment", "ls", "--assessor", assessor, "--iteration", obj["iteration_id"], "--limit", "1000") or {}).get("assessments") or []
+    else:
+        rows = (tb("assessment", "ls", "--assessor", assessor, "--task", obj["task_key"], "--limit", "1000") or {}).get("assessments") or []
+        rows = [r for r in rows if not r.get("iteration_id")]
+    rows = [r for r in rows if r.get("rubric_version") == obj.get("rubric_version")]
+    return rows[0].get("id", "") if rows else ""
+
+
 def cmd_validate(a):
     d = Path(a.dir)
     report = []
-    for f in sorted((d / "out").glob("*.json")):
+    for f in out_files(d):
         try:
             obj = json.loads(f.read_text())
             errs = check(obj)
@@ -568,22 +572,35 @@ def cmd_validate(a):
 
 
 def cmd_add(a):
+    """Write each output once: skip a file this cycle wrote, and an assessment the daemon already has by
+    assessor, rubric and iteration (or whole task). Retry files without task_key live outside out/."""
     d = Path(a.dir)
+    if not a.assessor:
+        sys.exit("add needs --assessor or TARIBOY_AGENT: the daemon records assessments under this agent")
     added = read_json(d / "added.json", [])
     done = {r["file"] for r in added}
     results = []
-    for f in sorted((d / "out").glob("*.json")):
+    for f in out_files(d):
         if str(f) in done:
             continue
         obj = json.loads(f.read_text())
         if check(obj):
             results.append({"file": str(f), "error": "invalid, run validate"})
             continue
+        existing = written_by(a.assessor, obj)
+        if existing:
+            rec = {"file": str(f), "skipped": existing, "iteration_id": obj.get("iteration_id", ""),
+                   "task_key": obj.get("task_key", ""), "note": "already written by this assessor"}
+            added.append(rec)
+            results.append(rec)
+            write_json(d / "added.json", added)
+            continue
         proc = subprocess.run(["tariboy", "assessment", "add", "--file", str(f), "--json"], capture_output=True, text=True)
         note = ""
         if proc.returncode != 0 and obj.get("iteration_id") and obj.get("task_key") and "link" in (proc.stderr + proc.stdout).lower():
             obj.pop("task_key")
-            alt = f.with_suffix(".nolink.json")
+            alt = d / "nolink" / f.name
+            alt.parent.mkdir(parents=True, exist_ok=True)
             alt.write_text(json.dumps(obj, ensure_ascii=False))
             proc = subprocess.run(["tariboy", "assessment", "add", "--file", str(alt), "--json"], capture_output=True, text=True)
             note = "task_key dropped: iteration and task are not linked"
@@ -597,8 +614,9 @@ def cmd_add(a):
         added.append(rec)
         results.append(rec)
         write_json(d / "added.json", added)
-    out({"written": [r for r in results if "id" in r], "failed": [r for r in results if "error" in r],
-         "total_written_this_cycle": len(added)})
+    out({"written": [r for r in results if "id" in r], "skipped": [r for r in results if "skipped" in r],
+         "failed": [r for r in results if "error" in r],
+         "total_written_this_cycle": sum("id" in r for r in added)})
     if any("error" in r for r in results):
         sys.exit(1)
 
@@ -606,7 +624,6 @@ def cmd_add(a):
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("tick"); s.add_argument("--state", required=True); s.add_argument("--period", type=int, default=86400)
     s = sub.add_parser("cost"); s.add_argument("--agent", required=True); s.add_argument("--since", required=True)
     for name in ("candidates", "coverage"):
         s = sub.add_parser(name)
@@ -623,8 +640,9 @@ def main():
     s = sub.add_parser("tasks"); s.add_argument("--dir", required=True); s.add_argument("--assessor", required=True)
     s = sub.add_parser("validate"); s.add_argument("--dir", required=True)
     s = sub.add_parser("add"); s.add_argument("--dir", required=True)
+    s.add_argument("--assessor", default=os.environ.get("TARIBOY_AGENT", ""), help="this agent; default $TARIBOY_AGENT")
     a = p.parse_args()
-    {"tick": cmd_tick, "cost": cmd_cost, "candidates": cmd_candidates, "coverage": cmd_coverage, "pack": cmd_pack, "tasks": cmd_tasks,
+    {"cost": cmd_cost, "candidates": cmd_candidates, "coverage": cmd_coverage, "pack": cmd_pack, "tasks": cmd_tasks,
      "validate": cmd_validate, "add": cmd_add}[a.cmd](a)
 
 

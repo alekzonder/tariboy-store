@@ -1,15 +1,17 @@
 ---
 name: iteration-review
-description: Use when a `script.result` letter of the `review-cycle` schedule arrives, when the user prompt has or lost a `## Review cycle` configuration, or when assessing other agents' finished iterations or done tasks with `tariboy assessment add`.
+description: Use when the user prompt has or lost a `## Review cycle` configuration, when an iteration starts on the agent's own loop schedule in review mode, when a `review-cycle` script or its letter is left from an older version, or when assessing other agents' finished iterations or done tasks with `tariboy assessment add`.
 ---
 
 # Iteration Review
 
 The review cycle assesses the finished iterations of the configured agents,
 and their tasks after `done`, by rubric `iteration-review/1`, and writes each
-assessment to the daemon. It runs every `interval_hours` from one durable
-schedule, before any goal work of that iteration. It changes nothing it
-assesses.
+assessment to the daemon. The daemon starts the cycle: an iteration that the
+agent's own loop schedule starts runs one cycle, before any goal work of that
+iteration. The skill creates no schedule, script or wake-up of its own, so a
+failed iteration stops nothing: the next occurrence of the loop schedule
+starts the next cycle. It changes nothing it assesses.
 
 `REVIEW` below is `python3 SKILL_DIR/scripts/review.py`, with the absolute
 path of this skill's directory. `WORKDIR` is the configured workdir.
@@ -29,66 +31,64 @@ agents: AGENT, AGENT, ...
 since: RFC 3339 time — the date the cycle was enabled
 cycle_task: TASK-KEY
 model: haiku
-interval_hours: 3
 sample_size: 50
 ```
 
-- `interval_hours` is how often a cycle runs. Without the line it is 3.
-  `INTERVAL_S` below is `interval_hours × 3600`.
 - `sample_size` is the most iterations one cycle assesses. Without the line
   it is 50. `SIZE` below is its value.
 - `budget_usd: USD` is an optional line. Without it the cycle has no dollar
   limit: `sample_size` alone bounds what the cycle assesses. With it, step
   3.1 stops the cycle at that cost.
+- The block sets no interval. An `interval_hours` line from an older version
+  is ignored: the operator sets how often cycles run, see "Operator setup".
 
 ## Which step applies
 
+First read the trigger of this iteration:
+
+```bash
+tariboy iteration inspect "$TARIBOY_AGENT" "$TARIBOY_ITERATION" --json
+```
+
 | Observed | Step |
 | --- | --- |
-| Review mode on, any iteration | Ensure the schedule and refresh the script copy |
-| `script.result` of `review-cycle`, review mode on | Run the cycle, then the rest of the iteration |
-| `script.result` of `review-cycle`, review mode off | Stop the schedule |
-| Review mode on, no such letter | No cycle in this iteration; continue the normal Flow |
+| The configuration is present, `on` or `off` | "Remove the old schedule" first, then the row below that applies |
+| Review mode on, `trigger` is `schedule` or `manual` | "Run the cycle", then the letters and the goal of the iteration |
+| Review mode on, any other `trigger`, such as `message` | No cycle in this iteration; continue the normal Flow |
+| Review mode off, `trigger` is `schedule`, no letters, no goal | No cycle; end the iteration with `scripts/loop.sh done --idle` |
+| A `script.result` letter of `review-cycle`, with or without the configuration | "Remove the old schedule", reply to the letter, no cycle from this letter |
 
-## Ensure the schedule
+A cycle that found nothing to assess is still a cycle: it posts the cycle
+comment and ends with plain `scripts/loop.sh done`.
 
-1. First run `scripts/scripts.sh ls`. If a definition named `review-cycle` is
-   `active`, or stopped by a letter delivered in this iteration, and its
-   saved command has `--period INTERVAL_S`, reuse it. Never create a second
-   one. If its `--period` differs, the interval changed: `cancel` it while
-   `active`, then `rm` it (after the cycle, when a letter of it is
-   delivered), and create a new one in step 3.
-2. Refresh the script copy from the image that runs now:
+## Remove the old schedule
 
-   ```bash
-   mkdir -p "$WORKDIR/review-cycle"
-   cmp -s SKILL_DIR/scripts/review.py "$WORKDIR/review-cycle/review.py" ||
-     cp SKILL_DIR/scripts/review.py "$WORKDIR/review-cycle/review.py"
-   ```
+Versions up to 0.18.0 of this image ran the cycle from a `review-cycle`
+script with `review.py tick`. That script and its letters are not used now.
 
-   The schedule runs this copy, not `SKILL_DIR`: the installed skill path
-   contains the image digest, so a schedule on it would keep the old image's
-   script after every publication. The copy has a fixed path, and this step
-   puts a new image's `review.py` in it at the first iteration on that image,
-   with no new schedule.
-3. With no definition left from step 1, create one schedule on the copy:
+1. Run `scripts/scripts.sh ls`. If a definition named `review-cycle` exists,
+   run `scripts/scripts.sh cancel SCRIPT_ID` only while it is `active`, then
+   `scripts/scripts.sh rm SCRIPT_ID`. Never `rerun` it and never create a
+   new one.
+2. Remove its old state directory: `rm -rf "$WORKDIR/review-cycle"`.
+3. Reply to a delivered `review-cycle` letter that the definition is removed
+   and that the agent's loop schedule now starts the cycle.
 
-   ```bash
-   scripts/scripts.sh schedule review-cycle --every 600 -- \
-     python3 "$WORKDIR/review-cycle/review.py" tick --state "$WORKDIR/review-cycle/tick.json" --period INTERVAL_S
-   ```
+## Operator setup
 
-   With the default of 3 hours, `INTERVAL_S` is `10800`. `tick` exits `111`
-   (quiet) until `INTERVAL_S` seconds have passed since its last result, so
-   the schedule wakes the agent once per interval. Record the `scr-...` ID
-   in `context` as `CYCLE_TASK review-cycle`. Do not run a cycle until its
-   first result.
+The operator, not the agent, sets how often a cycle runs, with the loop
+schedule of the reviewing agent (`AGENT`). The agent never changes its own
+loop.
 
-## Stop the schedule
+| Goal | Command |
+| --- | --- |
+| A cycle every 3 hours | `tariboy loop schedule AGENT --value 'RRULE:FREQ=HOURLY;INTERVAL=3'` |
+| No idle wake-ups between cycles | `tariboy loop interval AGENT --value 0` |
+| Stop the cycles | set `review_mode: off`, then `tariboy loop schedule AGENT --clear` |
 
-Run `scripts/scripts.sh cancel SCRIPT_ID` only while `ls` reports it
-`active`, then `scripts/scripts.sh rm SCRIPT_ID`. Never `rerun` it. Reply to
-the letter that review mode is off and the schedule is removed.
+An occurrence never starts a second iteration while one runs, and the daemon
+does not replay missed occurrences. Iterations that a missed cycle did not
+assess stay candidates while they ended within the last 24 hours.
 
 ## Run the cycle
 
@@ -123,7 +123,10 @@ holds only cycle work.
    4. `REVIEW validate --dir "$DIR"`. Delete each invalid output file; its
       iteration stays a candidate for the next cycle.
    5. `REVIEW add --dir "$DIR"` writes each valid assessment with
-      `tariboy assessment add --file PATH`.
+      `tariboy assessment add --file PATH`. It writes an assessment once:
+      it skips a file this cycle already wrote, and an assessment that this
+      assessor already has for the same iteration (or whole task) and
+      rubric, and lists those under `skipped`. Count only `written`.
 
    Without `budget_usd`, the loop takes every candidate: 50 candidates are
    5 batches of 10, 14 are a batch of 10 and a batch of 4. When you report
@@ -182,8 +185,8 @@ holds only cycle work.
    ttasks comment CYCLE_TASK "$BODY"
    ```
 
-6. `scripts/scripts.sh rerun SCRIPT_ID` of `review-cycle`. Then continue with
-   the other letters and the goal of the iteration.
+6. Continue with the letters and the goal of the iteration. The cycle
+   leaves no script or schedule behind.
 
 ### Assessor prompt
 
@@ -201,7 +204,8 @@ the pairs only: no expected scores and no opinion of your own.
 ## Limits
 
 In review mode the only writes are `tariboy assessment add`, the one cycle
-comment on `cycle_task` and the `review-cycle` schedule. A violation found by
+comment on `cycle_task` and the removal of an old `review-cycle` script. A
+violation found by
 an assessment stays in the assessment:
 
 - never edit an image, workflow, skill or Store file because of it;
@@ -218,7 +222,9 @@ an assessment stays in the assessment:
 | "There is no `budget_usd`, so I will set a limit myself." | Without `budget_usd`, assess the whole selection; `sample_size` is the limit. |
 | "This pair already has 3 assessments; skip the rest of it." | There is no quota per pair. Take the selection of `candidates` as it is, up to `sample_size`. |
 | "An idle iteration is cheap, so assess it too." | Idle iterations are not taken. |
-| "The interval is not in the user prompt, so run once a day." | Without `interval_hours`, the interval is 3 hours: `--period 10800`. |
+| "A failed cycle stopped the schedule; I will create a script or a wake-up to recover." | The daemon starts the next cycle from the loop schedule. Create no script, schedule or `tariboy loop` change. |
+| "The `review-cycle` script is still there; I will `rerun` it." | Remove it: `cancel` while active, then `rm`. |
+| "This iteration came from a letter, but review mode is on, so I run a cycle." | Only a `schedule` or `manual` trigger runs a cycle. |
 | "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
 | "No iteration was left, so the cycle is done." | Run the task step: a `done` task with all iterations assessed still needs its task assessment. |
 | "The comment can just say the cycle ran." | Fill every field of the comment template, `0` included. |
