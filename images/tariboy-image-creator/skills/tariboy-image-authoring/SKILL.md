@@ -12,6 +12,10 @@ revising, consolidating or running evals for a skill or a whole image. An
 independent consumer of this skill must also provide both; do not substitute a
 new skill-writing or eval method.
 
+What an eval suite commits — fixtures under `evals/files/` and
+`evals/fixtures/`, never run results — follows `authoring-evals`, section
+"Fixtures and run results"; `make check` enforces it.
+
 ## Sources and composition
 
 Start from the task-selected Store root: `images/NAME/Tariboyfile.yaml` and

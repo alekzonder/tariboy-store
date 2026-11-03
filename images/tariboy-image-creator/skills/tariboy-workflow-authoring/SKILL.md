@@ -136,6 +136,10 @@ write and run them.
 
 - Every status a `pool` owns has at least one case; a new pool status gets
   its case in the same delivery. Customer and `script` statuses need none.
+- A case's fixture script lives in `workflows/NAME/evals/fixtures/` and
+  creates the repository and other derived state at run time; what else the
+  suite may commit follows `authoring-evals`, section "Fixtures and run
+  results".
 - Before publishing a workflow whose `statuses/`, scripts, transitions or
   artifacts changed, run `make workflow-eval WORKFLOW=NAME` (Haiku by
   default) on the task's final commit. Every case passes, or each failure is

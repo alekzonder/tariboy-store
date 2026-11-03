@@ -305,6 +305,23 @@ repository's version script in an isolated worktree. It integrates into main
 without a PR and verifies the annotated tag, release workflow and artifacts
 before closing the task. Supply the repository and customer at launch.
 
+## Eval suites
+
+Each image, skill and workflow keeps its eval cases in `evals/evals.json`.
+The `authoring-evals` skill, section "Fixtures and run results", gives the
+rules. In short:
+
+- Commit the input data of a case next to `evals/evals.json`: a file under
+  `evals/files/`, or a script `evals/fixtures/NAME.sh` that creates data
+  derived from the Store or code at run time. Put small textual state into the
+  case `prompt`.
+- Keep one copy of each fixture. Another suite names the same file by its
+  relative path.
+- Do not commit run results: actor responses, grading, logs, `results.json`,
+  baseline and candidate outputs. They stay in the run workspace in the
+  workdir.
+- Do not commit large binary data.
+
 ## Checks
 
 Requirements: Bash, GNU Make, Python 3, Git, ripgrep, Node.js/npm, and matching
@@ -329,6 +346,15 @@ The check also fails when an image or a workflow has no `ROLE.md`, an empty
 `ROLE.md`, or a `ROLE.md` of more than 500 characters. Two images have no
 `ROLE.md` because they will be removed: `llm-as-judge` and
 `tariboy-workflow-developer`.
+
+The check also runs `scripts/check-evals.py` on the files that Git tracks.
+It fails on a file in `evals/files/` or `evals/fixtures/` that no case or
+fixture script names, on a case that names a missing file, on a file whose
+content is the same as a file of another suite, and on a run-result file in
+`evals/`. `scripts/check-evals-known.txt` lists the violations that existed
+when the check was added. The list only shrinks: a new violation fails the
+check, and a line whose violation is gone fails it too. Remove the line in the
+change that fixes the violation.
 
 The check also tests the workflow eval runner and runs it with
 `--render-only` for every workflow. This mode runs no model and costs nothing:

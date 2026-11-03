@@ -38,10 +38,8 @@ Each target has one `evals/evals.json`. A skill uses `skill_name`; an image uses
 }
 ```
 
-`files` is optional. Store only non-derivable actor inputs under `evals/files/`;
-every committed fixture must be referenced. Put small textual state directly in
-the prompt. Keep evaluator-only criteria in `expected_output`, never in actor
-inputs.
+`files` is optional; see "Fixtures and run results" for what goes into it.
+Keep evaluator-only criteria in `expected_output`, never in actor inputs.
 
 A source case contains:
 
@@ -52,6 +50,38 @@ A source case contains:
 | `expected_output` | Human-readable, observable success criteria |
 | `files` | Optional relative paths to required input fixtures |
 | `expectations` | Optional array of individually gradable criteria, when one summary line is too coarse |
+
+## Fixtures and run results
+
+A fixture is the input data of a case. It is committed next to
+`evals/evals.json`, so baseline and candidate get the same data and a run can
+be repeated. A run result is never committed.
+
+| Input or output | Where it lives |
+| --- | --- |
+| Small textual state: a task state, a few lines of a log, a short config | In the case `prompt`; no file |
+| Non-derivable input too large for the prompt: a redacted iteration pack, a request body | One file under `evals/files/`, named in the case `files` |
+| Data derivable from the Store or code: a manifest, a skill catalog, a lock listing, a Git repository state | A fixture script `evals/fixtures/NAME.sh` that creates it at run time from the revision under test, writing only into the run workspace; never a committed copy |
+| Input that another suite already commits | That one file, named by its path relative to this suite's root: a case in `images/demo/evals/evals.json` names `skills/review/evals/files/pack.md`. Or test only this suite's boundary with a smaller input. Never a second copy |
+| Large binary data: a database, an archive, a recording | Never committed: a fixture script that builds the needed state, or a small redacted text extract |
+| Actor responses, traces, grading, timing, benchmark summaries, logs, `results.json`, baseline and candidate outputs, provenance | The run workspace `<configured-workdir>/evals/<target>/<task>/<run>/`; the accepted summary goes on the task and the pull request |
+
+Rules for every suite:
+
+- Every committed file under `evals/files/` and `evals/fixtures/` is named by
+  a case `files` entry, a case `fixture.script`, or a referenced fixture
+  script. Delete a file that nothing references in the same change; Git
+  history keeps it.
+- A case keeps its `id`. Adding, changing or deleting a case or a fixture is a
+  source change reviewed in the task's pull request: your proposal and the
+  pull request name each added, changed or deleted case `id` and fixture path,
+  and state that existing ids stay unchanged.
+- The Store check (`make check`) fails on an unreferenced file in
+  `evals/files/` or `evals/fixtures/`, on a missing referenced file, on a file
+  byte-identical to a file of another suite, and on a run-result file name in
+  `evals/`. Fix the cause. Its known-violations list
+  `scripts/check-evals-known.txt` only shrinks: never add a line to it; remove
+  the line of a violation your change fixes.
 
 ## Choose the boundary
 
@@ -116,7 +146,11 @@ through the Native Task for the missing model or access decision.
 
 Pass the selected model and reasoning effort explicitly; use `medium` when
 supported and not specified by the task. Keep model, effort and other sampling
-settings identical across each baseline/candidate pair. Record the actual
+settings identical across each baseline/candidate pair. Baseline and candidate
+differ only in the source under test, the unchanged and the changed
+instruction or skill; both run on the one selected model. A premium model on
+one side and the budget model on the other is not a baseline/candidate pair.
+Record the actual
 configuration and any unavailable controls. For Codex, for example:
 `spawn_agent(model="gpt-5.6-luna", reasoning_effort="medium", fork_turns="none", ...)`.
 
@@ -176,6 +210,10 @@ unavailable actor or unrun case is a limitation, not a pass.
 | Committing prompt/catalog/hash snapshots | Record a source revision or digest with the run |
 | Copying image composition cases into a shared skill | Keep each case at the boundary it evaluates |
 | Saving the latest `results.md` in the suite | Publish the accepted summary on the task/delivery artifact |
+| Committing a copy of a manifest, catalog or lock "so the case is self-contained" | Add a fixture script in `evals/fixtures/` that derives it at run time |
+| Copying a fixture into a second suite | Reference the one committed file, or test only this suite's boundary |
+| Keeping an unreferenced fixture "in case somebody needs it" | Delete it; Git history keeps it |
+| Adding a line to `scripts/check-evals-known.txt` to pass the check | Fix the cause; the list only shrinks |
 | Using different models for baseline and candidate | Rerun a matched pair with pinned settings |
 | Inheriting the parent's premium model by omitting it | Pass model and effort explicitly on both launches |
 | Passing the rubric to the actor | Withhold `expected_output`; give it only to the evaluator |
