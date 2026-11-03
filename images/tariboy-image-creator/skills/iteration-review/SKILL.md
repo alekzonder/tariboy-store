@@ -6,7 +6,7 @@ description: Use when the user prompt has or lost a `## Review cycle` configurat
 # Iteration Review
 
 The review cycle assesses the finished iterations of the configured agents,
-and their tasks after `done`, by rubric `iteration-review/1`, and writes each
+and their tasks after `done`, by rubric `iteration-review/2`, and writes each
 assessment to the daemon. The daemon starts the cycle: an iteration that the
 agent's own loop schedule starts runs one cycle, before any goal work of that
 iteration. The skill creates no schedule, script or wake-up of its own, so a
@@ -32,6 +32,7 @@ since: RFC 3339 time — the date the cycle was enabled
 cycle_task: TASK-KEY
 model: haiku
 sample_size: 50
+reassess: off
 ```
 
 - `sample_size` is the most iterations one cycle assesses. Without the line
@@ -39,6 +40,10 @@ sample_size: 50
 - `budget_usd: USD` is an optional line. Without it the cycle has no dollar
   limit: `sample_size` alone bounds what the cycle assesses. With it, step
   3.1 stops the cycle at that cost.
+- `reassess: on` is an optional line. It turns on the one-time
+  re-assessment of "Re-assessment" below. Without it, or with `off`, the
+  cycle re-assesses nothing outside the 24-hour window. The customer turns
+  it on; never turn it on yourself.
 - The block sets no interval. An `interval_hours` line from an older version
   is ignored: the operator sets how often cycles run, see "Operator setup".
 
@@ -90,6 +95,21 @@ An occurrence never starts a second iteration while one runs, and the daemon
 does not replay missed occurrences. Iterations that a missed cycle did not
 assess stay candidates while they ended within the last 24 hours.
 
+## Re-assessment
+
+Rubric `iteration-review/2` reads the whole transcript, so its scores differ
+from those of `iteration-review/1`. An assessment counts only for its own
+rubric: an iteration or a task that has only an `iteration-review/1`
+assessment of this assessor is still a candidate for `iteration-review/2`,
+and `add` writes the new assessment next to the old one.
+
+With `reassess: on`, every cycle also takes the iterations and `done` tasks
+that have an `iteration-review/1` assessment of this assessor and no
+`iteration-review/2` one, at any age. They share `sample_size` and come after
+the iterations of the window: problem iterations first, then round by round
+over the pairs. The cycles go on until none is left; `coverage` reports
+`reassess` with `done` and `left` for the cycle comment.
+
 ## Run the cycle
 
 Do the cycle first in the iteration, before any goal work, so that its cost
@@ -97,18 +117,22 @@ holds only cycle work.
 
 1. Set `START` to the current UTC time and `DIR="$WORKDIR/review/START"`.
 2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor ASSESSOR --size SIZE`
-   selects the cycle's iterations and orders them:
+   selects the cycle's iterations and orders them. With `reassess: on`, add
+   `--reassess`:
    - only finished iterations that ended in the last 24 hours; an older
      iteration that no cycle took is skipped for good;
    - an idle iteration (`loop.sh done --idle`) is not taken and is not a
      problem;
-   - an iteration with an assessment from this assessor is processed: it is
-     not taken again, and it is never tagged;
+   - an iteration with an `iteration-review/2` assessment from this assessor
+     is processed: it is not taken again, and it is never tagged. An
+     iteration with only an `iteration-review/1` one is a candidate;
    - problem iterations come first, newest first. A problem is an end
      without `loop.sh done` (`harness_error`, `timeout`, `no_i_am_done`), a
      refused check or a question to the customer;
    - then the others, round by round over the pairs agent × image version,
      newest first inside a pair. There is no quota per pair;
+   - with `--reassess`, then the iterations of "Re-assessment", in the
+     same order;
    - the selection stops at `SIZE` iterations. What is left stays a
      candidate of the next cycle while it is inside the 24 hours.
 3. Repeat while candidates remain:
@@ -117,9 +141,18 @@ holds only cycle work.
       `N = floor((budget_usd - spent) / 0.08)`, at most 10. When `N` is 0,
       stop: the rest of the selection is not assessed.
    2. `REVIEW pack --dir "$DIR" --limit N` writes one evidence pack for each
-      of the next `N` candidates and prints `pack` and `out` paths.
-   3. Start one subagent on the configured `model` with the assessor prompt
-      below. Wait for it.
+      of the next `N` candidates and prints its `jobs`. A pack holds the
+      whole transcript: nothing is cut. Each job is one assessor subagent:
+      - `kind: whole`: one pack, or several small packs that together fill
+        at most half of what one subagent reads. Its `pairs` are the
+        `PACK_PATH -> OUT_PATH` pairs of the assessor prompt;
+      - `kind: parts`: one pack larger than one subagent reads (240 000
+        characters, `--window-chars`), split into `parts` in `seq` order.
+        Read it with "Reading in parts" below.
+   3. Start one subagent per job on the configured `model` and wait until
+      all of them have finished. Give a `whole` job the assessor prompt
+      below. Different jobs may run at the same time; the parts of one pack
+      run one after the other.
    4. `REVIEW validate --dir "$DIR"`. Delete each invalid output file; its
       iteration stays a candidate for the next cycle.
    5. `REVIEW add --dir "$DIR"` writes each valid assessment with
@@ -137,16 +170,17 @@ holds only cycle work.
    assess in step 3:
    1. `REVIEW tasks --dir "$DIR" --assessor ASSESSOR` writes a task pack
       (`# Task pack KEY`) for each `done` task whose iterations are all
-      assessed and that has no task assessment, and prints `pack` and `out`
-      paths.
-   2. For each printed pack, start the same assessor subagent with the
-      same prompt and the pair `PACK_PATH -> OUT_PATH`, inside the same
-      budget check as step 3.1.
-   3. The output is a task assessment: it has `task_key` and no
+      assessed and that has no `iteration-review/2` task assessment, and
+      prints its `jobs`, as `pack` does.
+   2. With `reassess: on`, add `--reassess` to step 4.1: it also takes the
+      `done` tasks of "Re-assessment".
+   3. Run each printed job as in steps 3.2 and 3.3, inside the same budget
+      check as step 3.1.
+   4. The output is a task assessment: it has `task_key` and no
       `iteration_id`. `REVIEW validate --dir "$DIR"`, then
       `REVIEW add --dir "$DIR"`, which runs
       `tariboy assessment add --file OUT_PATH` for it.
-   4. Count it in the comment as a task assessment, not as an iteration.
+   5. Count it in the comment as a task assessment, not as an iteration.
 5. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
    `REVIEW coverage --agents AGENTS --since SINCE --assessor ASSESSOR`
    gives the window figures. Post one comment on `cycle_task` with this
@@ -157,7 +191,11 @@ holds only cycle work.
      and `pairs_with_assessment`;
    - `LEFT` is `skipped.over_sample` and `SIZE` is `sample_size` of step 2;
    - `N` counts this cycle from the `add` outputs; `FROM`, `TO`, `KEY`,
-     `X` and `Y` are as named in the line.
+     `X` and `Y` are as named in the line;
+   - `RE_DONE` and `RE_LEFT` are the sums of `done` and of `left` of the
+     `coverage` fields `reassess.iterations` and `reassess.tasks`; `IT_*`
+     and `TASK_*` are those fields alone. Without `reassess: on`, write
+     `- Re-assessment to iteration-review/2: off`.
 
    Without `budget_usd`, write
    `Candidates not assessed (budget): 0` and
@@ -180,6 +218,7 @@ holds only cycle work.
    - Candidates not assessed (budget): N
    - Cycle cost: X USD of budget_usd Y USD
    - Cost of one assessment: X USD (cycle cost / assessments written, iterations and tasks)
+   - Re-assessment to iteration-review/2: done RE_DONE, left RE_LEFT (iterations IT_DONE / IT_LEFT, tasks TASK_DONE / TASK_LEFT)
    CYCLE_EOF
    )
    ttasks comment CYCLE_TASK "$BODY"
@@ -201,6 +240,29 @@ PACK_PATH -> OUT_PATH
 `RUBRIC_PATH` is `SKILL_DIR/rubric.md`. Give the subagent the rubric path and
 the pairs only: no expected scores and no opinion of your own.
 
+### Reading in parts
+
+A `parts` job is read by one subagent per part, part 1 first, each after
+the previous one has finished. Each subagent gets this prompt with the
+values of its part:
+
+```text
+You are the assessor of a review cycle. Read RUBRIC_PATH completely, also
+"Reading in parts". Read part K of N of one evidence pack: PACK_PATH.
+Notes of the earlier parts: NOTES_IN (part 1: none). Read them first, by
+this exact path; when the file does not exist or its `part` is not K-1,
+stop and write nothing.
+Write your notes to NOTES_OUT (the last part: write the assessment to
+OUT_PATH instead). Run no command and change no other file.
+```
+
+`NOTES_IN`, `NOTES_OUT` and `OUT_PATH` are the `notes_in`, `notes_out` and
+`out` fields of the part; all parts of a pack share one notes file. Never
+skip a part, and never start part K+1 before the notes say `"part": K`.
+`validate` refuses an assessment whose notes miss a part or that leaves out
+a violation of the notes; its iteration stays a candidate for the next
+cycle.
+
 ## Limits
 
 In review mode the only writes are `tariboy assessment add`, the one cycle
@@ -217,7 +279,11 @@ an assessment stays in the assessment:
 | --- | --- |
 | "This violation needs an improvement task now." | The assessment is the record. Improvement tasks come from the customer. |
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
-| "I will assess this one again with better evidence." | An iteration with an assessment is processed. |
+| "I will assess this one again with better evidence." | An iteration with an `iteration-review/2` assessment is processed. |
+| "The pack is huge; the first parts show enough." | Read every part in order. The last part scores from the notes of all parts. |
+| "Clip this long output so the pack fits one subagent." | Never cut a pack. A pack larger than one subagent is read in parts. |
+| "Ten small packs fit one subagent, as before." | One iteration per subagent; `pack` groups packs only while they fill at most half of one. |
+| "Many old assessments are left; turn on `reassess` now." | Only the customer turns on `reassess: on`. Without it, re-assess nothing outside the window. |
 | "The budget is nearly spent, but the queue is short." | With `budget_usd`, stop at the budget; what is left is not assessed. |
 | "There is no `budget_usd`, so I will set a limit myself." | Without `budget_usd`, assess the whole selection; `sample_size` is the limit. |
 | "This pair already has 3 assessments; skip the rest of it." | There is no quota per pair. Take the selection of `candidates` as it is, up to `sample_size`. |

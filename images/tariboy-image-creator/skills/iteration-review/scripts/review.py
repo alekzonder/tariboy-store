@@ -3,13 +3,17 @@
 
 Subcommands (all JSON on stdout, diagnostics on stderr):
   cost       --agent NAME --since TIME            total cost of the cycle so far
-  candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--size N]
-             the cycle's selection: last 24 h, not idle, problems first, then even over agent x image version, at most N
+  candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--size N] [--reassess]
+             the cycle's selection: last 24 h, not idle, problems first, then even over agent x image version, at most N;
+             with --reassess, then iterations that have only an older rubric assessment of this assessor
   coverage   --agents A,B --since TIME --assessor NAME [--window S]
-             metric 1: finished not idle iterations of the window, assessed ones, pairs with an assessment
-  pack       --dir DIR [--limit N]                evidence packs for the next N candidates
-  tasks      --dir DIR --assessor NAME            done tasks that are ready for a task assessment
-  validate   --dir DIR                            check every DIR/out/*.json before it is written
+             metric 1: finished not idle iterations of the window, assessed ones, pairs with an assessment;
+             and the re-assessment state: objects with an older rubric assessment, done and left
+  pack       --dir DIR [--limit N] [--window-chars C]
+             full evidence packs for the next N candidates, as assessor jobs: a batch of whole packs or one pack in parts
+  tasks      --dir DIR --assessor NAME [--reassess] [--window-chars C]
+             done tasks that are ready for a task assessment, as assessor jobs
+  validate   --dir DIR                            check every DIR/out/*.json and its parts notes before it is written
   add        --dir DIR [--assessor NAME]          write every valid assessment the assessor has not written yet
 
 Only `add` writes to the daemon (`tariboy assessment add`). Everything else reads.
@@ -23,11 +27,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-RUBRIC = "iteration-review/1"
+RUBRIC = "iteration-review/2"
+OLD_RUBRICS = ("iteration-review/1",)  # an object with only these from the assessor is re-assessed
 AXES = ("image_process", "role", "task_fit")
 KEY_RE = re.compile(r"\b[A-Z][A-Z0-9]*-[0-9a-z]{4}\b|\b[A-Z][A-Z0-9]*-[0-9]+\b")
 INFRA_CODES = {137}  # 143 (SIGTERM) is the normal end after `loop.sh done`
-PACK_TRANSCRIPT_CHARS = 24000
+WINDOW_CHARS = 240000  # what one assessor subagent reads: a whole pack, a batch of packs, or one part
+BATCH_SHARE = 0.5      # several packs go to one subagent only while together they fill at most half of it
+LINE_CHARS = 1000      # longer lines are wrapped, never cut: the Read tool shortens very long lines
 
 
 def tb(*args, check=True):
@@ -109,13 +116,53 @@ def task_key_of(prompt):
 
 
 def has_assessment(assessor, iteration="", task=""):
-    """True when the assessor already wrote an assessment of this iteration, or of this whole task."""
+    """True when the assessor already wrote an assessment of this iteration, or of this whole task, by RUBRIC.
+
+    An assessment by an older rubric does not count: that object stays a candidate for RUBRIC.
+    """
     args = ["assessment", "ls", "--assessor", assessor, "--limit", "1000"]
     args += ["--iteration", iteration] if iteration else ["--task", task]
-    rows = (tb(*args) or {}).get("assessments") or []
+    rows = [r for r in (tb(*args) or {}).get("assessments") or [] if r.get("rubric_version") == RUBRIC]
     if iteration:
         return bool(rows)
     return any(not r.get("iteration_id") for r in rows)
+
+
+def reassess_state(assessor, agents):
+    """Objects of the assessor with an older rubric assessment: which have a RUBRIC one (done) and which not (left).
+
+    Iterations are listed per assessed agent, task assessments once for the assessor; `truncated` is true when a
+    listing reached the daemon's limit of 1000 rows, so the counts may be low.
+    """
+    rows, truncated = [], False
+    for agent in [x.strip() for x in agents.split(",") if x.strip()]:
+        got = (tb("assessment", "ls", "--assessor", assessor, "--agent", agent, "--limit", "1000", check=False) or {}).get("assessments") or []
+        truncated |= len(got) >= 1000
+        rows += [dict(r, _agent=agent) for r in got if r.get("iteration_id")]
+    got = (tb("assessment", "ls", "--assessor", assessor, "--limit", "1000", check=False) or {}).get("assessments") or []
+    truncated |= len(got) >= 1000
+    rows += [r for r in got if not r.get("iteration_id")]
+    old, new, agent_of = set(), set(), {}
+    for r in rows:
+        key = ("iteration", r["iteration_id"]) if r.get("iteration_id") else ("task", r.get("task_key", ""))
+        if r.get("iteration_id"):
+            agent_of[r["iteration_id"]] = r.get("_agent") or r.get("subject_agent", "")
+        if r.get("rubric_version") == RUBRIC:
+            new.add(key)
+        elif r.get("rubric_version") in OLD_RUBRICS:
+            old.add(key)
+    done, left = old & new, old - new
+    count = lambda keys, kind: sum(k[0] == kind for k in keys)
+    return {"rubric": RUBRIC, "from": list(OLD_RUBRICS),
+            "iterations": {"total": count(old, "iteration"), "done": count(done, "iteration"), "left": count(left, "iteration")},
+            "tasks": {"total": count(old, "task"), "done": count(done, "task"), "left": count(left, "task")},
+            "truncated": truncated,
+            "_left_iterations": sorted((agent_of.get(k[1], ""), k[1]) for k in left if k[0] == "iteration"),
+            "_left_tasks": sorted(k[1] for k in left if k[0] == "task")}
+
+
+def public(state):
+    return {k: v for k, v in state.items() if not k.startswith("_")}
 
 
 def parse_time(text):
@@ -196,6 +243,27 @@ def in_window(rows, now, window):
     return kept, skipped, {"from": iso(start), "to": iso(now)}
 
 
+def in_order(rows):
+    """Problem iterations first, newest first; then round by round over the pairs agent x image version."""
+    rows = [dict(r, problems=problems_of(r)) for r in rows]
+    newest = lambda r: (r["_ended"], r["id"])
+    problem = sorted((r for r in rows if r["problems"]), key=newest, reverse=True)
+    rest = {}
+    for r in rows:
+        if not r["problems"]:
+            rest.setdefault((r["agent"], r.get("image_version") or ""), []).append(r)
+    rest = {p: sorted(v, key=newest, reverse=True) for p, v in rest.items()}
+    # Pairs with the freshest iteration go first in every round.
+    order = sorted(rest, key=lambda p: newest(rest[p][0]), reverse=True)
+    sample, rnd = [], 0
+    while any(rnd < len(v) for v in rest.values()):
+        for pair in order:
+            if rnd < len(rest[pair]):
+                sample.append(dict(rest[pair][rnd], reason="pair_sample"))
+        rnd += 1
+    return [dict(r, reason="problem") for r in problem] + sample
+
+
 def select(rows, now, window, size):
     """Pick the cycle's candidates from gathered iteration rows.
 
@@ -204,13 +272,16 @@ def select(rows, now, window, size):
        Idle iterations are not taken. An already assessed iteration is never a candidate.
     2. Problem iterations first, newest first.
     3. Then the others round by round over the pairs agent x image_version, newest first inside a pair.
-    4. At most `size` candidates; the rest is left for the next cycle while it is inside the window.
+    4. Rows marked `reassess` (only an older rubric assessment of this assessor, any age) come after the window,
+       in the same order: problems first, then round by round over the pairs.
+    5. At most `size` candidates; the rest is left for the next cycle while it is inside the window.
     """
-    kept, skipped, win = in_window(rows, now, window)
+    reassess = [dict(r, _ended=parse_time(r.get("ended_at")) or parse_time(r.get("started_at")) or now)
+                for r in rows if r.get("reassess") and not r.get("assessed")]
+    kept, skipped, win = in_window([r for r in rows if not r.get("reassess")], now, window)
     skipped.update(assessed=0, over_sample=0)
     pairs = {}
     for r in kept:
-        r = dict(r, problems=problems_of(r))
         st = pairs.setdefault((r["agent"], r.get("image_version") or ""), {"total": 0, "assessed": 0, "open": []})
         st["total"] += 1
         if r.get("assessed"):
@@ -218,18 +289,10 @@ def select(rows, now, window, size):
             st["assessed"] += 1
             continue
         st["open"].append(r)
-    newest = lambda r: (r["_ended"], r["id"])
-    problem = sorted((r for st in pairs.values() for r in st["open"] if r["problems"]), key=newest, reverse=True)
-    rest = {p: sorted((r for r in st["open"] if not r["problems"]), key=newest, reverse=True) for p, st in pairs.items()}
-    # Pairs with the freshest iteration go first in every round.
-    order = sorted((p for p in rest if rest[p]), key=lambda p: newest(rest[p][0]), reverse=True)
-    sample, rnd = [], 0
-    while any(rnd < len(v) for v in rest.values()):
-        for pair in order:
-            if rnd < len(rest[pair]):
-                sample.append(dict(rest[pair][rnd], reason="pair_sample"))
-        rnd += 1
-    picked = [dict(r, reason="problem") for r in problem] + sample
+    # The window first: its iterations stop being candidates after 24 hours. Re-assessment fills the rest.
+    picked = in_order([r for st in pairs.values() for r in st["open"]])
+    known = {r["id"] for r in picked}
+    picked += [dict(r, reassess=True) for r in in_order(r for r in reassess if r["id"] not in known)]
     skipped["over_sample"] = max(0, len(picked) - size)
     picked = picked[:max(0, size)]
     planned = {}
@@ -279,6 +342,29 @@ def gather(agents, since, assessor, now, window, marks=True):
     return rows
 
 
+def gather_reassess(agents, assessor, known):
+    """Rows of the iterations that only an older rubric assessment of this assessor covers, at any age."""
+    state = reassess_state(assessor, agents)
+    rows = []
+    for agent, iteration in state["_left_iterations"]:
+        if iteration in known or not agent:
+            continue
+        info = tb("iteration", "inspect", agent, iteration, check=False) or {}
+        info = info.get("iteration", info)
+        prompt = ""
+        try:
+            prompt = Path(info.get("prompt_path", "")).read_text()
+        except OSError:
+            pass
+        row = {"agent": agent, "id": iteration, "status": info.get("status", ""), "started_at": info.get("started_at", ""),
+               "ended_at": info.get("ended_at", ""), "productive": info.get("productive"),
+               "image_version": info.get("image_version", ""), "assessed": False, "reassess": True}
+        row["task_key"], row["task_source"] = task_key_of(prompt)
+        row["marks"] = transcript_problems(agent, iteration)
+        rows.append(row)
+    return rows, state
+
+
 def now_arg(a):
     return parse_time(a.now) if getattr(a, "now", None) else dt.datetime.now(dt.timezone.utc)
 
@@ -287,12 +373,22 @@ def cmd_candidates(a):
     d = Path(a.dir)
     now = now_arg(a)
     rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window)
+    state = None
+    if a.reassess and not a.input:
+        extra, state = gather_reassess(a.agents, a.assessor, {r["id"] for r in rows})
+        rows += extra
+    if not a.reassess:
+        rows = [r for r in rows if not r.get("reassess")]
     picked, skipped, pairs, window = select(rows, now, a.window, a.size)
     write_json(d / "candidates.json", picked)
     write_json(d / "pairs.json", pairs)
-    out({"window": window, "sample_size": a.size, "candidates": len(picked),
-         "problem": sum(r["reason"] == "problem" for r in picked), "skipped": skipped,
-         "active_pairs": len(pairs), "file": str(d / "candidates.json")})
+    summary = {"window": window, "sample_size": a.size, "candidates": len(picked),
+               "problem": sum(r["reason"] == "problem" for r in picked), "skipped": skipped,
+               "active_pairs": len(pairs), "file": str(d / "candidates.json"),
+               "reassess": {"on": bool(a.reassess), "picked": sum(bool(r.get("reassess")) for r in picked)}}
+    if state:
+        summary["reassess"].update(public(state))
+    out(summary)
 
 
 def coverage(rows, now, window):
@@ -315,7 +411,10 @@ def coverage(rows, now, window):
 def cmd_coverage(a):
     now = now_arg(a)
     rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window, marks=False)
-    out(coverage(rows, now, a.window))
+    result = coverage([r for r in rows if not r.get("reassess")], now, a.window)
+    if not a.input:
+        result["reassess"] = public(reassess_state(a.assessor, a.agents))
+    out(result)
 
 
 # ---------------------------------------------------------------- pack
@@ -339,34 +438,82 @@ def role_md(image_ref, digest, version):
     return "", "no manifest at this digest and no store commit with this image_version"
 
 
-def transcript_lines(agent, iteration):
-    data = tb("transcript", agent, iteration, check=False) or {}
+def wrap(text, indent=""):
+    """The text as lines of at most LINE_CHARS characters. A longer line is wrapped, never cut."""
     lines = []
-    for call in data.get("calls") or []:
+    for line in str(text or "").split("\n"):
+        line = indent + line.rstrip("\r")
+        while len(line) > LINE_CHARS:
+            lines.append(line[:LINE_CHARS])
+            line = indent + line[LINE_CHARS:]
+        lines.append(line)
+    return lines
+
+
+def entry(seq, label, text=None):
+    """One transcript entry: a `[seq N] label` line, then the full text indented by two spaces."""
+    lines = [(seq, f"[seq {seq}] {label}")]
+    if text is not None and str(text) != "":
+        lines += [(seq, x) for x in wrap(text, "  ")]
+    return lines
+
+
+def input_text(value):
+    """A tool call input as `key: value` lines; strings stay as they are, other values as JSON."""
+    if not isinstance(value, dict):
+        return json.dumps(value, ensure_ascii=False)
+    return "\n".join(f"{k}: {v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)}" for k, v in value.items())
+
+
+def transcript_lines(agent, iteration):
+    """The whole transcript as (seq, line) pairs in seq order: every call, result and text in full."""
+    data = tb("transcript", agent, iteration, check=False)
+    if data is None:
+        return [(0, "Transcript: not readable, `tariboy transcript` failed.")]
+    calls = data.get("calls") or []
+    # The agent's own model is the model of its last call; calls of another model are subagents.
+    main = next((c.get("model") for c in reversed(calls) if c.get("model")), "")
+    lines, seen = [], set()
+
+    def first(key):
+        """A block that repeats one already shown word for word is shown once, at its first seq.
+
+        The delta of a subagent call repeats that subagent's conversation, so without this a transcript grows many
+        times over with copies. Nothing that was not shown before is left out.
+        """
+        if key in seen:
+            return False
+        seen.add(key)
+        return True
+
+    for call in calls:
         seq = call.get("seq")
-        if call.get("status") not in ("ok", None):
-            if call.get("status") != "quota_probe":
-                lines.append(f"[seq {seq}] API status {call.get('status')}")
+        who = f"subagent {call.get('model')} " if call.get("model") and call.get("model") != main else ""
+        if call.get("status") not in ("ok", None, "quota_probe"):
+            lines += entry(seq, f"{who}API status {call.get('status')}")
+        if call.get("truncated"):
+            lines += entry(seq, "note: the AI proxy stored this call truncated")
         for msg in call.get("delta") or []:
+            role = msg.get("role")
             for b in msg.get("blocks") or []:
-                if msg.get("role") == "user" and b.get("type") == "tool_result":
-                    lines.append(f"[seq {seq}] result: {clip(b.get('text'), 300)}")
-                elif (msg.get("role") == "user" and b.get("type") == "text" and seq and seq > 3
-                      and not (b.get("text") or "").lstrip().startswith(("<system-reminder>", "Base directory for this skill"))):
-                    lines.append(f"[seq {seq}] user: {clip(b.get('text'), 200)}")
+                text = b.get("text") or ""
+                if role == "user" and b.get("type") == "tool_result":
+                    if first(("result", b.get("tool_use_id") or text)):
+                        lines += entry(seq, f"{who}result:" if not b.get("is_error") else f"{who}result (error):", text)
+                elif role in ("user", "system") and b.get("type") == "text" and seq and seq > 3:
+                    if first((role, text)):
+                        lines += entry(seq, f"{who}{role}:", text)
         for b in (call.get("response") or {}).get("blocks") or []:
             if b.get("type") == "tool_use":
-                lines.append(f"[seq {seq}] call {b.get('tool_name')}: {clip(json.dumps(b.get('input'), ensure_ascii=False), 400)}")
+                if first(("call", b.get("tool_use_id") or input_text(b.get("input")))):
+                    lines += entry(seq, f"{who}call {b.get('tool_name')}:", input_text(b.get("input")))
             elif b.get("type") == "text":
-                lines.append(f"[seq {seq}] text: {clip(b.get('text'), 300)}")
-    body = "\n".join(lines)
-    if len(body) > PACK_TRANSCRIPT_CHARS:
-        half = PACK_TRANSCRIPT_CHARS // 2
-        body = body[:half] + "\n…[middle of transcript clipped]…\n" + body[-half:]
-    return body
+                lines += entry(seq, f"{who}text:", b.get("text") or "")
+    return lines
 
 
 def task_block(key, agent):
+    """The task in full: description, every comment and every event."""
     if not key:
         return "No task: the iteration had no goal task and no letter named one.\n"
     show = tb("tasks", "show", key, check=False)
@@ -376,26 +523,106 @@ def task_block(key, agent):
     parts = [f"key: {key}", f"title: {t.get('title', '')}", f"status: {t.get('status', '')}",
              f"assignee: {t.get('assignee', '')}", f"created_at: {t.get('created_at', '')}",
              f"workflow: {t.get('workflow', '') or t.get('workflow_ref', '') or 'none'}",
-             "description:", clip(t.get("description", ""), 1500), "", "comments (latest 8):"]
-    for c in (show.get("comments") or [])[-8:]:
-        parts.append(f"- comment {c.get('id')} by {c.get('author')} at {c.get('created_at')}: {clip(c.get('body'), 600)}")
+             "description:", t.get("description", "") or "", "", "comments:"]
+    for c in show.get("comments") or []:
+        parts.append(f"- comment {c.get('id')} by {c.get('author')} at {c.get('created_at')}:")
+        parts += wrap(c.get("body"), "  ")
     ev = tb("tasks", "events", "--key", key, check=False) or {}
     parts.append("")
     parts.append("events (sequence kind actor payload):")
-    for e in (ev.get("events") or [])[-40:]:
-        parts.append(f"- {e.get('sequence')} {e.get('kind')} {e.get('actor')} {clip(json.dumps(e.get('payload'), ensure_ascii=False), 160)}")
+    for e in ev.get("events") or []:
+        parts.append(f"- {e.get('sequence')} {e.get('kind')} {e.get('actor')} {json.dumps(e.get('payload'), ensure_ascii=False)}")
     return "\n".join(parts) + "\n"
+
+
+def split_body(head, body, window):
+    """Split body lines into parts so that head plus one part fits `window` characters. No line is dropped."""
+    budget = max(window - len(head) - 2000, window // 4)
+    parts, cur, size = [], [], 0
+    for seq, line in body:
+        if cur and size + len(line) + 1 > budget:
+            parts.append(cur)
+            cur, size = [], 0
+        cur.append((seq, line))
+        size += len(line) + 1
+    if cur or not parts:
+        parts.append(cur)
+    return parts
+
+
+def seq_range(part):
+    seqs = [s for s, _ in part if isinstance(s, int)]
+    return (min(seqs), max(seqs)) if seqs else (None, None)
+
+
+def write_pack(d, name, head, body, window, out_path):
+    """Write one pack, whole or in parts, and return its assessor job.
+
+    A whole pack: `packs/NAME.md`. A pack larger than `window`: `packs/NAME.part-KK.md`, each with the same head
+    and the next lines of the body in seq order, and `packs/NAME.parts.json`, which `validate` reads.
+    """
+    pdir = d / "packs"
+    pdir.mkdir(parents=True, exist_ok=True)
+    text = "\n".join(line for _, line in body)
+    if len(head) + len(text) + 200 <= window:
+        p = pdir / f"{name}.md"
+        content = f"{head}{text}\n\n-- end of pack {name} --\n"
+        p.write_text(content)
+        return {"kind": "pack", "id": name, "pack": str(p), "out": str(out_path), "chars": len(content)}
+    parts = split_body(head, body, window)
+    n = len(parts)
+    job = {"kind": "parts", "id": name, "out": str(out_path), "parts": []}
+    for k, part in enumerate(parts, 1):
+        first, last = seq_range(part)
+        cont = bool(part) and not part[0][1].startswith("[seq ")
+        lines = [f"## Part {k} of {n}: seq {first} to seq {last}", ""]
+        if cont:
+            lines.append(f"(This part starts inside the entry of seq {first} that part {k - 1} began.)")
+        lines += [line for _, line in part]
+        p = pdir / f"{name}.part-{k:02d}.md"
+        p.write_text(f"{head}" + "\n".join(lines) + f"\n\n-- end of part {k} of {n} of pack {name} --\n")
+        notes = str(d / "notes" / f"{name}.json")  # one file: each part reads it and writes it back with its findings
+        job["parts"].append({"part": k, "of": n, "pack": str(p), "seq": f"{first}-{last}",
+                             "notes_in": notes if k > 1 else None,
+                             "notes_out": notes if k < n else None,
+                             "out": str(out_path) if k == n else None})
+    write_json(pdir / f"{name}.parts.json", job)
+    return job
+
+
+def batch_jobs(jobs, window):
+    """One subagent per job. Whole packs share one subagent only while together they fill at most BATCH_SHARE."""
+    result, cur, size = [], [], 0
+    limit = window * BATCH_SHARE
+    for j in jobs:
+        alone = j["kind"] != "pack" or j["chars"] > limit
+        if cur and (alone or size + j["chars"] > limit):
+            result.append({"kind": "whole", "pairs": cur, "chars": size})
+            cur, size = [], 0
+        if alone:
+            result.append(j if j["kind"] == "parts" else {"kind": "whole", "pairs": [j], "chars": j["chars"]})
+            continue
+        cur.append(j)
+        size += j["chars"]
+    if cur:
+        result.append({"kind": "whole", "pairs": cur, "chars": size})
+    return [dict(j, pairs=[{k: p[k] for k in ("id", "pack", "out")} for p in j["pairs"]]) if j["kind"] == "whole" else j
+            for j in result]
+
+
+def packed_already(d, name):
+    return any(x.exists() for x in (d / "packs" / f"{name}.md", d / "packs" / f"{name}.parts.json",
+                                    d / "out" / f"{name}.json"))
 
 
 def cmd_pack(a):
     d = Path(a.dir)
     cands = read_json(d / "candidates.json", [])
-    packed = []
+    jobs = []
     for c in cands:
-        if len(packed) >= a.limit:
+        if len(jobs) >= a.limit:
             break
-        p = d / "packs" / f"{c['id']}.md"
-        if p.exists() or (d / "out" / f"{c['id']}.json").exists():
+        if packed_already(d, c["id"]):
             continue
         info = tb("iteration", "inspect", c["agent"], c["id"], check=False) or {}
         info = info.get("iteration", info)
@@ -405,7 +632,6 @@ def cmd_pack(a):
             prompt = Path(info.get("prompt_path", "")).read_text()
         except OSError:
             prompt = ""
-        secs = prompt_sections(prompt)
         order = prompt.split("# [runtime: identity]")[0]
         instr = prompt.split("# [runtime: workdir]")[-1].split("# [runtime: user-prompt]")[0] if prompt else ""
         user = prompt.split("# [runtime: user-prompt]")[1].split("# Finishing this iteration")[0] if "# [runtime: user-prompt]" in prompt else ""
@@ -416,7 +642,7 @@ def cmd_pack(a):
             infra.append(f"exit_code {exit_code}, oom {res.get('oom')}")
         if info.get("status") == "timeout":
             infra.append("status timeout")
-        text = "\n".join([
+        head = "\n".join([
             f"# Iteration pack {c['id']}",
             "",
             "## Iteration",
@@ -432,28 +658,34 @@ def cmd_pack(a):
             "## Task",
             task_block(c.get("task_key"), c["agent"]),
             "## Iteration input (task order, letters, goal)",
-            clip(order, 6000),
+            order.strip(),
             "",
             "## ROLE.md",
             f"source: {role_src}",
             role if role else "ABSENT: the axis `role` is `not_applicable`.",
             "",
             "## Image instructions of this version",
-            clip(instr, 16000),
+            instr.strip(),
             "",
             "## User prompt",
-            clip(user, 3000) or "none",
+            user.strip() or "none",
             "",
             "## Transcript (locator = seq N)",
-            transcript_lines(c["agent"], c["id"]),
+            "",
+            "Every entry is in full; a line longer than 1000 characters is wrapped onto the next line.",
+            "A block that repeats an earlier one word for word is shown once, at its first seq.",
+            "`subagent MODEL` marks a call of a subagent the agent started, not of the agent itself.",
+            "",
         ])
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text + "\n")
-        packed.append({"id": c["id"], "agent": c["agent"], "task_key": c.get("task_key", ""), "pack": str(p),
-                       "out": str(d / "out" / f"{c['id']}.json")})
-    remaining = sum(1 for c in cands if not (d / "packs" / f"{c['id']}.md").exists())
-    write_json(d / "batch.json", packed)
-    out({"packed": packed, "remaining_unpacked": remaining})
+        head = "\n".join(wrap(head)) + "\n"
+        job = write_pack(d, c["id"], head, transcript_lines(c["agent"], c["id"]), a.window_chars, d / "out" / f"{c['id']}.json")
+        jobs.append(dict(job, agent=c["agent"], task_key=c.get("task_key", "")))
+    remaining = sum(1 for c in cands if not packed_already(d, c["id"]))
+    jobs = batch_jobs(jobs, a.window_chars)
+    write_json(d / "batch.json", jobs)
+    out({"jobs": jobs, "iterations": sum(len(j["pairs"]) if j["kind"] == "whole" else 1 for j in jobs),
+         "subagents": sum(len(j["parts"]) if j["kind"] == "parts" else 1 for j in jobs),
+         "remaining_unpacked": remaining})
 
 
 # ---------------------------------------------------------------- tasks
@@ -466,9 +698,13 @@ def cmd_tasks(a):
     for c in cands:
         if c.get("task_key") and str(d / "out" / f"{c['id']}.json") not in added:
             open_iters.setdefault(c["task_key"], []).append(c["id"])
-    ready = []
-    for key in sorted({c["task_key"] for c in cands if c.get("task_key")}):
-        if open_iters.get(key) or has_assessment(a.assessor, task=key):
+    keys = {c["task_key"] for c in cands if c.get("task_key")}
+    if a.reassess:
+        keys |= set(reassess_state(a.assessor, "")["_left_tasks"])
+    jobs = []
+    for key in sorted(keys):
+        name = f"task-{key}"
+        if open_iters.get(key) or packed_already(d, name) or has_assessment(a.assessor, task=key):
             continue
         show = tb("tasks", "show", key, check=False)
         t = (show or {}).get("task", show or {})
@@ -478,20 +714,20 @@ def cmd_tasks(a):
         ev = (tb("tasks", "events", "--key", key, check=False) or {}).get("events") or []
         kinds = [e.get("kind", "") for e in ev]
         payloads = [json.dumps(e.get("payload"), ensure_ascii=False) for e in ev]
-        p = d / "packs" / f"task-{key}.md"
-        lines = [f"# Task pack {key}", "", "Assess the whole task: write `task_key`, no `iteration_id`.", "",
-                 "## Task", task_block(key, ""), "## Measures",
+        head = "\n".join([f"# Task pack {key}", "", "Assess the whole task: write `task_key`, no `iteration_id`.", "", ""])
+        lines = ["## Task", task_block(key, ""), "## Measures",
                  f"created_at: {t.get('created_at')}  done_at: {t.get('updated_at')}",
                  f"rework rounds (changes_requested or reopened): {sum(('changes_requested' in x) or ('reopen' in x) for x in kinds + payloads)}",
                  f"questions to the customer (task.question_asked or waits): {sum(('question' in k) or ('wait' in k) for k in kinds)}",
                  "", "## Iteration assessments of this task"]
         for r in rows:
-            lines.append(f"- {r.get('id')} iteration {r.get('iteration_id') or '-'}: {clip(r.get('summary'), 300)}")
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text("\n".join(lines) + "\n")
-        ready.append({"task_key": key, "pack": str(p), "out": str(d / "out" / f"task-{key}.json")})
-    write_json(d / "task-batch.json", ready)
-    out({"task_packs": ready})
+            if r.get("iteration_id"):
+                lines.append(f"- {r.get('id')} iteration {r.get('iteration_id')} rubric {r.get('rubric_version')}: {r.get('summary')}")
+        body = [(None, x) for x in wrap("\n".join(lines))]
+        jobs.append(dict(write_pack(d, name, head, body, a.window_chars, d / "out" / f"{name}.json"), task_key=key))
+    jobs = batch_jobs(jobs, a.window_chars)
+    write_json(d / "task-batch.json", jobs)
+    out({"jobs": jobs, "tasks": sum(len(j["pairs"]) if j["kind"] == "whole" else 1 for j in jobs)})
 
 
 # ---------------------------------------------------------------- validate / add
@@ -518,7 +754,17 @@ def check(obj):
                 errs.append(f"{x.get('axis')}: not_applicable has no score")
         else:
             errs.append(f"{x.get('axis')}: verdict must be scored or not_applicable")
-    for i, v in enumerate(obj.get("violations") or []):
+    errs += check_violations(obj.get("violations"))
+    return errs
+
+
+def check_violations(violations):
+    errs = []
+    if violations is None:
+        violations = []
+    if not isinstance(violations, list):
+        return ["violations must be a list"]
+    for i, v in enumerate(violations):
         if v.get("axis") not in AXES:
             errs.append(f"violation {i}: unknown axis")
         if not str(v.get("description", "")).strip() or not str(v.get("quote", "")).strip():
@@ -537,6 +783,53 @@ def check(obj):
         else:
             errs.append(f"violation {i}: evidence kind must be transcript, task_event or script_run")
     return errs
+
+
+def check_notes(obj, part, of):
+    """Notes of one part of a pack read in parts: the findings so far, see "Reading in parts" of the rubric."""
+    errs = []
+    if obj.get("rubric_version") != RUBRIC:
+        errs.append(f"rubric_version must be {RUBRIC}")
+    if obj.get("part") != part or obj.get("of") != of:
+        errs.append(f"part and of must be {part} and {of}")
+    if obj.get("parts_read") != list(range(1, part + 1)):
+        errs.append(f"parts_read must be {list(range(1, part + 1))}: no part is skipped")
+    errs += check_violations(obj.get("violations"))
+    obs = obj.get("observations")
+    if not isinstance(obs, list) or any(not isinstance(o, dict) or o.get("axis") not in AXES
+                                        or not str(o.get("note", "")).strip() for o in obs):
+        errs.append("observations must be a list of {axis, locator, note}")
+    if not isinstance(obj.get("infra", []), list):
+        errs.append("infra must be a list")
+    return errs
+
+
+def chain_errors(d, f, obj):
+    """For a pack read in parts: the notes after part N-1 read every part before the last, and the assessment
+    keeps every violation of the notes."""
+    manifest = d / "packs" / f"{f.stem}.parts.json"
+    if not manifest.exists():
+        return []
+    job = read_json(manifest, {})
+    last = (job.get("parts") or [{}])[-1]
+    n = last.get("of", 1)
+    if n < 2 or not last.get("notes_in"):
+        return []
+    try:
+        notes = json.loads(Path(last["notes_in"]).read_text())
+    except (OSError, json.JSONDecodeError) as e:
+        return [f"notes of parts 1 to {n - 1} missing or not JSON: {e}"]
+    errs = [f"notes: {x}" for x in check_notes(notes, n - 1, n)]
+    final = {finding(v) for v in obj.get("violations") or []}
+    errs += [f"violation {axis} at {loc} of the notes is not in the assessment"
+             for axis, loc in {finding(v) for v in notes.get("violations") or []} if (axis, loc) not in final]
+    return errs
+
+
+def finding(v):
+    """A violation by axis and locator: the assessment of the last part keeps every one the notes found."""
+    ev = v.get("evidence") or {}
+    return v.get("axis"), str(ev.get("locator") or ev.get("sequence") or ev.get("run_id") or "")
 
 
 def out_files(d):
@@ -561,7 +854,7 @@ def cmd_validate(a):
     for f in out_files(d):
         try:
             obj = json.loads(f.read_text())
-            errs = check(obj)
+            errs = check(obj) + chain_errors(d, f, obj)
         except json.JSONDecodeError as e:
             errs = [f"not JSON: {e}"]
         report.append({"file": str(f), "ok": not errs, "errors": errs})
@@ -584,7 +877,7 @@ def cmd_add(a):
         if str(f) in done:
             continue
         obj = json.loads(f.read_text())
-        if check(obj):
+        if check(obj) or chain_errors(d, f, obj):
             results.append({"file": str(f), "error": "invalid, run validate"})
             continue
         existing = written_by(a.assessor, obj)
@@ -634,10 +927,15 @@ def main():
         s.add_argument("--window", type=int, default=86400, help="seconds; only iterations that ended inside it")
         if name == "candidates":
             s.add_argument("--size", type=int, default=50, help="sample size: at most this many candidates")
+            s.add_argument("--reassess", action="store_true",
+                           help="also take iterations with only an older rubric assessment of this assessor, at any age")
         s.add_argument("--now", default="", help="RFC 3339 end of the window (tests)")
         s.add_argument("--input", default="", help="gathered iteration rows as JSON instead of the daemon (tests)")
     s = sub.add_parser("pack"); s.add_argument("--dir", required=True); s.add_argument("--limit", type=int, default=10)
+    s.add_argument("--window-chars", type=int, default=WINDOW_CHARS, help="characters one assessor subagent reads")
     s = sub.add_parser("tasks"); s.add_argument("--dir", required=True); s.add_argument("--assessor", required=True)
+    s.add_argument("--reassess", action="store_true", help="also take done tasks with only an older rubric task assessment")
+    s.add_argument("--window-chars", type=int, default=WINDOW_CHARS, help="characters one assessor subagent reads")
     s = sub.add_parser("validate"); s.add_argument("--dir", required=True)
     s = sub.add_parser("add"); s.add_argument("--dir", required=True)
     s.add_argument("--assessor", default=os.environ.get("TARIBOY_AGENT", ""), help="this agent; default $TARIBOY_AGENT")
