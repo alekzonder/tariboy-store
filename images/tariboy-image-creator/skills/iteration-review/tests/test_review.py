@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Checks of the review cycle selection: `review.py candidates` and `coverage` on fixed rows."""
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -132,6 +133,100 @@ class Coverage(unittest.TestCase):
         self.assertEqual(summary["assessed_iterations"], 5)
         self.assertEqual(summary["active_pairs"], 3)
         self.assertEqual(summary["pairs_with_assessment"], 2)
+
+
+FAKE_TARIBOY = r'''#!/usr/bin/env python3
+"""A fake `tariboy assessment add|ls` that keeps the written assessments in $FAKE_DB."""
+import json, os, sys
+db_path = os.environ["FAKE_DB"]
+db = json.load(open(db_path)) if os.path.exists(db_path) else []
+args = sys.argv[1:]
+opt = lambda name: args[args.index(name) + 1] if name in args else ""
+if args[:2] == ["assessment", "add"]:
+    obj = json.load(open(opt("--file")))
+    if obj.get("iteration_id") and obj.get("task_key"):
+        sys.exit("task_key is not linked to the iteration")
+    row = dict(obj, id=f"as-{len(db) + 1}", assessor_agent=os.environ["TARIBOY_AGENT"])
+    db.append(row)
+    json.dump(db, open(db_path, "w"))
+    print(json.dumps({"assessment": row}))
+elif args[:2] == ["assessment", "ls"]:
+    rows = [r for r in db if (not opt("--assessor") or r["assessor_agent"] == opt("--assessor"))
+            and (not opt("--iteration") or r.get("iteration_id") == opt("--iteration"))
+            and (not opt("--task") or r.get("task_key") == opt("--task"))]
+    print(json.dumps({"assessments": rows}))
+else:
+    sys.exit(f"unexpected: {args}")
+'''
+
+
+def assessment(iteration="", task=""):
+    obj = {"rubric_version": "iteration-review/1", "summary": "ok",
+           "axes": [{"axis": a, "verdict": "scored", "score": 80} for a in ("image_process", "role", "task_fit")]}
+    if iteration:
+        obj["iteration_id"] = iteration
+    if task:
+        obj["task_key"] = task
+    return obj
+
+
+class Add(unittest.TestCase):
+    """`review.py add` writes each assessment once, also when files of an earlier call stay in out/."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        (root / "bin").mkdir()
+        fake = root / "bin" / "tariboy"
+        fake.write_text(FAKE_TARIBOY.replace("/usr/bin/env python3", sys.executable, 1))
+        fake.chmod(0o755)
+        self.dir = root / "cycle"
+        (self.dir / "out").mkdir(parents=True)
+        self.db = root / "db.json"
+        self.env = {"PATH": f"{root / 'bin'}:/usr/bin:/bin", "FAKE_DB": str(self.db), "TARIBOY_AGENT": "reviewer-1"}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def put(self, name, obj):
+        (self.dir / "out" / name).write_text(json.dumps(obj))
+
+    def add(self, cycle_dir=None):
+        proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "add", "--dir", str(cycle_dir or self.dir)],
+                              capture_output=True, text=True, env=self.env)
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        return json.loads(proc.stdout)
+
+    def written(self):
+        return json.loads(self.db.read_text()) if self.db.exists() else []
+
+    def test_repeated_add_after_a_dropped_task_key_writes_nothing_again(self):
+        self.put("it-1.json", assessment("it-1", "DEV-1"))   # the daemon refuses the link: written without task_key
+        self.put("it-2.json", assessment("it-2"))
+        first = self.add()
+        self.assertEqual(len(first["written"]), 2)
+        self.assertEqual(len(self.written()), 2)
+        second = self.add()
+        self.assertEqual(second["written"], [])
+        self.assertEqual(second["failed"], [])
+        self.assertEqual(len(self.written()), 2, "a repeated add wrote an assessment twice")
+
+    def test_a_file_left_by_an_older_version_is_not_written(self):
+        self.put("it-1.json", assessment("it-1", "DEV-1"))
+        self.put("it-1.nolink.json", assessment("it-1"))     # left in out/ by review.py 0.18.0
+        self.add()
+        self.assertEqual([r["iteration_id"] for r in self.written()], ["it-1"])
+
+    def test_an_assessment_already_in_the_daemon_is_skipped_by_its_key(self):
+        self.put("it-1.json", assessment("it-1"))
+        self.put("task-DEV-1.json", assessment(task="DEV-1"))
+        self.add()
+        other = Path(self.tmp.name) / "other-cycle"           # a new cycle directory with the same outputs
+        shutil.copytree(self.dir / "out", other / "out")
+        result = self.add(other)
+        self.assertEqual(result["written"], [])
+        self.assertEqual(sorted(r["file"].rsplit("/", 1)[1] for r in result["skipped"]), ["it-1.json", "task-DEV-1.json"])
+        self.assertEqual(len(self.written()), 2)
 
 
 if __name__ == "__main__":

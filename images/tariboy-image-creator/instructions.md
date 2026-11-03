@@ -8,9 +8,10 @@ or decide a change is accepted on the customer's behalf.
 ## Scope
 
 Each iteration starts from the selected Native Task, its recorded state and the
-delivered letters; a review cycle starts from the `review-cycle` letter
-instead. Your configured CWD must be the task-selected Store root
-containing `images/` and optionally `skills/` and `workflows/`. Keep reusable
+delivered letters; in review mode an iteration that the agent's own loop
+schedule starts also runs a review cycle first. Your configured CWD must be
+the task-selected Store root containing `images/` and optionally `skills/`
+and `workflows/`. Keep reusable
 stage knowledge and scripts in skills inside an image; `instructions.md`
 describes the process and explicitly requires those skills. A task's process
 belongs in a workflow under `workflows/`, never in an agent image; you author
@@ -39,7 +40,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Commands outliving the iteration | `scripts` | REQUIRED for the closure monitor in every completion mode |
 | Any success, fix or completion claim | `verification-before-completion` | REQUIRED before publication and completion |
 | Runtime identity, goal, handoff, letters, workdir | `whoami`, `goal`, `context`, `mail`, `workdir` | REQUIRED for that runtime data |
-| Review cycle: the `## Review cycle` configuration of the user prompt, the `review-cycle` schedule and its letters, assessments of other agents' iterations and tasks | `iteration-review` | REQUIRED whenever the user prompt has that configuration or a `review-cycle` letter arrives |
+| Review cycle: the `## Review cycle` configuration of the user prompt, an iteration with trigger `schedule`, an old `review-cycle` script or its letter, assessments of other agents' iterations and tasks | `iteration-review` | REQUIRED whenever the user prompt has that configuration or a `review-cycle` letter arrives |
 | Reading other tasks, other agents and their iterations | the `tariboy` CLI and its `--help`, read-only, as `## Invariants` limits it | when a task needs evidence that `ttasks` and your own runtime do not show |
 | Iteration finish | `loop` | REQUIRED as the last action |
 | Plan shaping, isolation mechanics, debugging, review, TDD, parallel execution | `brainstorming`, `writing-plans`, `using-git-worktrees`, `systematic-debugging`, `test-driven-development`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents` | when applicable |
@@ -51,7 +52,7 @@ table names them; it does not replace them.
 
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
-| R | a `script.result` of `review-cycle` is delivered, or the user prompt has or lost a `## Review cycle` configuration | Review cycle | `iteration-review`, `scripts`, `mail`, `tasks`, `writing-style` | with the configuration, exactly one `review-cycle` schedule exists; after its letter, every assessment of the selection, at most `sample_size` and within `budget_usd` when the configuration sets it, is written with `tariboy assessment add`, one cycle comment is on the cycle task and the definition is resumed with `rerun`; without the configuration, the definition is removed |
+| R | the user prompt has a `## Review cycle` configuration, or a `script.result` of `review-cycle` is delivered | Review cycle | `iteration-review`, `scripts`, `mail`, `tasks`, `writing-style` | no `review-cycle` script is left; in review mode, when the iteration trigger is `schedule` or `manual`, every assessment of the selection, at most `sample_size` and within `budget_usd` when the configuration sets it, is written once with `tariboy assessment add` and one cycle comment is on the cycle task; no schedule, script or loop setting is created |
 | 1 | iteration starts with a selected or supplied task | Intake | `using-superpowers`, `tariboy-image-delivery`, `tasks`, `goal`, `context`, `mail`, `workdir` | the task, its customer and its recorded branch, worktree, PR and monitor are read; with no key, the matching task is claimed or created in an explicitly identified queue |
 | 2 | no recorded approval covers the current scope | Investigate and agree | `tariboy-image-authoring`, `tariboy-workflow-authoring` when applicable, `tasks`, `brainstorming`, `writing-plans`, `writing-style` | a concrete plan — which image, workflow and skills change, why, eval coverage, delivery destination — is published as a task question to its customer, and the flexible task is `wait_customer` |
 | 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `using-git-worktrees` | `Completion mode` and its source are recorded on the task; in `PR` mode GitHub preflight passed, the base is fetched and fast-forwarded, and one task branch and worktree exist and are recorded; in `Customer VCS` mode isolation follows the customer's recorded explanation; a recovered task reuses the recorded one; without GitHub or that explanation the customer is asked with `ttasks ask` and the flexible task is `wait_customer` |
@@ -61,8 +62,8 @@ table names them; it does not replace them.
 | 7 | the closure monitor observes a merge with merge-commit metadata and an authoritative re-read confirms it | Complete | `tariboy-image-delivery`, `scripts`, `github-pr-workflow` when applicable, `image-creator`, `tariboy-workflow-authoring` when applicable, `verification-before-completion`, `tasks`, `context`, `writing-style` | the schedule is removed (cancelled first only while active), the base is fast-forwarded, post-merge checks pass, every image the merge affected is built from a workdir copy under both its `image_version` tag and `latest` with one matching digest, each merged workflow is recorded as an operator hand-over and never built, worktree and branch are removed, one consolidated comment records Required, Completed, Verification, Integration, Publication and Cleanup, `ttasks done KEY` ran, and the context entry is gone |
 
 Row R runs first in its iteration, before row 1 and before any other goal work,
-and it never selects, changes or completes a goal task. With the configuration
-and no `review-cycle` letter, row R only checks the schedule; no cycle runs.
+and it never selects, changes or completes a goal task. With any other
+trigger, row R only removes an old `review-cycle` script; no cycle runs.
 
 Rows 2 and 3 never swap: deadline, authority, sunk work and broad approval are
 not approval, and task size scales plan detail, not the approval requirement.
@@ -96,8 +97,8 @@ active durable monitor. Read authoritative state once before waiting; never poll
 | Recorded question to the customer (row 2, or a decision asked in rows 5–6) | the answer recorded on the task |
 | Named recurring closure monitor for the one PR or review request (row 5), active or resumed with `rerun` this iteration | its next `script.result` or PR or review state change |
 
-The `review-cycle` schedule is not a wait object of any task: it keeps no task
-active and never replaces a question or a closure monitor.
+The review cycle is not a wait object of any task: it keeps no task active
+and never replaces a question or a closure monitor.
 
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set a flexible task to `wait_customer`, keep
