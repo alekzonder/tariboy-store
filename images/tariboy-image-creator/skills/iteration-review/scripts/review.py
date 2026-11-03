@@ -4,10 +4,10 @@
 Subcommands (all JSON on stdout, diagnostics on stderr):
   tick       --state FILE [--period SECONDS]     schedule body: quiet (111) until a period passed
   cost       --agent NAME --since TIME            total cost of the cycle so far
-  candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--target N]
-             the cycle's selection: last 24 h, a quota per agent x image version, problems first inside it
-  coverage   --agents A,B --since TIME --assessor NAME [--window S] [--target N]
-             metric 1: active pairs agent x image version and pairs with enough assessments
+  candidates --dir DIR --agents A,B --since TIME --assessor NAME [--window S] [--size N]
+             the cycle's selection: last 24 h, not idle, problems first, then even over agent x image version, at most N
+  coverage   --agents A,B --since TIME --assessor NAME [--window S]
+             metric 1: finished not idle iterations of the window, assessed ones, pairs with an assessment
   pack       --dir DIR [--limit N]                evidence packs for the next N candidates
   tasks      --dir DIR --assessor NAME            done tasks that are ready for a task assessment
   validate   --dir DIR                            check every DIR/out/*.json before it is written
@@ -170,6 +170,11 @@ def transcript_problems(agent, iteration):
     return sorted(marks)
 
 
+def is_idle(row):
+    """An idle iteration ended with `loop.sh done --idle`: status done, not productive."""
+    return row.get("status") == "done" and row.get("productive") is False
+
+
 def problems_of(row):
     """Problem kinds of one iteration row, in the order the selection names them.
 
@@ -183,22 +188,10 @@ def problems_of(row):
     return found
 
 
-def select(rows, now, window, target):
-    """Pick the cycle's candidates from gathered iteration rows.
-
-    Each row: agent, id, status, productive, ended_at, image_version, assessed, marks.
-    1. Only iterations finished in the last `window` seconds; older unassessed ones are skipped.
-    2. Each pair agent x image_version has a quota of `target` assessments, assessed ones included;
-       a pair with fewer iterations gets all of them.
-    3. Inside the quota of a pair: problem iterations first, then the rest, newest first.
-       Problem iterations over the quota are not selected.
-    4. Output order: the problem picks of all pairs newest first, then the other picks round by round
-       over the pairs, so a budget stop leaves the pairs even.
-    An already assessed iteration is never a candidate.
-    """
+def in_window(rows, now, window):
+    """Finished, not idle iterations that ended inside the window, with the skip counts of the others."""
     start = now - dt.timedelta(seconds=window)
-    skipped = {"running": 0, "assessed": 0, "older_than_window": 0, "not_selected": 0, "problem_over_quota": 0}
-    pairs = {}
+    kept, skipped = [], {"running": 0, "idle": 0, "older_than_window": 0}
     for r in rows:
         if r.get("status") == "running":
             skipped["running"] += 1
@@ -208,9 +201,29 @@ def select(rows, now, window, target):
             if not r.get("assessed"):
                 skipped["older_than_window"] += 1
             continue
-        r = dict(r, _ended=ended, problems=problems_of(r))
-        pair = (r["agent"], r.get("image_version") or "")
-        st = pairs.setdefault(pair, {"total": 0, "assessed": 0, "open": []})
+        if is_idle(r):
+            skipped["idle"] += 1
+            continue
+        kept.append(dict(r, _ended=ended))
+    return kept, skipped, {"from": iso(start), "to": iso(now)}
+
+
+def select(rows, now, window, size):
+    """Pick the cycle's candidates from gathered iteration rows.
+
+    Each row: agent, id, status, productive, ended_at, image_version, assessed, marks.
+    1. Only finished iterations that ended in the last `window` seconds; older unassessed ones are skipped.
+       Idle iterations are not taken. An already assessed iteration is never a candidate.
+    2. Problem iterations first, newest first.
+    3. Then the others round by round over the pairs agent x image_version, newest first inside a pair.
+    4. At most `size` candidates; the rest is left for the next cycle while it is inside the window.
+    """
+    kept, skipped, win = in_window(rows, now, window)
+    skipped.update(assessed=0, over_sample=0)
+    pairs = {}
+    for r in kept:
+        r = dict(r, problems=problems_of(r))
+        st = pairs.setdefault((r["agent"], r.get("image_version") or ""), {"total": 0, "assessed": 0, "open": []})
         st["total"] += 1
         if r.get("assessed"):
             skipped["assessed"] += 1
@@ -218,28 +231,27 @@ def select(rows, now, window, target):
             continue
         st["open"].append(r)
     newest = lambda r: (r["_ended"], r["id"])
-    problem, rest = [], {}
-    for pair, st in pairs.items():
-        ordered = sorted((r for r in st["open"] if r["problems"]), key=newest, reverse=True)
-        ordered += sorted((r for r in st["open"] if not r["problems"]), key=newest, reverse=True)
-        chosen = ordered[:max(0, target - st["assessed"])]
-        st["chosen"] = len(chosen)
-        skipped["not_selected"] += len(ordered) - len(chosen)
-        skipped["problem_over_quota"] += sum(1 for r in ordered[len(chosen):] if r["problems"])
-        problem += [r for r in chosen if r["problems"]]
-        rest[pair] = [r for r in chosen if not r["problems"]]
-    problem.sort(key=newest, reverse=True)
+    problem = sorted((r for st in pairs.values() for r in st["open"] if r["problems"]), key=newest, reverse=True)
+    rest = {p: sorted((r for r in st["open"] if not r["problems"]), key=newest, reverse=True) for p, st in pairs.items()}
+    # Pairs with the freshest iteration go first in every round.
+    order = sorted((p for p in rest if rest[p]), key=lambda p: newest(rest[p][0]), reverse=True)
     sample, rnd = [], 0
     while any(rnd < len(v) for v in rest.values()):
-        for pair in sorted(rest):
+        for pair in order:
             if rnd < len(rest[pair]):
                 sample.append(dict(rest[pair][rnd], reason="pair_sample"))
         rnd += 1
     picked = [dict(r, reason="problem") for r in problem] + sample
+    skipped["over_sample"] = max(0, len(picked) - size)
+    picked = picked[:max(0, size)]
+    planned = {}
+    for r in picked:
+        key = (r["agent"], r.get("image_version") or "")
+        planned[key] = planned.get(key, 0) + 1
     out_rows = [{k: v for k, v in r.items() if not k.startswith("_") and k != "assessed"} for r in picked]
     pair_rows = [{"agent": a, "image_version": v, "iterations": st["total"], "assessed": st["assessed"],
-                  "planned": st["chosen"]} for (a, v), st in sorted(pairs.items())]
-    return out_rows, skipped, pair_rows, {"from": iso(start), "to": iso(now)}
+                  "planned": planned.get((a, v), 0)} for (a, v), st in sorted(pairs.items())]
+    return out_rows, skipped, pair_rows, win
 
 
 def gather(agents, since, assessor, now, window, marks=True):
@@ -287,38 +299,35 @@ def cmd_candidates(a):
     d = Path(a.dir)
     now = now_arg(a)
     rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window)
-    picked, skipped, pairs, window = select(rows, now, a.window, a.target)
+    picked, skipped, pairs, window = select(rows, now, a.window, a.size)
     write_json(d / "candidates.json", picked)
     write_json(d / "pairs.json", pairs)
-    out({"window": window, "candidates": len(picked),
+    out({"window": window, "sample_size": a.size, "candidates": len(picked),
          "problem": sum(r["reason"] == "problem" for r in picked), "skipped": skipped,
          "active_pairs": len(pairs), "file": str(d / "candidates.json")})
 
 
-def coverage(rows, now, window, target):
-    start = now - dt.timedelta(seconds=window)
+def coverage(rows, now, window):
+    """Metric 1 inputs: finished, not idle iterations of the window, how many have an assessment, and pairs."""
+    kept, _, win = in_window(rows, now, window)
     pairs = {}
-    for r in rows:
-        if r.get("status") == "running":
-            continue
-        ended = parse_time(r.get("ended_at")) or parse_time(r.get("started_at"))
-        if ended is None or ended < start or ended > now:
-            continue
+    for r in kept:
         st = pairs.setdefault((r["agent"], r.get("image_version") or ""), {"total": 0, "assessed": 0})
         st["total"] += 1
         st["assessed"] += bool(r.get("assessed"))
-    covered = [p for p, st in pairs.items() if st["assessed"] >= min(target, st["total"])]
-    return {"window": {"from": iso(start), "to": iso(now)}, "active_pairs": len(pairs), "covered_pairs": len(covered),
-            "share": round(len(covered) / len(pairs), 4) if pairs else None,
-            "assessed_iterations": sum(st["assessed"] for st in pairs.values()),
-            "pairs": [{"agent": a, "image_version": v, **st, "covered": (a, v) in covered}
-                      for (a, v), st in sorted(pairs.items())]}
+    total = sum(st["total"] for st in pairs.values())
+    assessed = sum(st["assessed"] for st in pairs.values())
+    with_one = [p for p, st in pairs.items() if st["assessed"] >= 1]
+    return {"window": win, "iterations": total, "assessed_iterations": assessed,
+            "assessed_share": round(assessed / total, 4) if total else None,
+            "active_pairs": len(pairs), "pairs_with_assessment": len(with_one),
+            "pairs": [{"agent": a, "image_version": v, **st} for (a, v), st in sorted(pairs.items())]}
 
 
 def cmd_coverage(a):
     now = now_arg(a)
     rows = read_json(a.input, []) if a.input else gather(a.agents, a.since, a.assessor, now, a.window, marks=False)
-    out(coverage(rows, now, a.window, a.target))
+    out(coverage(rows, now, a.window))
 
 
 # ---------------------------------------------------------------- pack
@@ -606,7 +615,8 @@ def main():
         for x in ("--agents", "--since", "--assessor"):
             s.add_argument(x, default="")
         s.add_argument("--window", type=int, default=86400, help="seconds; only iterations that ended inside it")
-        s.add_argument("--target", type=int, default=3, help="assessments per pair agent x image_version")
+        if name == "candidates":
+            s.add_argument("--size", type=int, default=50, help="sample size: at most this many candidates")
         s.add_argument("--now", default="", help="RFC 3339 end of the window (tests)")
         s.add_argument("--input", default="", help="gathered iteration rows as JSON instead of the daemon (tests)")
     s = sub.add_parser("pack"); s.add_argument("--dir", required=True); s.add_argument("--limit", type=int, default=10)

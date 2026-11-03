@@ -7,8 +7,9 @@ description: Use when a `script.result` letter of the `review-cycle` schedule ar
 
 The review cycle assesses the finished iterations of the configured agents,
 and their tasks after `done`, by rubric `iteration-review/1`, and writes each
-assessment to the daemon. It runs once a day from one durable schedule, before
-any goal work of that iteration. It changes nothing it assesses.
+assessment to the daemon. It runs every `interval_hours` from one durable
+schedule, before any goal work of that iteration. It changes nothing it
+assesses.
 
 `REVIEW` below is `python3 SKILL_DIR/scripts/review.py`, with the absolute
 path of this skill's directory. `WORKDIR` is the configured workdir.
@@ -28,11 +29,17 @@ agents: AGENT, AGENT, ...
 since: RFC 3339 time — the date the cycle was enabled
 cycle_task: TASK-KEY
 model: haiku
+interval_hours: 3
+sample_size: 50
 ```
 
-`budget_usd: USD` is an optional line of the block. Without it the cycle has
-no dollar limit: the quota of step 2 alone bounds what the cycle assesses.
-With it, step 3.1 stops the cycle at that cost.
+- `interval_hours` is how often a cycle runs. Without the line it is 3.
+  `INTERVAL_S` below is `interval_hours × 3600`.
+- `sample_size` is the most iterations one cycle assesses. Without the line
+  it is 50. `SIZE` below is its value.
+- `budget_usd: USD` is an optional line. Without it the cycle has no dollar
+  limit: `sample_size` alone bounds what the cycle assesses. With it, step
+  3.1 stops the cycle at that cost.
 
 ## Which step applies
 
@@ -46,8 +53,11 @@ With it, step 3.1 stops the cycle at that cost.
 ## Ensure the schedule
 
 1. First run `scripts/scripts.sh ls`. If a definition named `review-cycle` is
-   `active`, or stopped by a letter delivered in this iteration, reuse it.
-   Never create a second one.
+   `active`, or stopped by a letter delivered in this iteration, and its
+   saved command has `--period INTERVAL_S`, reuse it. Never create a second
+   one. If its `--period` differs, the interval changed: `cancel` it while
+   `active`, then `rm` it (after the cycle, when a letter of it is
+   delivered), and create a new one in step 3.
 2. Refresh the script copy from the image that runs now:
 
    ```bash
@@ -61,16 +71,17 @@ With it, step 3.1 stops the cycle at that cost.
    script after every publication. The copy has a fixed path, and this step
    puts a new image's `review.py` in it at the first iteration on that image,
    with no new schedule.
-3. With no definition in step 1, create one schedule on the copy:
+3. With no definition left from step 1, create one schedule on the copy:
 
    ```bash
-   scripts/scripts.sh schedule review-cycle --every 3600 -- \
-     python3 "$WORKDIR/review-cycle/review.py" tick --state "$WORKDIR/review-cycle/tick.json" --period 86400
+   scripts/scripts.sh schedule review-cycle --every 600 -- \
+     python3 "$WORKDIR/review-cycle/review.py" tick --state "$WORKDIR/review-cycle/tick.json" --period INTERVAL_S
    ```
 
-   `tick` exits `111` (quiet) until 24 hours have passed since its last
-   result, so the schedule wakes the agent once a day. Record the `scr-...`
-   ID in `context` as `CYCLE_TASK review-cycle`. Do not run a cycle until its
+   With the default of 3 hours, `INTERVAL_S` is `10800`. `tick` exits `111`
+   (quiet) until `INTERVAL_S` seconds have passed since its last result, so
+   the schedule wakes the agent once per interval. Record the `scr-...` ID
+   in `context` as `CYCLE_TASK review-cycle`. Do not run a cycle until its
    first result.
 
 ## Stop the schedule
@@ -85,23 +96,21 @@ Do the cycle first in the iteration, before any goal work, so that its cost
 holds only cycle work.
 
 1. Set `START` to the current UTC time and `DIR="$WORKDIR/review/START"`.
-2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor ASSESSOR`
+2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor ASSESSOR --size SIZE`
    selects the cycle's iterations and orders them:
-   - only iterations that ended in the last 24 hours; an older iteration
-     outside an earlier selection is skipped for good;
-   - each pair agent × image version has a quota of 3 assessments in the
-     window, already written ones included; a pair with fewer iterations
-     gets all of them;
-   - inside the quota of a pair, iterations with a problem come first, then
-     the others, newest first. A problem is an end without `loop.sh done`
-     (`harness_error`, `timeout`, `no_i_am_done`), a refused check or a
-     question to the customer. An idle iteration (`loop.sh done --idle`) is
-     not a problem;
-   - problem iterations over the quota of their pair are not assessed;
-   - the order is the problem picks of all pairs, newest first, then the
-     other picks round by round over the pairs.
-   An iteration with an assessment from this assessor is processed: never
-   assess it again, and never tag it.
+   - only finished iterations that ended in the last 24 hours; an older
+     iteration that no cycle took is skipped for good;
+   - an idle iteration (`loop.sh done --idle`) is not taken and is not a
+     problem;
+   - an iteration with an assessment from this assessor is processed: it is
+     not taken again, and it is never tagged;
+   - problem iterations come first, newest first. A problem is an end
+     without `loop.sh done` (`harness_error`, `timeout`, `no_i_am_done`), a
+     refused check or a question to the customer;
+   - then the others, round by round over the pairs agent × image version,
+     newest first inside a pair. There is no quota per pair;
+   - the selection stops at `SIZE` iterations. What is left stays a
+     candidate of the next cycle while it is inside the 24 hours.
 3. Repeat while candidates remain:
    1. Without `budget_usd`, `N` is 10. With `budget_usd`,
       `REVIEW cost --agent ASSESSOR --since START` gives `spent`, and
@@ -115,6 +124,12 @@ holds only cycle work.
       iteration stays a candidate for the next cycle.
    5. `REVIEW add --dir "$DIR"` writes each valid assessment with
       `tariboy assessment add --file PATH`.
+
+   Without `budget_usd`, the loop takes every candidate: 50 candidates are
+   5 batches of 10, 14 are a batch of 10 and a batch of 4. When you report
+   the commands of the iteration, give steps 3.2–3.5 once for each batch,
+   with its `--limit`, and add up the `written` and `failed` counts of all
+   `add` outputs for the comment.
 4. Assess the tasks. Do this step even when no iteration was left to
    assess in step 3:
    1. `REVIEW tasks --dir "$DIR" --assessor ASSESSOR` writes a task pack
@@ -131,10 +146,18 @@ holds only cycle work.
    4. Count it in the comment as a task assessment, not as an iteration.
 5. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
    `REVIEW coverage --agents AGENTS --since SINCE --assessor ASSESSOR`
-   gives the pairs. Post one comment on `cycle_task` with this command
-   (`cli-text` quoted heredoc). Put the real value in place of every
-   `FROM`, `TO`, `N`, `KEY`, `X` and `Y`, `0` included, and keep every line.
-   Without `budget_usd`, write `Candidates not assessed (budget): 0` and
+   gives the window figures. Post one comment on `cycle_task` with this
+   command (`cli-text` quoted heredoc). Put the real value in place of
+   every placeholder, `0` included, and keep every line:
+   - `ITERATIONS`, `ASSESSED`, `PAIRS` and `PAIRS_ASSESSED` are the
+     `coverage` fields `iterations`, `assessed_iterations`, `active_pairs`
+     and `pairs_with_assessment`;
+   - `LEFT` is `skipped.over_sample` and `SIZE` is `sample_size` of step 2;
+   - `N` counts this cycle from the `add` outputs; `FROM`, `TO`, `KEY`,
+     `X` and `Y` are as named in the line.
+
+   Without `budget_usd`, write
+   `Candidates not assessed (budget): 0` and
    `Cycle cost: X USD, no budget_usd`.
    When you report the commands of the iteration, show this command with the
    whole filled body, never only `"$BODY"`. A line you leave out or write as
@@ -145,9 +168,10 @@ holds only cycle work.
    ## Review cycle START
 
    - Window: FROM – TO
-   - Active pairs agent × image version: N
-   - Pairs with coverage (3 assessments, or all iterations of the pair): N
-   - Iterations assessed: N, of them problem iterations: N
+   - Finished non-idle iterations in the window: ITERATIONS, with an assessment: ASSESSED
+   - Iterations assessed in this cycle: N of sample size SIZE, of them problem iterations: N
+   - Left for the next cycle (over sample size): LEFT
+   - Active pairs agent × image version: PAIRS, pairs with at least one assessment: PAIRS_ASSESSED
    - Task assessments: N (KEY, ...)
    - Write failures: N
    - Candidates not assessed (budget): N
@@ -191,7 +215,10 @@ an assessment stays in the assessment:
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
 | "I will assess this one again with better evidence." | An iteration with an assessment is processed. |
 | "The budget is nearly spent, but the queue is short." | With `budget_usd`, stop at the budget; what is left is not assessed. |
-| "There is no `budget_usd`, so I will set a limit myself." | Without `budget_usd`, assess the whole selection; the quota is the limit. |
+| "There is no `budget_usd`, so I will set a limit myself." | Without `budget_usd`, assess the whole selection; `sample_size` is the limit. |
+| "This pair already has 3 assessments; skip the rest of it." | There is no quota per pair. Take the selection of `candidates` as it is, up to `sample_size`. |
+| "An idle iteration is cheap, so assess it too." | Idle iterations are not taken. |
+| "The interval is not in the user prompt, so run once a day." | Without `interval_hours`, the interval is 3 hours: `--period 10800`. |
 | "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
 | "No iteration was left, so the cycle is done." | Run the task step: a `done` task with all iterations assessed still needs its task assessment. |
 | "The comment can just say the cycle ran." | Fill every field of the comment template, `0` included. |
