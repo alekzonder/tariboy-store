@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Checks of the review cycle selection: `review.py candidates` and `coverage` on fixed rows."""
+import importlib.util
 import json
 import shutil
 import subprocess
@@ -19,6 +20,11 @@ def it(agent, n, hour, version="1.0.0", **kw):
            "ended_at": f"2026-11-{day}T{h:02d}:30:00.123456789Z", "image_version": version, "assessed": False}
     row.update(kw)
     return row
+
+
+def old(agent, n, day, **kw):
+    """An iteration that ended in October, long before the window, and has only an older rubric assessment."""
+    return it(agent, n, 0, ended_at=f"2026-10-{day:02d}T10:00:00Z", reassess=True, **kw)
 
 
 def run(cmd, rows, *extra):
@@ -121,6 +127,28 @@ class Selection(unittest.TestCase):
         self.assertEqual(summary["skipped"]["older_than_window"], 5)
 
 
+    def test_reassessment_comes_after_the_window_problems_first_then_pairs(self):
+        rows = [it("a", 1, 1), it("a", 2, 2, assessed=True)]
+        rows += [old("a", 50 + n, 25 - n) for n in range(3)]                    # days old, only /1
+        rows += [old("b", 50, 28, status="timeout"), old("b", 51, 20)]
+        summary, picked = run("candidates", rows, "--reassess")
+        self.assertEqual([r["id"] for r in picked], ["a-1", "b-50", "a-50", "b-51", "a-51", "a-52"])
+        self.assertEqual([bool(r.get("reassess")) for r in picked], [False] + [True] * 5)
+        self.assertEqual(picked[1]["reason"], "problem")
+        self.assertEqual(summary["reassess"]["picked"], 5)
+        self.assertEqual(summary["skipped"]["older_than_window"], 0)
+
+    def test_reassessment_shares_the_sample_size_and_stays_off_without_the_flag(self):
+        rows = [it("a", n, n) for n in range(1, 4)] + [old("a", 50 + n, 10 + n) for n in range(5)]
+        summary, picked = run("candidates", rows, "--reassess", "--size", "5")
+        self.assertEqual(len(picked), 5)
+        self.assertEqual(sum(bool(r.get("reassess")) for r in picked), 2)
+        self.assertEqual(summary["skipped"]["over_sample"], 3)
+        summary, picked = run("candidates", rows)
+        self.assertEqual([r["id"] for r in picked], ["a-3", "a-2", "a-1"])
+        self.assertFalse(summary["reassess"]["on"])
+
+
 class Coverage(unittest.TestCase):
     def test_metric_one(self):
         rows = [it("a", n, n, assessed=n <= 3) for n in range(1, 8)]        # 3 of 7
@@ -160,9 +188,10 @@ else:
 '''
 
 
-def assessment(iteration="", task=""):
-    obj = {"rubric_version": "iteration-review/1", "summary": "ok",
+def assessment(iteration="", task="", rubric="iteration-review/2"):
+    obj = {"rubric_version": "iteration-review/2", "summary": "ok",
            "axes": [{"axis": a, "verdict": "scored", "score": 80} for a in ("image_process", "role", "task_fit")]}
+    obj["rubric_version"] = rubric
     if iteration:
         obj["iteration_id"] = iteration
     if task:
@@ -227,6 +256,189 @@ class Add(unittest.TestCase):
         self.assertEqual(result["written"], [])
         self.assertEqual(sorted(r["file"].rsplit("/", 1)[1] for r in result["skipped"]), ["it-1.json", "task-DEV-1.json"])
         self.assertEqual(len(self.written()), 2)
+
+    def test_an_older_rubric_assessment_does_not_block_the_new_one(self):
+        old = dict(assessment("it-1", rubric="iteration-review/1"), id="as-old", assessor_agent="reviewer-1")
+        self.db.write_text(json.dumps([old]))
+        self.put("it-1.json", assessment("it-1"))
+        result = self.add()
+        self.assertEqual(len(result["written"]), 1)
+        self.assertEqual([r["rubric_version"] for r in self.written()], ["iteration-review/1", "iteration-review/2"])
+
+    def test_an_assessment_of_an_older_rubric_is_invalid(self):
+        self.put("it-1.json", assessment("it-1", rubric="iteration-review/1"))
+        proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "validate", "--dir", str(self.dir)],
+                              capture_output=True, text=True, env=self.env)
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("rubric_version must be iteration-review/2", proc.stdout)
+
+
+def load_review():
+    spec = importlib.util.spec_from_file_location("review", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+class Pack(unittest.TestCase):
+    """Packs keep the whole transcript: no clipped entry, no cut middle; a pack larger than the window is read in parts."""
+
+    def setUp(self):
+        self.r = load_review()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def transcript(self, calls):
+        self.r.tb = lambda *args, check=True: {"calls": calls}
+        return self.r.transcript_lines("a", "a-1")
+
+    def test_a_long_command_output_is_kept_whole_and_wrapped(self):
+        output = "ok\n" + "x" * 5000 + "TAIL-MARK\nlast line"
+        lines = self.transcript([{"seq": 7, "status": "ok", "delta": [{"role": "user", "blocks": [
+            {"type": "tool_result", "text": output}]}], "response": {"blocks": [
+            {"type": "tool_use", "tool_name": "Bash", "input": {"command": "cat big.log"}}]}}])
+        text = [line for _, line in lines]
+        self.assertEqual(text[0], "[seq 7] result:")
+        self.assertTrue(all(len(line) <= self.r.LINE_CHARS for line in text))
+        joined = "".join(line[2:] for line in text[1:text.index("[seq 7] call Bash:")])
+        self.assertEqual(joined, output.replace("\n", ""))
+        self.assertIn("  command: cat big.log", text)
+
+    def test_skill_text_and_reminders_after_the_start_stay_in_the_transcript(self):
+        lines = self.transcript([{"seq": 9, "status": "ok", "delta": [{"role": "user", "blocks": [
+            {"type": "text", "text": "<system-reminder>The user said stop</system-reminder>"}]}]}])
+        self.assertIn("  <system-reminder>The user said stop</system-reminder>", [x for _, x in lines])
+
+    def test_a_subagent_conversation_repeated_in_every_delta_is_shown_once_and_marked(self):
+        convo = [{"role": "user", "blocks": [{"type": "text", "text": "Assess pack P"}]},
+                 {"role": "user", "blocks": [{"type": "tool_result", "tool_use_id": "t1", "text": "pack text"}]}]
+        calls = [{"seq": 4, "model": "haiku", "delta": convo[:1], "response": {"blocks": [
+                     {"type": "tool_use", "tool_use_id": "t1", "tool_name": "Read", "input": {"file_path": "P"}}]}},
+                 {"seq": 5, "model": "haiku", "delta": convo, "response": {"blocks": [{"type": "text", "text": "done"}]}},
+                 {"seq": 6, "model": "opus", "delta": [{"role": "user", "blocks": [
+                     {"type": "tool_result", "tool_use_id": "t9", "text": "agent result"}]}]}]
+        text = [x for _, x in self.transcript(calls)]
+        self.assertEqual(text.count("  Assess pack P"), 1)
+        self.assertEqual(text.count("  pack text"), 1)
+        self.assertIn("[seq 5] subagent haiku result:", text)
+        self.assertIn("[seq 6] result:", text)
+
+    def body(self, n, width=300):
+        lines = []
+        for seq in range(1, n + 1):
+            lines += self.r.entry(seq, "result:", f"line {seq} " + "y" * width)
+        return lines
+
+    def test_a_pack_inside_the_window_is_one_file_with_its_end_mark(self):
+        job = self.r.write_pack(self.dir, "a-1", "# Iteration pack a-1\n\n", self.body(10), 100000, self.dir / "out" / "a-1.json")
+        self.assertEqual(job["kind"], "pack")
+        text = Path(job["pack"]).read_text()
+        self.assertTrue(text.rstrip().endswith("-- end of pack a-1 --"))
+        self.assertIn("line 5 ", text)
+
+    def test_a_pack_over_the_window_is_split_in_seq_order_and_drops_nothing(self):
+        head = "# Iteration pack a-1\n\nHEAD-MARK\n"
+        body = self.body(400)
+        job = self.r.write_pack(self.dir, "a-1", head, body, 30000, self.dir / "out" / "a-1.json")
+        self.assertEqual(job["kind"], "parts")
+        parts = job["parts"]
+        self.assertGreater(len(parts), 3)
+        seen = []
+        for k, p in enumerate(parts, 1):
+            text = Path(p["pack"]).read_text()
+            self.assertLessEqual(len(text), 30000)
+            self.assertTrue(text.startswith(head))
+            self.assertIn(f"## Part {k} of {len(parts)}", text)
+            seen += [x for x in text.splitlines() if x.startswith("[seq ") or x.startswith("  line ")]
+            self.assertEqual(p["notes_in"] is None, k == 1)
+            self.assertEqual(p["out"] is not None, k == len(parts))
+        self.assertEqual(seen, [line for _, line in body])
+        self.assertTrue((self.dir / "packs" / "a-1.parts.json").exists())
+
+    def test_small_packs_share_a_subagent_only_while_they_fill_half_the_window(self):
+        jobs = [{"kind": "pack", "id": f"a-{i}", "pack": f"p{i}", "out": f"o{i}", "chars": c}
+                for i, c in enumerate([20000, 20000, 30000, 70000, 10000])]
+        jobs.append({"kind": "parts", "id": "a-9", "parts": [], "out": "o9"})
+        batches = self.r.batch_jobs(jobs, 100000)
+        self.assertEqual([[p["id"] for p in b["pairs"]] if b["kind"] == "whole" else b["id"] for b in batches],
+                         [["a-0", "a-1"], ["a-2"], ["a-3"], ["a-4"], "a-9"])
+
+
+class Parts(unittest.TestCase):
+    """`validate` accepts the assessment of a pack read in parts only when every earlier part left valid notes."""
+
+    def setUp(self):
+        self.r = load_review()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        body = []
+        for seq in range(1, 200):
+            body += self.r.entry(seq, "result:", "z" * 400)
+        self.job = self.r.write_pack(self.dir, "a-1", "# Iteration pack a-1\n", body, 30000, self.dir / "out" / "a-1.json")
+        (self.dir / "out").mkdir()
+        (self.dir / "out" / "a-1.json").write_text(json.dumps(assessment("a-1")))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def validate(self):
+        proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "validate", "--dir", str(self.dir)],
+                              capture_output=True, text=True)
+        return proc.returncode, json.loads(proc.stdout)
+
+    def notes(self, k, n, **kw):
+        obj = {"rubric_version": "iteration-review/2", "part": k, "of": n, "parts_read": list(range(1, k + 1)),
+               "violations": [], "observations": [{"axis": "task_fit", "locator": "seq 3", "note": "asked first"}], "infra": []}
+        obj.update(kw)
+        return obj
+
+    def write_notes(self, part=None, **kw):
+        n = len(self.job["parts"])
+        path = Path(self.job["parts"][-1]["notes_in"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(self.notes(part or n - 1, n, **kw)))
+
+    def test_one_notes_file_is_read_and_written_by_every_part_but_the_last(self):
+        parts = self.job["parts"]
+        notes = {p["notes_out"] for p in parts[:-1]} | {p["notes_in"] for p in parts[1:]}
+        self.assertEqual(len(notes), 1)
+        self.assertIsNone(parts[0]["notes_in"])
+        self.assertIsNone(parts[-1]["notes_out"])
+
+    def test_notes_after_the_part_before_the_last_make_the_assessment_valid(self):
+        self.write_notes()
+        code, report = self.validate()
+        self.assertEqual(code, 0, report)
+
+    def test_missing_notes_make_the_assessment_invalid(self):
+        code, report = self.validate()
+        self.assertEqual(code, 1)
+        self.assertIn("notes of parts 1 to", json.dumps(report))
+
+    def test_notes_that_stopped_at_an_earlier_part_make_the_assessment_invalid(self):
+        self.write_notes(part=1)
+        code, report = self.validate()
+        self.assertEqual(code, 1)
+
+    def test_notes_that_do_not_list_every_part_read_are_invalid(self):
+        self.write_notes(parts_read=[1])
+        code, report = self.validate()
+        self.assertEqual(code, 1)
+        self.assertIn("no part is skipped", json.dumps(report))
+
+    def test_an_assessment_that_leaves_out_a_violation_of_the_notes_is_invalid(self):
+        push = {"axis": "image_process", "description": "pushed to main", "quote": "git push origin HEAD:main",
+                "evidence": {"kind": "transcript", "iteration_id": "a-1", "locator": "seq 64"}}
+        self.write_notes(violations=[push])
+        code, report = self.validate()
+        self.assertEqual(code, 1)
+        self.assertIn("image_process at seq 64", json.dumps(report))
+        (self.dir / "out" / "a-1.json").write_text(json.dumps(dict(assessment("a-1"), violations=[push])))
+        code, report = self.validate()
+        self.assertEqual(code, 0, report)
 
 
 if __name__ == "__main__":

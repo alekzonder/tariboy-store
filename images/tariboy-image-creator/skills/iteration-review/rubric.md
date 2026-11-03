@@ -1,8 +1,25 @@
-# Rubric `iteration-review/1`
+# Rubric `iteration-review/2`
 
 You assess one evidence pack: one iteration of another agent, or one task
 after `done`. You only read the pack and write one JSON object. You run no
 command and change no file other than the output file you were given.
+
+Version 2 has the same axes and scale as version 1. Only the evidence
+changed: the pack holds the whole transcript, with every call, command,
+result and text in full, and a pack too large for one reader is read in
+parts (see "Reading in parts").
+
+## Read the whole pack
+
+- A pack is often longer than one Read call. Read it in pieces with
+  `offset` and `limit` until its last line. Never assess a pack you did not
+  read to its last line. In a pack that `review.py pack` wrote, that line
+  is `-- end of pack ID --` or `-- end of part K of N of pack ID --`.
+- A line longer than 1000 characters continues on the next line. A quote
+  is the exact words of the pack; it may join such a wrapped line.
+- A block that repeats an earlier block word for word is shown once, at its
+  first `seq`. `subagent MODEL` marks a call of a subagent that the agent
+  started, not a call of the agent itself.
 
 ## Axes
 
@@ -49,6 +66,53 @@ Each violation names one axis and has:
 No quote and locator, no violation. An axis below 100 needs at least one
 violation or a `note` that says why.
 
+## Reading in parts
+
+A pack larger than one reader is split into parts: `ID.part-01.md`,
+`ID.part-02.md` and so on. Each part has the same head (iteration, task,
+ROLE.md, instructions, user prompt) and the next lines of the transcript in
+`seq` order, under `## Part K of N`. One reader reads one part.
+
+- Every part after part 1: read the notes path you were given first, by
+  that exact path. When it does not exist, stop: write nothing, and say
+  which path is missing. Never assess a later part without the notes.
+- Part 1 to part N-1: read the part completely. Write notes, not an
+  assessment, to the notes path you were given. Copy every violation and
+  observation of the previous notes and add the ones of your part. Keep
+  `quote` and `locator` exact.
+- Part N: read part N completely. Write the assessment of "Output" from all
+  the findings: every violation of the notes, with its axis, `quote` and
+  `locator` unchanged, and the violations of part N. The cycle refuses an
+  assessment that leaves out a violation of the notes. Score the axes from
+  the violations and observations of all parts.
+
+Notes have exactly this shape:
+
+```json
+{
+  "rubric_version": "iteration-review/2",
+  "part": 2,
+  "of": 5,
+  "parts_read": [1, 2],
+  "violations": [
+    {"axis": "image_process", "description": "...", "quote": "...",
+     "evidence": {"kind": "transcript", "iteration_id": "ITERATION-ID", "locator": "seq 41"}}
+  ],
+  "observations": [
+    {"axis": "task_fit", "locator": "seq 17", "note": "Asked the customer before the change; fits the task."}
+  ],
+  "infra": ["infra: exit code 137, oom true (pack header; seq 16)"]
+}
+```
+
+The notes path is the same for every part: each part reads the notes, adds
+its findings and writes them back. `part` is the part you just read, and
+`parts_read` lists every part read so far, 1 to `part`. The notes you read
+must have `part` K-1 when you read part K; otherwise stop and write nothing.
+The cycle refuses an assessment whose notes skip a part. A violation in notes follows
+the rules of "Violations". An observation is what an axis score needs that is
+not a violation: a rule kept, a customer answer, a delay.
+
 ## Task assessment
 
 A task pack (`# Task pack KEY`) gets `task_key` and no `iteration_id`. Its
@@ -62,7 +126,7 @@ Write exactly this shape to the output file. No other fields.
 
 ```json
 {
-  "rubric_version": "iteration-review/1",
+  "rubric_version": "iteration-review/2",
   "iteration_id": "ITERATION-ID",
   "task_key": "TASK-KEY",
   "summary": "One or two sentences. infra: parts if any.",
