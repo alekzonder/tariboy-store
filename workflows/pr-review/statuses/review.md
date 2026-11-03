@@ -45,6 +45,9 @@ assuming any other API.
 
 When the status was reached by `revise`, the transition message is the
 customer's feedback: read it in full with `ttasks workflow get KEY --json`, in
-`visits[].message` of the previous visit. Revise the review to answer every
-point, store every artifact the outcome requires again in full, and advance
-again. The message says what to change, not which rules to drop.
+`visits[].message` of the previous visit. Another reviewer may have written
+the current review. Read the current `review`, `review_comments` and
+`head_sha` in full with `ttasks artifacts show KEY NAME`, and fetch the pull
+request again: if its head moved, review the new head. Revise the review to
+answer every point, store every artifact the outcome requires again in full,
+and advance again. The message says what to change, not which rules to drop.

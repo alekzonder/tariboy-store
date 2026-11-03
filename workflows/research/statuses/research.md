@@ -1,7 +1,8 @@
 # Research
 
 The outcome of this status is a report that answers the question in the
-task. Read the task first and state the question to yourself in one sentence;
+task. Read the task first, with its comments, questions and answers: another
+agent may have begun it. State the question to yourself in one sentence;
 every part of the report serves that answer.
 
 How you do the work is your choice: read, search, run experiments, compare
@@ -10,7 +11,8 @@ from, and say plainly what you could not establish.
 
 If the question is unclear, or you need a decision or a fact only the customer
 has, ask through the task and wait for the answer. Do not guess at the
-question and research the guess.
+question and research the guess. Use an answer the customer already gave on
+the task; never ask that question again.
 
 When the report is ready:
 
