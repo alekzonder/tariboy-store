@@ -21,9 +21,9 @@ for an image, and `workflows/<name>/Workflowfile.yaml` together with its
 ## Verification
 
 Run `make check` from the repository root before handing work over. It runs the
-skill client contracts, the `cli-text` text checks and consumer check, the
-image check harness, image validation and build against a temporary isolated
-daemon, and `git diff --check`. Inspect the complete diff before committing.
+skill client contracts, the `cli-text` text checks, the image check harness,
+image validation and build against a temporary isolated daemon, and
+`git diff --check`. Inspect the complete diff before committing.
 
 ## Branch history
 
