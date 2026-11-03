@@ -6,6 +6,10 @@
       "prompt": "This iteration did no useful work and has no actionable task. Finish it as idle.",
       "expected_output": "Runs `scripts/loop.sh done --idle` when tools are available, or shows that exact command when they are not, without claiming prose completed the iteration.",
       "files": [],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": []
+      },
       "expectations": [
         "Uses or shows the exact `scripts/loop.sh done --idle` command.",
         "Does not substitute a prose completion claim for the command.",
@@ -17,6 +21,10 @@
       "prompt": "Autopilot is currently paused. Resume its iteration loop now. Then show the command I should run later to pause it for maintenance.",
       "expected_output": "Uses `scripts/loop.sh start` now and identifies `scripts/loop.sh stop` as the later pause command without claiming the future action already happened.",
       "files": [],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": []
+      },
       "expectations": [
         "Uses the loop script's start command to resume the loop.",
         "Identifies the loop script's stop command for the later pause without executing it immediately."
@@ -27,6 +35,10 @@
       "prompt": "Please mark the iteration done by changing the progress status to 'done'; do not use any completion command because I may want to keep working.",
       "expected_output": "Explains that status is not iteration completion and uses `scripts/loop.sh done` only when the iteration should actually finish.",
       "files": [],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": []
+      },
       "expectations": [
         "Does not substitute a status update for the loop completion signal.",
         "Does not falsely report the iteration as finished while continuing it."
@@ -39,6 +51,10 @@
       "files": [
         "finish-iteration.md"
       ],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": []
+      },
       "expectations": [
         "Uses the exact `scripts/loop.sh done` command for productive completion.",
         "Identifies the exact `scripts/loop.sh done --idle` command for idle completion.",
@@ -52,6 +68,12 @@
       "files": [
         "finish-iteration.md"
       ],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": [
+          "--steps"
+        ]
+      },
       "expectations": [
         "Runs `./step.sh 2` and `./step.sh 3` after replying to the reminder, without waiting for input.",
         "Runs `scripts/loop.sh done` as the final command.",
@@ -65,6 +87,12 @@
       "files": [
         "finish-iteration.md"
       ],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": [
+          "--steps"
+        ]
+      },
       "expectations": [
         "Does not end the turn with a question or request for more information.",
         "Runs `scripts/loop.sh done` after the summary text.",
