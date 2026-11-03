@@ -12,6 +12,8 @@ check:
 	python3 -B skills/cli-text/evals/check-consumers.py >/dev/null
 	python3 -B skills/cli-text/evals/check-shell-layer.py >/dev/null
 	python3 -B scripts/check-writing-style.py
+	python3 -B scripts/test-check-evals.py
+	python3 -B scripts/check-evals.py
 	python3 -B scripts/test-closure-monitor.py
 	./scripts/test-check-images.sh
 	python3 -B workflows/development/tests/test_checks.py

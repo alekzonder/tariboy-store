@@ -1,0 +1,38 @@
+# Known eval-suite violations that `scripts/check-evals.py` accepts.
+# One violation key per line. This list only shrinks: a new violation fails
+# the check, and so does a line whose violation is gone. A change that fixes
+# a violation removes its line in the same commit.
+duplicate: images/developer/evals/files/cli-text-command.json
+duplicate: images/tariboy-image-creator/evals/files/cli-text-command.json
+duplicate: images/tariboy-image-creator/evals/files/review/pack-customer-resistance.md
+duplicate: images/tariboy-image-creator/evals/files/review/pack-infra-137.md
+duplicate: images/tariboy-image-creator/evals/files/review/pack-merged-own-pr.md
+duplicate: images/tariboy-image-creator/evals/files/review/pack-no-role.md
+duplicate: images/tariboy-image-creator/evals/files/review/task-pack-done.md
+duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-customer-resistance.md
+duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-infra-137.md
+duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-merged-own-pr.md
+duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-no-role.md
+duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/task-pack-done.md
+duplicate: images/tariboy-release-publisher/evals/files/cli-text-command.json
+run-result: images/basic/evals/cli-text/results.json
+run-result: images/tariboss/evals/cli-text/results.json
+run-result: skills/cli-text/evals/baseline.json
+run-result: skills/cli-text/evals/baseline-results.json
+run-result: skills/cli-text/evals/candidate.json
+run-result: skills/cli-text/evals/candidate-results.json
+run-result: skills/cli-text/evals/consumer-results.json
+run-result: skills/cli-text/evals/dependent-baseline.md
+run-result: skills/cli-text/evals/dependent-candidate.md
+run-result: skills/cli-text/evals/input-modes-baseline.md
+run-result: skills/cli-text/evals/input-modes-candidate.md
+run-result: skills/cli-text/evals/provenance.json
+run-result: skills/loop/evals/results.md
+run-result: skills/scripts/evals/results.md
+run-result: skills/tasks/evals/cli-text-newlines-baseline.md
+run-result: skills/tasks/evals/cli-text-newlines-candidate.md
+run-result: skills/tasks/evals/cli-text-results.json
+run-result: skills/tasks/evals/markdown-results.json
+unused: images/developer/evals/files/cli-text-command.json
+unused: images/tariboy-image-creator/evals/files/cli-text-command.json
+unused: images/tariboy-release-publisher/evals/files/cli-text-command.json
