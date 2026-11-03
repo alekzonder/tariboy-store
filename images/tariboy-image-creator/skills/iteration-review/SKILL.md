@@ -138,8 +138,9 @@ holds only cycle work.
 3. Repeat while candidates remain:
    1. Without `budget_usd`, `N` is 10. With `budget_usd`,
       `REVIEW cost --agent ASSESSOR --since START` gives `spent`, and
-      `N = floor((budget_usd - spent) / 0.08)`, at most 10. When `N` is 0,
-      stop: the rest of the selection is not assessed.
+      `N = floor((budget_usd - spent) / 0.30)`, at most 10. 0.30 USD is the
+      measured average cost of one iteration read in full on Haiku. When
+      `N` is 0, stop: the rest of the selection is not assessed.
    2. `REVIEW pack --dir "$DIR" --limit N` writes one evidence pack for each
       of the next `N` candidates and prints its `jobs`. A pack holds the
       whole transcript: nothing is cut. Each job is one assessor subagent:
