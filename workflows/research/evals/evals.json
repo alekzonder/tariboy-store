@@ -1,0 +1,44 @@
+{
+  "image_name": "research",
+  "evals": [
+    {
+      "id": "research-after-answered-question",
+      "status": "research",
+      "actor": {
+        "image": "developer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "How many widgets does the inventory hold?",
+        "description": "In the repository ${repo}, find how many widgets the inventory holds. Report the number and where it comes from."
+      },
+      "fixture": {
+        "script": "../development/evals/fixtures/widget-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "comment": "Agent tariboy-dev-bob asked on this task: \"Should I count the widget kinds or the total number of units?\" My answer: count the total number of units, the sum of `count` over all widgets. Bob is busy now; another agent takes the task."
+        }
+      ],
+      "prompt": "Goal block of a research task that another agent began: its clarifying question and the customer's answer are in a task comment. The answer selects the total number of units (12 + 3 = 15), not the two kinds.",
+      "expected_output": "Success criteria:\n- starts from the task comments and uses the recorded answer\n- does not ask the customer the same question again\n- the report gives 15 units, from the WIDGETS constant in widget.py\n- leaves research with reported",
+      "timeout_s": 1200,
+      "criteria": {
+        "outcome": {
+          "name": "reported",
+          "state": "applied"
+        },
+        "status": "done",
+        "question": false,
+        "artifacts": {
+          "report": {
+            "matches": "\\b15\\b"
+          }
+        }
+      }
+    }
+  ]
+}

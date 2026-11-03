@@ -190,6 +190,48 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, bad, ACTOR)), ["comments", "repo"])
 
 
+class OriginAndPullsTest(unittest.TestCase):
+    def test_origin_branches_exact_count_and_contains(self):
+        criteria = {
+            "repo": {
+                "origin_branches": ["main", "feature"],
+                "origin_branch_count": 2,
+                "origin_contains": [["feature", "p" * 40]],
+            }
+        }
+        good = snapshot(repo=dict(snapshot()["repo"], origin_branches=["feature", "main"], origin_contains={"feature": {"p" * 40: True}}))
+        extra = snapshot(repo=dict(snapshot()["repo"], origin_branches=["main", "feature", "feature-2"], origin_contains={"feature": {"p" * 40: False}}))
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        result = runner.check_criteria(criteria, extra, ACTOR)
+        self.assertEqual(failed(result), ["repo"])
+        self.assertIn("does not contain", result[0][2])
+        self.assertIn("want 2", result[0][2])
+
+    def test_pulls_count_heads_artifact_and_reviews(self):
+        criteria = {"pulls": {"count": 1, "heads": ["feature"], "head_artifact": "branch", "reviews": 0}}
+        good = snapshot(artifacts={"branch": "feature"}, pulls=[{"number": 1, "head": "feature", "reviews_posted": []}])
+        bad = snapshot(
+            artifacts={"branch": "feature"},
+            pulls=[
+                {"number": 1, "head": "feature", "reviews_posted": [{"id": 1}]},
+                {"number": 2, "head": "feature-2", "reviews_posted": []},
+            ],
+        )
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        detail = runner.check_criteria(criteria, bad, ACTOR)[0][2]
+        for text in ("2 pull requests", "heads", "differ from artifact branch", "1 reviews published"):
+            self.assertIn(text, detail)
+
+    def test_secrets_must_be_named_strings(self):
+        workflow_dir = STORE / "workflows" / "pr-review"
+        statuses = runner.workflow_statuses(workflow_dir)
+        case = runner.load_cases(workflow_dir)[0]
+        self.assertEqual(runner.validate_case(case, statuses, workflow_dir), [])
+        for secrets in ({"GITHUB_TOKEN": "x"}, {"lower": "x"}, {"NAME": 1}, ["NAME"]):
+            errors = runner.validate_case(dict(case, secrets=secrets), statuses, workflow_dir)
+            self.assertTrue(any("secrets" in error for error in errors), secrets)
+
+
 class WorktreeCommentTest(unittest.TestCase):
     def test_worktree_named_absolute_or_relative(self):
         repo = dict(snapshot()["repo"], linked_worktrees=[{"absolute": "/r/.worktrees/x", "relative": ".worktrees/x"}])
@@ -247,6 +289,37 @@ class FakeGitHubTest(unittest.TestCase):
         self.assertEqual((status, [p["number"] for p in found]), (200, [7]))
         status, _ = fake.handle(self.dir, "POST", "/repos/eval/widget/pulls", "", json.dumps({"head": "nope", "base": "main", "title": "t"}))
         self.assertEqual(status, 422)
+
+    def test_files_list_the_diff_and_posted_reviews_are_kept(self):
+        status, files = fake.handle(self.dir, "GET", "/repos/eval/widget/pulls/7/files", "", None)
+        self.assertEqual(status, 200)
+        self.assertEqual([(f["filename"], f["status"]) for f in files], [("widget.py", "modified")])
+        self.assertTrue(files[0]["patch"].startswith("@@ "))
+        self.assertIn("+import json", files[0]["patch"])
+        status, _ = fake.handle(self.dir, "POST", "/repos/eval/widget/pulls/7/reviews", "", json.dumps({"body": "b", "event": "COMMENT"}))
+        self.assertEqual(status, 200)
+        pulls = runner.pulls_of(self.dir / "github.json")
+        self.assertEqual([len(p["reviews_posted"]) for p in pulls], [1])
+
+    def test_branch_pushed_keeps_the_partial_commit_only_on_origin(self):
+        env = dict(
+            os.environ,
+            EVAL_DIR=str(self.dir / "pushed"),
+            EVAL_GITHUB_STATE=str(self.dir / "pushed" / "github.json"),
+            EVAL_VARS=str(self.dir / "pushed" / "vars.json"),
+        )
+        (self.dir / "pushed").mkdir()
+        script = STORE / "workflows" / "development" / "evals" / "fixtures" / "widget-repo.sh"
+        subprocess.run(["bash", str(script), "branch-pushed"], env=env, check=True, capture_output=True)
+        values = json.loads((self.dir / "pushed" / "vars.json").read_text())
+        repo = Path(values["repo"])
+        state = runner.git_state(repo, [], [[values["branch"], values["partial_sha"]]], str(self.dir / "pushed" / "origin.git"))
+        self.assertEqual(state["branches"], ["main"])
+        self.assertEqual(state["worktrees"], 1)
+        self.assertEqual(sorted(state["origin_branches"]), sorted(["main", values["branch"]]))
+        self.assertEqual(state["origin_contains"], {values["branch"]: {values["partial_sha"]: True}})
+        self.assertFalse(Path(values["other_worktree"]).exists())
+        self.assertEqual(runner.pulls_of(self.dir / "pushed" / "github.json"), [])
 
     def test_curl_entry_point_writes_the_status_marker(self):
         shutil_copy = self.dir / "fake_curl.py"

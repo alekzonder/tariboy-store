@@ -290,6 +290,145 @@
       }
     },
     {
+      "id": "implement-after-other-plan",
+      "status": "implement",
+      "actor": {
+        "image": "developer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add a --json flag to widget list",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/widget), add a `--json` flag to `widget list` that prints the widgets as a JSON array. The text output without the flag stays as it is."
+      },
+      "fixture": {
+        "script": "evals/fixtures/widget-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "plan",
+            "## How it works\n\n`widget list --json` prints the widgets as one JSON array on standard output, sorted by name. Each element has exactly the keys `name` and `count`. Without the flag the output stays as it is.\n\nCustomer decision from the plan discussion: sort the JSON array by `name`; the text output keeps its current order.\n\n## Steps\n\n1. Add a failing test in `test_widget.py` for `list_widgets(as_json=True)`, with the sorted order.\n2. Add the `as_json` parameter to `list_widgets` and the `--json` flag to the `list` subcommand.\n3. Run `python3 -m unittest`.\n\n## Verification\n\n`python3 -m unittest` from the repository root passes, including the new test.\n\n## Limitations\n\nOnly `list` gets the flag. A widget name that is not valid UTF-8 is not expected.\n"
+          ]
+        },
+        {
+          "comment": "Agent tariboy-dev-bob wrote the plan in its own checkout `/home/bob/worktrees/widget-list-json`. That agent is busy now; another developer takes the task."
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of a task in implement whose approved plan another agent wrote; a task comment names that agent's local checkout, which this actor cannot reach. GitHub is the eval fake.",
+      "expected_output": "Success criteria:\n- implements from the plan artifact and the task data, not from the other agent's checkout\n- creates one task branch and worktree of its own, pushes the branch to origin and stores it in branch\n- opens exactly one pull request, whose head is the branch artifact\n- leaves implement with ready and the pr-open check accepts it\n- local main is unchanged",
+      "timeout_s": 1800,
+      "criteria": {
+        "outcome": {
+          "name": "ready",
+          "state": "applied"
+        },
+        "status": "review",
+        "artifacts": {
+          "branch": {
+            "matches": "^[^\\s]+$"
+          },
+          "verification": {
+            "matches": "[0-9a-f]{40}"
+          },
+          "pull_request": {
+            "matches": "^https://github\\.com/eval/widget/pull/[0-9]+$"
+          }
+        },
+        "repo": {
+          "main": "${base_sha}",
+          "origin_branch_count": 2
+        },
+        "pulls": {
+          "count": 1,
+          "head_artifact": "branch"
+        }
+      }
+    },
+    {
+      "id": "implement-continue-pushed-branch",
+      "status": "implement",
+      "actor": {
+        "image": "developer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add a --json flag to widget list",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/widget), add a `--json` flag to `widget list` that prints the widgets as a JSON array. The text output without the flag stays as it is."
+      },
+      "fixture": {
+        "script": "evals/fixtures/widget-repo.sh",
+        "args": [
+          "branch-pushed"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "plan",
+            "## How it works\n\n`widget list --json` prints the widget list as one JSON array on standard output; without the flag the output stays as it is.\n\n## Steps\n\n1. Add a failing test in `test_widget.py` for `list_widgets(as_json=True)`.\n2. Add the `as_json` parameter to `list_widgets` and the `--json` flag to the `list` subcommand.\n3. Run `python3 -m unittest`.\n\n## Verification\n\n`python3 -m unittest` from the repository root passes, including the new test.\n\n## Limitations\n\nOnly `list` gets the flag. A widget name that is not valid UTF-8 is not expected.\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${other_worktree}`, branch `${branch}`."
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of a task in implement that another agent started: the branch artifact names a branch that exists only on origin with one partial commit (as_json without the CLI flag); the comment names that agent's worktree, which is gone. No pull request exists. GitHub is the eval fake.",
+      "expected_output": "Success criteria:\n- continues on the branch from origin: the partial commit stays in the branch history\n- creates no second branch: origin has only main and the task branch, and branch is unchanged\n- opens exactly one pull request from that branch\n- leaves implement with ready and the pr-open check accepts it\n- local main is unchanged",
+      "timeout_s": 1800,
+      "criteria": {
+        "outcome": {
+          "name": "ready",
+          "state": "applied"
+        },
+        "status": "review",
+        "artifacts": {
+          "branch": {
+            "equals": "${branch}"
+          },
+          "verification": {
+            "matches": "[0-9a-f]{40}"
+          },
+          "pull_request": {
+            "matches": "^https://github\\.com/eval/widget/pull/[0-9]+$"
+          }
+        },
+        "repo": {
+          "main": "${base_sha}",
+          "origin_branches": [
+            "main",
+            "${branch}"
+          ],
+          "origin_contains": [
+            [
+              "${branch}",
+              "${partial_sha}"
+            ]
+          ]
+        },
+        "pulls": {
+          "count": 1,
+          "heads": [
+            "${branch}"
+          ]
+        }
+      }
+    },
+    {
       "id": "complete-squash-merge",
       "status": "complete",
       "actor": {
