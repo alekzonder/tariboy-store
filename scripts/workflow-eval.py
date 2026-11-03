@@ -70,6 +70,7 @@ CRITERIA_KINDS = {
     "question",
     "comments",
     "repo",
+    "pulls",
 }
 CASE_FIELDS = {
     "id",
@@ -83,6 +84,7 @@ CASE_FIELDS = {
     "expected_output",
     "timeout_s",
     "files",
+    "secrets",
 }
 
 
@@ -162,6 +164,12 @@ def validate_case(case: dict, statuses: dict[str, Any], workflow_dir: Path) -> l
         unknown = set(criteria) - CRITERIA_KINDS
         if unknown:
             errors.append(f"{label}: unknown criteria {sorted(unknown)}")
+    secrets = case.get("secrets", {})
+    if not isinstance(secrets, dict) or not all(
+        isinstance(name, str) and re.fullmatch(r"[A-Z][A-Z0-9_]*", name) and name != "GITHUB_TOKEN" and isinstance(value, str)
+        for name, value in secrets.items()
+    ):
+        errors.append(f"{label}: secrets must map NAME to a string value; GITHUB_TOKEN is the runner's")
     for field in ("prompt", "expected_output"):
         if not isinstance(case.get(field), str) or not case.get(field):
             errors.append(f"{label}: {field} is required by the evals.json contract")
@@ -336,7 +344,33 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
             missing = [b for b in rules["origin_branches_include"] if b not in repo["origin_branches"]]
             if missing:
                 problems.append(f"origin lacks {missing}")
+        if "origin_branches" in rules and sorted(repo["origin_branches"]) != sorted(rules["origin_branches"]):
+            problems.append(f"origin branches {repo['origin_branches']}, want {rules['origin_branches']}")
+        if "origin_branch_count" in rules and len(repo["origin_branches"]) != rules["origin_branch_count"]:
+            problems.append(f"origin branches {repo['origin_branches']}, want {rules['origin_branch_count']}")
+        for branch, sha in rules.get("origin_contains") or []:
+            if not repo.get("origin_contains", {}).get(branch, {}).get(sha):
+                problems.append(f"origin branch {branch} does not contain {sha[:12]}")
         results.append(("repo", not problems, "; ".join(problems) or "ok"))
+
+    if "pulls" in criteria:
+        rules = criteria["pulls"]
+        pulls = snap.get("pulls") or []
+        problems = []
+        if "count" in rules and len(pulls) != rules["count"]:
+            problems.append(f"{len(pulls)} pull requests, want {rules['count']}")
+        if "heads" in rules and sorted(p.get("head", "") for p in pulls) != sorted(rules["heads"]):
+            problems.append(f"heads {[p.get('head') for p in pulls]}, want {rules['heads']}")
+        if "head_artifact" in rules:
+            want = snap["artifacts"].get(rules["head_artifact"])
+            wrong = [p.get("head") for p in pulls if p.get("head") != want]
+            if wrong:
+                problems.append(f"heads {wrong} differ from artifact {rules['head_artifact']} {want!r}")
+        if "reviews" in rules:
+            posted = sum(len(p.get("reviews_posted", [])) for p in pulls)
+            if posted != rules["reviews"]:
+                problems.append(f"{posted} reviews published, want {rules['reviews']}")
+        results.append(("pulls", not problems, "; ".join(problems) or f"{len(pulls)} pull requests"))
     return results
 
 
@@ -541,7 +575,7 @@ def queue_prefix(index: int) -> str:
     return "W" + letters[index // 26 % 26] + letters[index % 26]
 
 
-def git_state(repo: Path, contains: list[str]) -> dict:
+def git_state(repo: Path, contains: list[str], origin_contains: list[list[str]] | None = None, bare: str | None = None) -> dict:
     def git(*args: str) -> str:
         result = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False)
         return result.stdout.strip() if result.returncode == 0 else ""
@@ -569,6 +603,16 @@ def git_state(repo: Path, contains: list[str]) -> dict:
                 check=False,
             )
             contained[sha] = result.returncode == 0
+    # Whether each origin branch holds a commit, read from the bare origin
+    # itself: the actor may never have fetched the branch into this checkout.
+    on_origin: dict[str, dict[str, bool]] = {}
+    for branch, sha in origin_contains or []:
+        result = subprocess.run(
+            ["git", "--git-dir", str(bare), "merge-base", "--is-ancestor", sha, f"refs/heads/{branch}"],
+            capture_output=True,
+            check=False,
+        ) if bare else None
+        on_origin.setdefault(branch, {})[sha] = result is not None and result.returncode == 0
     return {
         "branches": branches,
         "worktrees": worktrees,
@@ -577,6 +621,7 @@ def git_state(repo: Path, contains: list[str]) -> dict:
         "clean": git("status", "--porcelain") == "",
         "contains": contained,
         "origin_branches": origin_branches,
+        "origin_contains": on_origin,
     }
 
 
@@ -616,12 +661,28 @@ def wait_for_iteration(daemon: Daemon, agent: str, timeout: int) -> dict | None:
     return None
 
 
-def collect(daemon: Daemon, key: str, variables: dict, artifacts_before: dict) -> dict:
+def pulls_of(state_file: Path) -> list[dict]:
+    """Every pull request of the fake GitHub, with the reviews posted to it."""
+    if not state_file.is_file():
+        return []
+    state = json.loads(state_file.read_text())
+    found = []
+    for repo in (state.get("repos") or {}).values():
+        posted = repo.get("posted_reviews") or {}
+        for pull in repo.get("pulls") or []:
+            found.append({**pull, "reviews_posted": posted.get(str(pull.get("number")), [])})
+    return found
+
+
+def collect(daemon: Daemon, key: str, variables: dict, artifacts_before: dict, criteria: dict | None = None, github_state: Path | None = None) -> dict:
     workflow = daemon.json("tasks", "workflow", "get", key) or {}
     shown = daemon.json("tasks", "show", key) or {}
     artifacts = artifacts_of(workflow)
     repo = Path(variables["repo"])
     contains = [variables.get("merge_sha", "")]
+    bares = []
+    if github_state and github_state.is_file():
+        bares = [r.get("bare") for r in (json.loads(github_state.read_text()).get("repos") or {}).values() if r.get("bare")]
     return {
         "status": workflow.get("status", ""),
         "requests": requests_of(workflow),
@@ -629,7 +690,8 @@ def collect(daemon: Daemon, key: str, variables: dict, artifacts_before: dict) -
         "artifacts_before": artifacts_before,
         "comments": shown.get("comments") or [],
         "waits": shown.get("waiting_for") or [],
-        "repo": git_state(repo, contains),
+        "repo": git_state(repo, contains, ((criteria or {}).get("repo") or {}).get("origin_contains"), bares[0] if bares else None),
+        "pulls": pulls_of(github_state) if github_state else [],
         "workflow": workflow,
     }
 
@@ -693,6 +755,8 @@ def run_case(daemon: Daemon, github: FakeGitHub, case: dict, workflow_dir: Path,
     daemon.run("tasks", "queue", "pool", "set", prefix, pool, "--agents", agent, "--revision", "0", "--idempotency-key", f"pool-{prefix}")
     daemon.run("tasks", "queue", "env", "set", prefix, "GITHUB_API_URL", github.url(prefix, fake_dir))
     daemon.run("tasks", "queue", "secret", "set", prefix, "GITHUB_TOKEN", stdin=FAKE_TOKEN)
+    for name, value in substitute(case.get("secrets") or {}, variables).items():
+        daemon.run("tasks", "queue", "secret", "set", prefix, name, stdin=value)
     # Revision 0: a new queue has no workflow binding yet.
     daemon.run("tasks", "queue", "workflow", "set", prefix, workflow_ref, "--revision", "0")
     created = daemon.json(
@@ -762,7 +826,7 @@ def run_case(daemon: Daemon, github: FakeGitHub, case: dict, workflow_dir: Path,
         (run_dir / "transcript.txt").write_text(transcript.stdout + transcript.stderr)
     # Checks started by the actor's last advance finish within their timeouts.
     time.sleep(5)
-    snap = collect(daemon, key, variables, artifacts_before)
+    snap = collect(daemon, key, variables, artifacts_before, criteria, fake_dir / "github.json")
     (run_dir / "workflow.json").write_text(json.dumps(snap.pop("workflow"), indent=2))
     (run_dir / "snapshot.json").write_text(json.dumps(snap, indent=2, default=str))
     for name, passed, detail in check_criteria(criteria, snap, principal):

@@ -207,13 +207,16 @@ and the runner skips it. A workflow case has these fields:
 | `criteria` | The checks that the run must pass |
 | `prompt`, `expected_output` | The scenario and the success criteria in words, as for every eval |
 | `timeout_s` | Optional limit for the iteration, in seconds |
+| `secrets` | Optional queue secrets that the workflow requires, as `{"NAME": "value"}`. The runner sets `GITHUB_TOKEN` itself |
 
 The fixture script writes only inside `$EVAL_DIR`. It creates the repository
 of the actor in `$EVAL_DIR/repo`, the state of the fake GitHub in
 `$EVAL_GITHUB_STATE`, and a JSON object of values in `$EVAL_VARS`. The `task`,
 `path` and `criteria` fields can use these values as `${name}`. The
-`development` fixture `widget-repo.sh` gives the variants `plain`, `pr-open`,
-`pr-merged` and `pr-diverged`.
+`development` fixture `widget-repo.sh` gives the variants `plain`,
+`branch-pushed`, `pr-open`, `pr-merged` and `pr-diverged`. In `branch-pushed`,
+another agent pushed one partial commit to the task branch, and only origin
+keeps that branch. The `pr-review` and `research` cases use the same fixture.
 
 A `path` step is one of these:
 
@@ -231,7 +234,8 @@ After the iteration, the runner checks these `criteria`:
 - `artifacts`: per artifact, `headings`, `contains`, `matches` (a regular expression), `equals`, `changed` or `absent`.
 - `question`: `true` if the actor must ask the customer through the task, `false` if it must not.
 - `comments`: `labels` that one comment of the actor must contain, `contains` text, or `worktree_path: true`, which needs each linked worktree named by its absolute path or its path relative to the main checkout.
-- `repo`: the main checkout after the iteration: `branches`, `branches_include`, `worktrees`, `min_worktrees`, `clean`, `main`, `main_contains`, `origin_branches_include`.
+- `repo`: the main checkout after the iteration: `branches`, `branches_include`, `worktrees`, `min_worktrees`, `clean`, `main`, `main_contains`, `origin_branches_include`. For origin: `origin_branches` (the exact list), `origin_branch_count`, and `origin_contains`, a list of `[BRANCH, SHA]` pairs, where each origin branch must contain the commit.
+- `pulls`: the pull requests of the fake GitHub: `count`, `heads` (the exact list of head branches), `head_artifact` (each head equals this artifact), and `reviews` (the number of reviews published on them).
 
 The runner starts its own `tariboyd` with a new base directory and a new
 runtime directory, a Unix socket and no HTTP listener. It stops if that daemon

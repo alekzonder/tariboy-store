@@ -25,7 +25,8 @@ State file (github.json):
     }
 
 A pull with `head_sha` null reports the current tip of its head branch in the
-bare repository. Every request is appended to `requests.log` next to the
+bare repository. `/pulls/N/files` lists the change from the merge base, and a
+review posted to `/pulls/N/reviews` is kept under `posted_reviews`. Every request is appended to `requests.log` next to the
 state file. Only the request forms the clients use are parsed.
 
 The runner also serves `handle` over loopback HTTP for the workflow's own
@@ -149,6 +150,29 @@ def pull_view(full_name: str, repo: dict, pull: dict) -> dict:
     }
 
 
+def pull_files(repo: dict, pull: dict) -> list[dict]:
+    """The changed files of a pull request as GitHub lists them: each with
+    `filename`, `status` and the `patch` hunks from the merge base."""
+    head_sha = pull.get("head_sha") or branch_sha(repo, pull["head"])
+    base_sha = branch_sha(repo, pull["base"])
+    if not head_sha or not base_sha:
+        return []
+    merge_base = git(repo["bare"], "merge-base", base_sha, head_sha)
+    files = []
+    for line in git(repo["bare"], "diff", "--name-status", merge_base, head_sha).splitlines():
+        status, _, name = line.partition("\t")
+        diff = git(repo["bare"], "diff", "--unified=3", merge_base, head_sha, "--", name)
+        hunks = diff[diff.find("@@"):] if "@@" in diff else None
+        files.append(
+            {
+                "filename": name,
+                "status": {"A": "added", "D": "removed"}.get(status[:1], "modified"),
+                "patch": hunks,
+            }
+        )
+    return files
+
+
 def find_pull(repo: dict, number: str) -> dict:
     for pull in repo["pulls"]:
         if str(pull["number"]) == number:
@@ -222,6 +246,23 @@ def route(state: dict, method: str, path: str, query: dict, data: str | None) ->
                 if field in body:
                     pull[field] = body[field]
             return 200, pull_view(full_name, repo, pull)
+    if len(rest) == 3 and rest[0] == "pulls" and rest[2] == "files" and method == "GET":
+        pull = find_pull(repo, rest[1])
+        return 200, [] if page > 1 else pull_files(repo, pull)
+    if len(rest) == 3 and rest[0] == "pulls" and rest[2] == "reviews" and method == "POST":
+        find_pull(repo, rest[1])
+        body = json.loads(data or "{}")
+        posted = repo.setdefault("posted_reviews", {}).setdefault(rest[1], [])
+        review = {
+            "id": 2000 + len(posted),
+            "state": "COMMENTED",
+            "body": body.get("body", ""),
+            "commit_id": body.get("commit_id"),
+            "comments": body.get("comments", []),
+            "html_url": f"https://github.com/{full_name}/pull/{rest[1]}#pullrequestreview-{2000 + len(posted)}",
+        }
+        posted.append(review)
+        return 200, review
     if len(rest) == 3 and rest[0] == "pulls" and rest[2] in {"comments", "reviews"}:
         find_pull(repo, rest[1])
         if method == "GET":

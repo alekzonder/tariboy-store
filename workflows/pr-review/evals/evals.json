@@ -1,0 +1,90 @@
+{
+  "image_name": "pr-review",
+  "evals": [
+    {
+      "id": "review-revise-after-other-agent",
+      "status": "review",
+      "actor": {
+        "image": "reviewer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Review eval/widget#7: Add --json to widget list",
+        "description": "Review the pull request https://github.com/eval/widget/pull/7 in the repository ${repo}."
+      },
+      "fixture": {
+        "script": "../development/evals/fixtures/widget-repo.sh",
+        "args": [
+          "pr-open"
+        ]
+      },
+      "secrets": {
+        "REVIEW_REPOSITORIES": "eval/none"
+      },
+      "path": [
+        {
+          "artifact": [
+            "pull_request",
+            "${pr_url}"
+          ]
+        },
+        {
+          "artifact": [
+            "head_sha",
+            "${head_sha}"
+          ]
+        },
+        {
+          "artifact": [
+            "review",
+            "## Summary\n\nThe pull request adds `--json` to `widget list`. Two findings.\n\n## Findings\n\n1. should fix, `test_widget.py`: no test covers `list_widgets(as_json=True)` or the `--json` flag. Add a test that parses the output as JSON.\n2. blocking, `widget.py` line 5: `import json` is unused. Remove it.\n"
+          ]
+        },
+        {
+          "artifact": [
+            "review_comments",
+            "{\"body\": \"Two findings.\\n\\n1. should fix: no test covers `list_widgets(as_json=True)` or the `--json` flag. Add a test that parses the output as JSON.\", \"comments\": [{\"path\": \"widget.py\", \"line\": 5, \"side\": \"RIGHT\", \"body\": \"blocking: `import json` is unused. Remove it.\"}]}"
+          ]
+        },
+        {
+          "move": "approval"
+        },
+        {
+          "advance": {
+            "outcome": "revise",
+            "from": "approval",
+            "message": "Finding 2 is wrong: `json` is used in `list_widgets`. Remove finding 2 from the review and from the inline comments. Keep finding 1."
+          }
+        }
+      ],
+      "prompt": "Goal block of a pr-review task returned to review by the customer's revise; another reviewer agent wrote the current review, review_comments and head_sha. GitHub is the eval fake with the open pull request.",
+      "expected_output": "Success criteria:\n- reads the current review, review_comments and head_sha written by the other agent before revising\n- removes finding 2 from review and review_comments and keeps finding 1\n- head_sha stays the pull request's head\n- leaves review with findings and the review check accepts it\n- publishes nothing on the pull request",
+      "timeout_s": 1500,
+      "criteria": {
+        "outcome": {
+          "name": "findings",
+          "state": "applied"
+        },
+        "status": "approval",
+        "question": false,
+        "artifacts": {
+          "head_sha": {
+            "equals": "${head_sha}"
+          },
+          "review": {
+            "changed": true,
+            "matches": "^(?![\\s\\S]*is unused)"
+          },
+          "review_comments": {
+            "changed": true,
+            "matches": "^(?![\\s\\S]*is unused)"
+          }
+        },
+        "pulls": {
+          "count": 1,
+          "reviews": 0
+        }
+      }
+    }
+  ]
+}
