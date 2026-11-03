@@ -127,12 +127,15 @@ holds only cycle work.
    4. Count it in the comment as a task assessment, not as an iteration.
 5. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
    `REVIEW coverage --agents AGENTS --since SINCE --assessor ASSESSOR`
-   gives the pairs. Post one comment on `cycle_task` with `ttasks comment`
-   and a quoted heredoc (`cli-text`). Write the body out in full: every field
-   of this template with its number, `0` included. A field you leave out or
-   write as "see above" is a defect:
+   gives the pairs. Post one comment on `cycle_task` with this command
+   (`cli-text` quoted heredoc). Put the real value in place of every
+   `FROM`, `TO`, `N`, `KEY`, `X` and `Y`, `0` included, and keep every line.
+   When you report the commands of the iteration, show this command with the
+   whole filled body, never only `"$BODY"`. A line you leave out or write as
+   "see above" is a defect:
 
-   ```markdown
+   ```bash
+   BODY=$(cat <<'CYCLE_EOF'
    ## Review cycle START
 
    - Window: FROM – TO
@@ -144,6 +147,9 @@ holds only cycle work.
    - Candidates not assessed (budget): N
    - Cycle cost: X USD of budget_usd Y USD
    - Cost of one assessment: X USD (cycle cost / assessments written, iterations and tasks)
+   CYCLE_EOF
+   )
+   ttasks comment CYCLE_TASK "$BODY"
    ```
 
 6. `scripts/scripts.sh rerun SCRIPT_ID` of `review-cycle`. Then continue with
@@ -182,3 +188,4 @@ an assessment stays in the assessment:
 | "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
 | "No iteration was left, so the cycle is done." | Run the task step: a `done` task with all iterations assessed still needs its task assessment. |
 | "The comment can just say the cycle ran." | Fill every field of the comment template, `0` included. |
+| "Writing `ttasks comment TASK "$BODY"` and saying every field is filled is enough." | Write the heredoc out with each filled line; a bare `"$BODY"` shows no comment. |
