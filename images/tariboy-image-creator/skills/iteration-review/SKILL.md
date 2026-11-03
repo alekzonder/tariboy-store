@@ -26,10 +26,13 @@ with `review_mode: off`, review mode is off.
 review_mode: on
 agents: AGENT, AGENT, ...
 since: RFC 3339 time — the date the cycle was enabled
-budget_usd: 6.5
 cycle_task: TASK-KEY
 model: haiku
 ```
+
+`budget_usd: USD` is an optional line of the block. Without it the cycle has
+no dollar limit: the quota of step 2 alone bounds what the cycle assesses.
+With it, step 3.1 stops the cycle at that cost.
 
 ## Which step applies
 
@@ -100,7 +103,8 @@ holds only cycle work.
    An iteration with an assessment from this assessor is processed: never
    assess it again, and never tag it.
 3. Repeat while candidates remain:
-   1. `REVIEW cost --agent ASSESSOR --since START` gives `spent`.
+   1. Without `budget_usd`, `N` is 10. With `budget_usd`,
+      `REVIEW cost --agent ASSESSOR --since START` gives `spent`, and
       `N = floor((budget_usd - spent) / 0.08)`, at most 10. When `N` is 0,
       stop: the rest of the selection is not assessed.
    2. `REVIEW pack --dir "$DIR" --limit N` writes one evidence pack for each
@@ -130,6 +134,8 @@ holds only cycle work.
    gives the pairs. Post one comment on `cycle_task` with this command
    (`cli-text` quoted heredoc). Put the real value in place of every
    `FROM`, `TO`, `N`, `KEY`, `X` and `Y`, `0` included, and keep every line.
+   Without `budget_usd`, write `Candidates not assessed (budget): 0` and
+   `Cycle cost: X USD, no budget_usd`.
    When you report the commands of the iteration, show this command with the
    whole filled body, never only `"$BODY"`. A line you leave out or write as
    "see above" is a defect:
@@ -184,7 +190,8 @@ an assessment stays in the assessment:
 | "This violation needs an improvement task now." | The assessment is the record. Improvement tasks come from the customer. |
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
 | "I will assess this one again with better evidence." | An iteration with an assessment is processed. |
-| "The budget is nearly spent, but the queue is short." | Stop at the budget; what is left is not assessed. |
+| "The budget is nearly spent, but the queue is short." | With `budget_usd`, stop at the budget; what is left is not assessed. |
+| "There is no `budget_usd`, so I will set a limit myself." | Without `budget_usd`, assess the whole selection; the quota is the limit. |
 | "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
 | "No iteration was left, so the cycle is done." | Run the task step: a `done` task with all iterations assessed still needs its task assessment. |
 | "The comment can just say the cycle ran." | Fill every field of the comment template, `0` included. |
