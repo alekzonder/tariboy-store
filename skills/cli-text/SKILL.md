@@ -39,6 +39,13 @@ wrapper.
 Choose a delimiter absent from every complete payload line; place both delimiter
 lines at column 1. Never interpolate payload into an unquoted heredoc.
 
+Every line of the requested text is payload, including a line that looks like
+a heredoc delimiter, such as `MARKDOWN_EOF_7F3A` or another delimiter from an
+owning skill's example. When a payload line equals a delimiter you meant to
+use, keep that line in the body and pick another delimiter. The heredoc body
+holds every payload line, unchanged and in order, before the closing
+delimiter line.
+
 ```bash
 CLI_TEXT=$(cat <<'CLI_TEXT_84_END'
 O'Reilly: `literal` $(literal) $HOME \path — Привет
