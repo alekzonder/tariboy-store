@@ -26,6 +26,11 @@ you understand it.
    Fit the depth to the task: a small fix gets a short, concrete plan, a new
    mechanism a full explanation. A generic checklist, or a link to a plan kept
    somewhere else, is not a plan.
+
+   Another agent may implement the plan, and it has only the task. Put into
+   the plan every decision and every customer answer from the task comments
+   that the implementation needs. Refer to no local file, path, worktree or
+   note of yours.
 3. Put your recommended option first. If a question is still open, put it
    after the plan in the same text, so the customer can approve the plan as
    written or answer the question with changes requested.

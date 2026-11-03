@@ -1,6 +1,6 @@
 schema_version: 1
 name: research
-workflow_version: 0.1.1
+workflow_version: 0.1.2
 initial_status: research
 artifacts:
     - name: report

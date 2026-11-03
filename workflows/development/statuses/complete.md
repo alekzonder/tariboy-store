@@ -10,10 +10,12 @@ the result.
    exactly as it is, post the failure on the task, and ask the customer
    through the task. Prove the result: `git merge-base --is-ancestor
    MERGE_COMMIT BASE` exits 0.
-2. Remove the task's worktree and then its local branch. After a squash or
-   rebase merge `git branch -d` refuses, because the branch's own commits are
-   not on the base; use `git branch -D` once step 1 proved the merge commit is
-   on the base branch.
+2. Remove the task's worktree and then its local branch, if this checkout
+   has them. Another agent may have implemented the task: then this checkout
+   has nothing to remove. Never delete the remote branch or a worktree
+   outside this checkout. After a squash or rebase merge `git branch -d`
+   refuses, because the branch's own commits are not on the base; use
+   `git branch -D` once step 1 proved the merge commit is on the base branch.
 3. Set your working directory to the repository's main checkout with the
    `workdir` skill. The check that ends this status runs in your working
    directory: it looks there for the merge commit on the base branch and for
@@ -24,7 +26,8 @@ the result.
    - `Verification:` the verification that ran on the final commit, and the
      result of the pull request's required checks on its last head;
    - `Integration:` the merge commit and that the base branch contains it;
-   - `Cleanup:` the worktree and branch you removed.
+   - `Cleanup:` the worktree and branch you removed, or that this checkout
+     had none.
 5. Leave the status with the outcome `cleaned`. If the check rejects, do what
    its message names and advance again.
 
