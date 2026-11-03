@@ -1,6 +1,6 @@
 schema_version: 1
 name: pr-review
-workflow_version: 0.3.2
+workflow_version: 0.4.0
 initial_status: review
 requires_secrets: [GITHUB_TOKEN, REVIEW_REPOSITORIES]
 limits:
@@ -28,6 +28,7 @@ sources:
 statuses:
     - id: review
       owner: {pool: reviewers}
+      sticky_holder: true
       instructions: ./statuses/review.md
       transitions:
         - on: findings
