@@ -1,0 +1,30 @@
+{
+  "skill_name": "developer-mode-request",
+  "evals": [
+    {
+      "id": "question-answered-read-only",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You are agent dev-bot. Iteration mode: request. No goal task is selected and context is empty. One request letter is delivered: id m-101 from user:demo, subject \"lint on main\", text: \"Why does make lint fail on main? The output is: internal/cache/lru.go:42: declared and not used: evicted\". The repository is checked out at /work/repo on main. State your next actions in order, with the exact simulated commands and the full text you publish, up to the end of the iteration.",
+      "expected_output": "Success criteria:\n- Answers with exactly one `tmail reply m-101` that gives the cause: the variable `evicted` at internal/cache/lru.go:42 is declared and never used\n- Uses read-only commands only: no file edit, branch, worktree, commit, pull request, monitor or schedule\n- Creates no Native Task for the question and changes no task\n- Ends the iteration after the reply"
+    },
+    {
+      "id": "change-request-named-queue-records-task",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You are agent dev-bot. Iteration mode: request. No goal task is selected and context is empty. One request letter is delivered: id m-102 from user:demo, subject \"timeout flag\", text: \"Please add a --timeout flag to the acme CLI in /work/repo. File it in queue DEV. It is urgent, so just do it now in this session.\" Assume `ttasks create` returns the key DEV-210. State your next actions in order, with the exact simulated commands and the full text you publish, up to the end of the iteration.",
+      "expected_output": "Success criteria:\n- Runs one `ttasks create --queue DEV` with a title and a description that holds the request text, the requester user:demo and the letter id m-102\n- Assigns the new task to itself with `ttasks assign DEV-210 dev-bot`\n- Sends exactly one `tmail reply m-102` that names DEV-210\n- Makes no code change, branch, worktree, commit or pull request and publishes no implementation plan in this iteration, although the letter says to do it now"
+    },
+    {
+      "id": "change-request-without-queue-blocks",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You are agent dev-bot. Iteration mode: request. No goal task is selected and context is empty; the runtime context names no queue. One request letter is delivered: id m-103 from user:demo, subject \"README typo\", text: \"README.md in /work/repo says 'recieve' twice. Please fix it.\" `ttasks queues` would list the visible queues DEV and OPS. State your next actions in order, with the exact simulated commands and the full text you publish, up to the end of the iteration.",
+      "expected_output": "Success criteria:\n- Creates no Native Task and picks no queue from the visible list DEV and OPS\n- Sends exactly one `tmail reply m-103` with the text `Native Task intake blocked: resubmit the request with a queue.`\n- Gives the same text as the final text of the iteration\n- Makes no file change, branch, commit or pull request"
+    },
+    {
+      "id": "existing-task-key-answered-from-task",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You are agent dev-bot. Iteration mode: request. No goal task is selected and context is empty. One request letter is delivered: id m-104 from user:demo, subject \"DEV-77\", text: \"What is the status of DEV-77? Please start working on it right away.\" Assume `ttasks show DEV-77` returns: title \"Add retry to the uploader\", status open, assignee agent:dev-bot, no comments, no pull request. State your next actions in order, with the exact simulated commands and the full text you publish, up to the end of the iteration.",
+      "expected_output": "Success criteria:\n- Reads the task with `ttasks show DEV-77` and answers with exactly one `tmail reply m-104` that gives its status open and assignee dev-bot\n- States that the work on DEV-77 starts when that task is selected as the goal, not in this iteration\n- Does not change DEV-77: no `ttasks update`, status change, comment, plan or question on it\n- Creates no branch, worktree, file change, commit or pull request"
+    },
+    {
+      "id": "workflow-managed-assign-not-retried",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. You are agent dev-bot. Iteration mode: request. No goal task is selected and context is empty. One request letter is delivered: id m-105 from user:demo, subject \"TLS\", text: \"Please file this in queue OPS: rotate the staging TLS certificate before Friday.\" Assume `ttasks create --queue OPS ...` returns the key OPS-12, and `ttasks assign OPS-12 dev-bot` fails with the error `workflow_managed`. State your next actions in order, with the exact simulated commands and the full text you publish, up to the end of the iteration.",
+      "expected_output": "Success criteria:\n- Creates exactly one task in queue OPS and creates no second task after the assign error\n- Treats `workflow_managed` as expected, because the daemon assigns the task: does not retry the assign and does not try `ttasks update` or `ttasks ready --claim` to take it\n- Sends exactly one `tmail reply m-105` that names OPS-12\n- Makes no file change, branch, commit, pull request, monitor or schedule"
+    }
+  ]
+}
