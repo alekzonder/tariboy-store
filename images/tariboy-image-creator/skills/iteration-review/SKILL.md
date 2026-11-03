@@ -12,6 +12,8 @@ any goal work of that iteration. It changes nothing it assesses.
 
 `REVIEW` below is `python3 SKILL_DIR/scripts/review.py`, with the absolute
 path of this skill's directory. `WORKDIR` is the configured workdir.
+`ASSESSOR` is this agent's own name (`$TARIBOY_AGENT`, see `whoami`): the
+daemon records every assessment under it.
 
 ## Configuration
 
@@ -33,22 +35,32 @@ model: haiku
 
 | Observed | Step |
 | --- | --- |
-| Review mode on, any iteration | Ensure the schedule |
+| Review mode on, any iteration | Ensure the schedule and refresh the script copy |
 | `script.result` of `review-cycle`, review mode on | Run the cycle, then the rest of the iteration |
 | `script.result` of `review-cycle`, review mode off | Stop the schedule |
 | Review mode on, no such letter | No cycle in this iteration; continue the normal Flow |
 
 ## Ensure the schedule
 
-1. Run `scripts/scripts.sh ls`. If a definition named `review-cycle` is
+1. First run `scripts/scripts.sh ls`. If a definition named `review-cycle` is
    `active`, or stopped by a letter delivered in this iteration, reuse it.
    Never create a second one.
-2. With none, copy the script out of the image, so that the schedule outlives
-   image updates, and create one schedule:
+2. Refresh the script copy from the image that runs now:
 
    ```bash
    mkdir -p "$WORKDIR/review-cycle"
-   cp SKILL_DIR/scripts/review.py "$WORKDIR/review-cycle/review.py"
+   cmp -s SKILL_DIR/scripts/review.py "$WORKDIR/review-cycle/review.py" ||
+     cp SKILL_DIR/scripts/review.py "$WORKDIR/review-cycle/review.py"
+   ```
+
+   The schedule runs this copy, not `SKILL_DIR`: the installed skill path
+   contains the image digest, so a schedule on it would keep the old image's
+   script after every publication. The copy has a fixed path, and this step
+   puts a new image's `review.py` in it at the first iteration on that image,
+   with no new schedule.
+3. With no definition in step 1, create one schedule on the copy:
+
+   ```bash
    scripts/scripts.sh schedule review-cycle --every 3600 -- \
      python3 "$WORKDIR/review-cycle/review.py" tick --state "$WORKDIR/review-cycle/tick.json" --period 86400
    ```
@@ -70,7 +82,7 @@ Do the cycle first in the iteration, before any goal work, so that its cost
 holds only cycle work.
 
 1. Set `START` to the current UTC time and `DIR="$WORKDIR/review/START"`.
-2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor tariboy-image-creator`
+2. `REVIEW candidates --dir "$DIR" --agents AGENTS --since SINCE --assessor ASSESSOR`
    selects the cycle's iterations and orders them:
    - only iterations that ended in the last 24 hours; an older iteration
      outside an earlier selection is skipped for good;
@@ -88,7 +100,7 @@ holds only cycle work.
    An iteration with an assessment from this assessor is processed: never
    assess it again, and never tag it.
 3. Repeat while candidates remain:
-   1. `REVIEW cost --agent tariboy-image-creator --since START` gives `spent`.
+   1. `REVIEW cost --agent ASSESSOR --since START` gives `spent`.
       `N = floor((budget_usd - spent) / 0.08)`, at most 10. When `N` is 0,
       stop: the rest of the selection is not assessed.
    2. `REVIEW pack --dir "$DIR" --limit N` writes one evidence pack for each
@@ -99,17 +111,41 @@ holds only cycle work.
       iteration stays a candidate for the next cycle.
    5. `REVIEW add --dir "$DIR"` writes each valid assessment with
       `tariboy assessment add --file PATH`.
-4. `REVIEW tasks --dir "$DIR" --assessor tariboy-image-creator` writes a task
-   pack for each `done` task whose iterations are all assessed and that has
-   no task assessment. Assess them with the same subagent, `validate` and
-   `add` steps, inside the same budget.
-5. `REVIEW cost --agent tariboy-image-creator --since START` gives the cycle
-   cost, and `REVIEW coverage --agents AGENTS --since SINCE --assessor tariboy-image-creator`
-   gives metric 1. Post one comment on `cycle_task` with: the window, active
-   pairs agent × image version, pairs with coverage (3 assessments, or all
-   iterations of the pair), iterations assessed, task assessments, write
-   failures, candidates not assessed, the cycle cost, and the cost of one
-   assessment = cycle cost / assessments written.
+4. Assess the tasks. Do this step even when no iteration was left to
+   assess in step 3:
+   1. `REVIEW tasks --dir "$DIR" --assessor ASSESSOR` writes a task pack
+      (`# Task pack KEY`) for each `done` task whose iterations are all
+      assessed and that has no task assessment, and prints `pack` and `out`
+      paths.
+   2. For each printed pack, start the same assessor subagent with the
+      same prompt and the pair `PACK_PATH -> OUT_PATH`, inside the same
+      budget check as step 3.1.
+   3. The output is a task assessment: it has `task_key` and no
+      `iteration_id`. `REVIEW validate --dir "$DIR"`, then
+      `REVIEW add --dir "$DIR"`, which runs
+      `tariboy assessment add --file OUT_PATH` for it.
+   4. Count it in the comment as a task assessment, not as an iteration.
+5. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
+   `REVIEW coverage --agents AGENTS --since SINCE --assessor ASSESSOR`
+   gives the pairs. Post one comment on `cycle_task` with `ttasks comment`
+   and a quoted heredoc (`cli-text`). Write the body out in full: every field
+   of this template with its number, `0` included. A field you leave out or
+   write as "see above" is a defect:
+
+   ```markdown
+   ## Review cycle START
+
+   - Window: FROM – TO
+   - Active pairs agent × image version: N
+   - Pairs with coverage (3 assessments, or all iterations of the pair): N
+   - Iterations assessed: N, of them problem iterations: N
+   - Task assessments: N (KEY, ...)
+   - Write failures: N
+   - Candidates not assessed (budget): N
+   - Cycle cost: X USD of budget_usd Y USD
+   - Cost of one assessment: X USD (cycle cost / assessments written, iterations and tasks)
+   ```
+
 6. `scripts/scripts.sh rerun SCRIPT_ID` of `review-cycle`. Then continue with
    the other letters and the goal of the iteration.
 
@@ -144,3 +180,5 @@ an assessment stays in the assessment:
 | "I will assess this one again with better evidence." | An iteration with an assessment is processed. |
 | "The budget is nearly spent, but the queue is short." | Stop at the budget; what is left is not assessed. |
 | "These old iterations were never assessed; take them now." | Only the last 24 hours count. Older ones are skipped. |
+| "No iteration was left, so the cycle is done." | Run the task step: a `done` task with all iterations assessed still needs its task assessment. |
+| "The comment can just say the cycle ran." | Fill every field of the comment template, `0` included. |
