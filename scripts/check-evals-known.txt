@@ -17,7 +17,6 @@ duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/task
 duplicate: images/tariboy-release-publisher/evals/files/cli-text-command.json
 run-result: images/basic/evals/cli-text/results.json
 run-result: images/tariboss/evals/cli-text/results.json
-run-result: skills/loop/evals/results.md
 run-result: skills/scripts/evals/results.md
 run-result: skills/tasks/evals/cli-text-newlines-baseline.md
 run-result: skills/tasks/evals/cli-text-newlines-candidate.md
