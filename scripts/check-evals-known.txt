@@ -5,7 +5,6 @@
 duplicate: images/developer/evals/files/cli-text-command.json
 duplicate: images/tariboy-image-creator/evals/files/cli-text-command.json
 duplicate: images/tariboy-release-publisher/evals/files/cli-text-command.json
-run-result: images/basic/evals/cli-text/results.json
 run-result: images/tariboss/evals/cli-text/results.json
 unused: images/developer/evals/files/cli-text-command.json
 unused: images/tariboy-image-creator/evals/files/cli-text-command.json
