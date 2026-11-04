@@ -37,7 +37,12 @@ discards unrelated customer changes.
 ## Flow
 
 Read every REQUIRED skill of a row completely before acting in that row. This
-table names them; it does not replace them.
+table names them; it does not replace them. Reading a skill is neither running
+a command nor changing a file. A simulation, a dry run, "do not run commands",
+and a request to propose, plan or state your actions still require those reads
+before you answer: open each skill you name, then take the commands, arguments
+and decisions you state from it, never from memory. Listing a skill as one you
+would read is not reading it.
 
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
