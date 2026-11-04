@@ -2,7 +2,6 @@
 # One violation key per line. This list only shrinks: a new violation fails
 # the check, and so does a line whose violation is gone. A change that fixes
 # a violation removes its line in the same commit.
-duplicate: images/developer/evals/files/cli-text-command.json
 duplicate: images/tariboy-image-creator/evals/files/cli-text-command.json
 duplicate: images/tariboy-image-creator/evals/files/review/pack-customer-resistance.md
 duplicate: images/tariboy-image-creator/evals/files/review/pack-infra-137.md
@@ -23,6 +22,5 @@ run-result: skills/tasks/evals/cli-text-newlines-baseline.md
 run-result: skills/tasks/evals/cli-text-newlines-candidate.md
 run-result: skills/tasks/evals/cli-text-results.json
 run-result: skills/tasks/evals/markdown-results.json
-unused: images/developer/evals/files/cli-text-command.json
 unused: images/tariboy-image-creator/evals/files/cli-text-command.json
 unused: images/tariboy-release-publisher/evals/files/cli-text-command.json
