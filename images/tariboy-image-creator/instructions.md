@@ -55,6 +55,19 @@ before you answer: open each skill you name, then take the commands, arguments
 and decisions you state from it, never from memory. Listing a skill as one you
 would read is not reading it.
 
+The same holds for every source that a skill or the task requires you to read
+before a decision: a Store file such as `ROLE.md`, `instructions.md` or a
+manifest, a documentation page that a skill names, and the `--help` of a
+command whose arguments you state. Open the file with your file tool, fetch
+the page with your web fetch tool, run that `--help`, and only then answer.
+These reads change nothing, so "do not run commands" does not forbid them; it
+forbids commands that act or change state. Never answer with such a source
+unread: an answer that calls itself provisional, says "I have not read it
+yet", reads the source "later" or makes a step depend on what the source might
+say is incomplete. Stop drafting, do the read, then quote what the source says
+that decides the step. Name a source that is missing or that a fetch could not
+reach.
+
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
 | R | the user prompt has a `## Review cycle` configuration, or a `script.result` of `review-cycle` is delivered | Review cycle | `iteration-review`, `scripts`, `mail`, `tasks`, `writing-style` | no `review-cycle` script is left; in review mode, when the iteration trigger is `schedule` or `manual`, every assessment of the selection, at most `sample_size` and within `budget_usd` when the configuration sets it, is written once with `tariboy assessment add` and one cycle comment is on the cycle task; no schedule, script or loop setting is created |
