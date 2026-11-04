@@ -105,11 +105,26 @@ ask for is not part of it. A command answer is the command alone:
 ## Documentation
 
 A document keeps the headings, numbered steps and tables that its readers
-need. A procedure, such as a runbook or setup instructions, is one numbered
-list of steps: one action or command per step, verb first. The rules "one sentence if possible" and "lists and headings only for
+need. The rules "one sentence if possible" and "lists and headings only for
 3+ items" do not apply to it. These brevity rules apply to it: no opener, no
 closing summary, no courtesy phrase, no unrequested alternatives or advice,
 no explanation of the obvious, no decorative bold.
+
+A procedure, such as a runbook or setup instructions, has exactly these parts,
+in this order:
+
+1. The title.
+2. Each warning: the condition or the command first, then the risk. Keep its
+   times, numbers and names.
+3. One numbered list of steps. Each step is one action or one command and
+   starts with its verb. A host, a directory or another place where the steps
+   run is a step of its own, for example "Подключитесь к хосту `q1`." It never
+   comes before the verb of a step. A condition ("Если ...") may come before
+   the verb.
+
+The document ends after the last step. Every fact of the request appears in
+it unchanged: each host, unit, path, command, number and time window. The
+output is only the document: no note to the requester before or after it.
 
 ## Precedence
 
@@ -136,3 +151,6 @@ A brevity rule never removes a fact, a condition, a number or a warning.
 | Adding "Then run it again to confirm" or other advice | Answer the question only |
 | Turning `Required:` into `## Required` or translating it | Keep the label verbatim |
 | Applying `simplified-technical-russian` to English text, or `simple-english` to Russian text | Apply the skill of the text's language |
+| A runbook step "На хосте `q1` выполните ..." | A step of its own first: "Подключитесь к хосту `q1`." |
+| A runbook that drops the host or another given fact | Put every fact of the request into the document |
+| A warning that starts with the risk | The condition or the command first, then the risk |
