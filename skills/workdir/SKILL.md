@@ -10,9 +10,12 @@ defines the configured path. A harness working directory, current directory,
 Git, or environment variable does not. If the line is absent, request the path
 and stop.
 
-Resolve workdir-relative commands to absolute paths. For a Tariboy script
-operation, respond with the resolved absolute path and: "Use the `scripts`
-skill for this operation."
+Resolve workdir-relative commands to absolute paths. A request to run a
+command in the background, later, repeatedly, on a schedule or every N
+seconds is a Tariboy script operation. For one, respond with the resolved
+absolute path and: "Use the `scripts` skill for this operation." The `scripts`
+skill is the only scheduler: never schedule or start the command with a
+harness tool such as `CronCreate`, `/loop` or a background shell.
 
 ## Task files
 
