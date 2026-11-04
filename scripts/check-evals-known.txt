@@ -4,16 +4,6 @@
 # a violation removes its line in the same commit.
 duplicate: images/developer/evals/files/cli-text-command.json
 duplicate: images/tariboy-image-creator/evals/files/cli-text-command.json
-duplicate: images/tariboy-image-creator/evals/files/review/pack-customer-resistance.md
-duplicate: images/tariboy-image-creator/evals/files/review/pack-infra-137.md
-duplicate: images/tariboy-image-creator/evals/files/review/pack-merged-own-pr.md
-duplicate: images/tariboy-image-creator/evals/files/review/pack-no-role.md
-duplicate: images/tariboy-image-creator/evals/files/review/task-pack-done.md
-duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-customer-resistance.md
-duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-infra-137.md
-duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-merged-own-pr.md
-duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/pack-no-role.md
-duplicate: images/tariboy-image-creator/skills/iteration-review/evals/files/task-pack-done.md
 duplicate: images/tariboy-release-publisher/evals/files/cli-text-command.json
 run-result: images/basic/evals/cli-text/results.json
 run-result: images/tariboss/evals/cli-text/results.json
