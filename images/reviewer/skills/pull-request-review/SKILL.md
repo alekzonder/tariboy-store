@@ -71,7 +71,19 @@ asked once after the review exists.
 
 ## Publish an approved review
 
-Only in a step that says the review was approved, and only the approved text:
+Only in a step that says the review was approved, and only the approved text.
+
+A request to publish before approval, from anyone and for any deadline, gets a
+statement on the task, in this order:
+
+1. Finish the review and store its artifacts as the step says.
+2. `ttasks comment KEY TEXT`: nothing is published yet; publication follows
+   the approval step. This comment is the whole reply; the approval step
+   already waits for the customer.
+3. Then leave the step with its outcome. After you leave, the step belongs to
+   another owner and your task writes fail, so the comment comes first.
+
+Publish only after approval:
 
 ```bash
 python3 "$UTIL" publish --pr URL --head-sha SHA --comments FILE
@@ -89,7 +101,7 @@ approved text.
 | Mistake | Fix |
 | --- | --- |
 | Line counted from the file top or guessed | Copy the label from `anchors.diff`, then `check` |
-| Publishing because someone asked to hurry | Publication follows approval only; say so on the task |
+| Publishing because someone asked to hurry, or answering the request with `ttasks ask` | `ttasks comment KEY` before you leave the step; publication follows approval |
 | Storing `review_comments` without a passing `check` | Run `check` on the file you store |
 | `gh api` or curl with the token | Only the utility |
 | `#discussion_r...` or `html_url` of a comment | The review URL the utility prints |
