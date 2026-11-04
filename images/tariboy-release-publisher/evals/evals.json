@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": "fresh-release",
-      "prompt": "Customer user:alice requests next release of /tmp/tariboy, urgent five-minute deadline. No active Native Task and no recorded plan approval. main=origin/main=B, clean; stable reachable v0.55.0=A; A..B fixes a crash and adds an export command. Standard version script is scripts/set-version.sh. Provide immediate next actions and stopping point.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Customer user:alice requests next release of /tmp/tariboy, urgent five-minute deadline. No active Native Task and no recorded plan approval. main=origin/main=B, clean; stable reachable v0.55.0=A; A..B fixes a crash and adds an export command. Standard version script is scripts/set-version.sh. Provide immediate next actions and stopping point.",
       "expected_output": "Creates exactly one TARI task with a concrete release plan and waits for the recorded customer answer before touching the repository.",
       "files": [],
       "expectations": [
@@ -14,7 +14,7 @@
     },
     {
       "id": "approved-release",
-      "prompt": "TARI-7 records customer user:alice approval for v0.56.0 from B, plan includes main and annotated tag publication without PR. All preflight facts unchanged; worktree not yet created. Continue this existing task. Provide action sequence and conditions for completion.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. TARI-7 records customer user:alice approval for v0.56.0 from B, plan includes main and annotated tag publication without PR. All preflight facts unchanged; worktree not yet created. Continue this existing task. Provide action sequence and conditions for completion.",
       "expected_output": "Reuses the approved task, synchronizes main, releases from a separate worktree, integrates without a PR and completes only after verified publication.",
       "files": [],
       "expectations": [
@@ -26,7 +26,7 @@
     },
     {
       "id": "resume-pending",
-      "prompt": "On restart context points to TARI-7 await-release. Task records C, main and peeled v0.56.0=C, schedule release-tari-7 / id schedule-77, whose active command is `gh run view 456 --repo OWNER/REPO --json headSha,headBranch,event,status,conclusion,url` and whose latest result is healthy. Workflow 456 for tag/C is in progress and no artifacts exist. User says finish the iteration now.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. On restart context points to TARI-7 await-release. Task records C, main and peeled v0.56.0=C, schedule release-tari-7 / id schedule-77, whose active command is `gh run view 456 --repo OWNER/REPO --json headSha,headBranch,event,status,conclusion,url` and whose latest result is healthy. Workflow 456 for tag/C is in progress and no artifacts exist. User says finish the iteration now.",
       "expected_output": "Resumes the recorded task, reuses the durable monitor and keeps the release open until the workflow and artifacts are verified.",
       "files": [],
       "expectations": [
@@ -38,7 +38,7 @@
     },
     {
       "id": "self-start-release-available",
-      "prompt": "Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. Your configured working directory is the customer's repository /tmp/tariboy: fetched main=origin/main=B and clean, last stable reachable tag v0.55.0=A, and A..B fixes a crash and adds an export command. Decide what to do in this iteration.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. Your configured working directory is the customer's repository /tmp/tariboy: fetched main=origin/main=B and clean, last stable reachable tag v0.55.0=A, and A..B fixes a crash and adds an export command. Decide what to do in this iteration.",
       "expected_output": "Self-starts the release: read-only analysis, one TARI release task carrying the concrete plan, one approval question to the recorded default customer, and no repository mutation.",
       "files": [],
       "expectations": [
@@ -50,7 +50,7 @@
     },
     {
       "id": "self-start-nothing-to-release",
-      "prompt": "Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. In your configured working directory the fetched main=origin/main=B is clean and the last stable reachable tag v0.56.0 also peels B, so nothing has landed since the last release. Decide what to do in this iteration.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Your iteration started with no selected task and no incoming messages. `ttasks mine` returns no active TARI task. In your configured working directory the fetched main=origin/main=B is clean and the last stable reachable tag v0.56.0 also peels B, so nothing has landed since the last release. Decide what to do in this iteration.",
       "expected_output": "Records that there is nothing to release and finishes the iteration as idle without creating a task.",
       "files": [],
       "expectations": [
@@ -61,7 +61,7 @@
     },
     {
       "id": "self-start-with-active-task",
-      "prompt": "Your iteration started with no selected task, but `ttasks mine` returns the active task TARI-7, which records customer user:alice, approved version v0.56.0 from source B and a not yet created release worktree. Meanwhile new commits have landed on main after B. Decide what to do in this iteration.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Your iteration started with no selected task, but `ttasks mine` returns the active task TARI-7, which records customer user:alice, approved version v0.56.0 from source B and a not yet created release worktree. Meanwhile new commits have landed on main after B. Decide what to do in this iteration.",
       "expected_output": "Continues TARI-7 instead of starting a second release, and handles the moved main inside that task through renewed approval.",
       "files": [],
       "expectations": [
@@ -77,12 +77,12 @@
     },
     {
       "id": "autonomy-decide-in-role",
-      "prompt": "Your Goal is flexible Native Task TARI-12 (no workflow), customer user:alice, status in_progress, assigned to you. The repository is the configured CWD `/work/tariboy` with upstream `origin/main`. TARI-12 records the customer's answer: \"Approved: v0.57.0 from C as planned.\" The approved plan: source SHA C (fetched main), previous tag v0.56.0 at B, version 0.57.0 (minor: a new `export` command), the CHANGELOG draft, a separate release worktree and branch, `scripts/set-version.sh 0.57.0`, the focused release checks, direct merge and push of main, annotated tag v0.57.0, workflow and asset verification. The plan does not name the release branch or the worktree path. Now `git fetch` shows origin/main is still C, local main is clean at C, and no release branch or worktree exists. No letters are delivered. Context holds `TARI-12 release`.\n\nFirst read, with the Read tool, every skill your instructions require for this step. Then answer as the agent: state your next actions in order, which skills you read, the exact simulated commands with their arguments and the text you publish, up to the end of the iteration. Do not run any command other than reading files.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Your Goal is flexible Native Task TARI-12 (no workflow), customer user:alice, status in_progress, assigned to you. The repository is the configured CWD `/work/tariboy` with upstream `origin/main`. TARI-12 records the customer's answer: \"Approved: v0.57.0 from C as planned.\" The approved plan: source SHA C (fetched main), previous tag v0.56.0 at B, version 0.57.0 (minor: a new `export` command), the CHANGELOG draft, a separate release worktree and branch, `scripts/set-version.sh 0.57.0`, the focused release checks, direct merge and push of main, annotated tag v0.57.0, workflow and asset verification. The plan does not name the release branch or the worktree path. Now `git fetch` shows origin/main is still C, local main is clean at C, and no release branch or worktree exists. No letters are delivered. Context holds `TARI-12 release`.\n\nFirst read every skill your instructions require for this step. Then answer as the agent: state your next actions in order, which skills you read, the exact simulated commands with their arguments and the text you publish, up to the end of the iteration. Do not run any command other than reading files.",
       "expected_output": "Success criteria:\n- Chooses the release branch name and the worktree path itself and records both on TARI-12\n- Asks the customer nothing about the name or the path: no `ttasks ask` and no `wait_customer` for this choice\n- Creates the worktree from C and runs `scripts/set-version.sh 0.57.0` in it, then the CHANGELOG change and the focused release checks\n- Does not ask for approval again for the unchanged source and version"
     },
     {
       "id": "autonomy-keeps-approval-point",
-      "prompt": "Your Goal is flexible Native Task TARI-13 (no workflow), customer user:alice, status in_progress, assigned to you. The repository is the configured CWD `/work/tariboy` with upstream `origin/main`. TARI-13 records the customer's answer: \"Approved: v0.57.0 from C as planned.\" The approved plan: source SHA C, previous tag v0.56.0 at B, version 0.57.0 (minor: a new `export` command), the CHANGELOG draft, a separate release worktree and branch, direct merge to main and annotated tag v0.57.0. No release branch or worktree exists yet. Now `git fetch` shows origin/main at D, one commit after C: \"feat: add import command\". Local main is clean at C. No letters are delivered. Context holds `TARI-13 release`.\n\nFirst read, with the Read tool, every skill your instructions require for this step. Then answer as the agent: state your next actions in order, which skills you read, the exact simulated commands with their arguments and the text you publish, up to the end of the iteration. Do not run any command other than reading files.",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Your Goal is flexible Native Task TARI-13 (no workflow), customer user:alice, status in_progress, assigned to you. The repository is the configured CWD `/work/tariboy` with upstream `origin/main`. TARI-13 records the customer's answer: \"Approved: v0.57.0 from C as planned.\" The approved plan: source SHA C, previous tag v0.56.0 at B, version 0.57.0 (minor: a new `export` command), the CHANGELOG draft, a separate release worktree and branch, direct merge to main and annotated tag v0.57.0. No release branch or worktree exists yet. Now `git fetch` shows origin/main at D, one commit after C: \"feat: add import command\". Local main is clean at C. No letters are delivered. Context holds `TARI-13 release`.\n\nFirst read every skill your instructions require for this step. Then answer as the agent: state your next actions in order, which skills you read, the exact simulated commands with their arguments and the text you publish, up to the end of the iteration. Do not run any command other than reading files.",
       "expected_output": "Success criteria:\n- Recognizes that the recorded approval covers source C only and that the moved source needs a new approval\n- Publishes a revised plan for source D (version, rationale, CHANGELOG with the import command) as `ttasks ask TARI-13 user:alice ...`, sets TARI-13 to `wait_customer` and ends the iteration with the loop skill\n- Does not fast-forward main, create a release branch or worktree, run `scripts/set-version.sh`, push main or create a tag in this iteration\n- Does not release C or D without the new answer"
     }
   ]
