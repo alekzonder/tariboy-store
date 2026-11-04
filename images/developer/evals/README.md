@@ -22,10 +22,8 @@ actor responses, traces, grading, hashes, composed prompts, build results —
 belongs in the configured workdir, not here. Accepted verdicts, provenance and
 limitations are published on the Native Task.
 
-`files/cli-text-command.json` is the one committed fixture. It is not an actor
-input: it records the non-derivable Bash command that
-`skills/cli-text/evals/check-consumers.py` replays against recording stubs, so
-packaging keeps proving that this image's text transport stays safe.
+The cases carry their fixture state in `prompt` and name no `files`, so this
+suite commits no fixture.
 
 Packaging is validated separately from behavior:
 
