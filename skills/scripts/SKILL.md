@@ -81,6 +81,21 @@ observation.
    `scripts/scripts.sh cancel <script-id>` first only when `ls` still reports
    `state: active`.
 
+### Stop one run, keep the schedule
+
+`rerun` is the only command that resumes a stopped definition. No command
+resumes it at the next interval instead: `rerun` always starts one run now,
+and the fixed delay follows that run.
+
+A request to stop the current run but keep the schedule is decision 1, so
+the person has already given it. Complete it in one turn:
+
+1. `scripts/scripts.sh cancel <run-id>` with the running `srun-...` ID.
+2. `scripts/scripts.sh rerun <script-id>` with the definition's `scr-...` ID.
+3. Reply with these three facts, in this order: the cancelled run published
+   a result, and that result stopped the definition; `rerun` resumed it; one
+   new run started now, and the fixed delay follows it.
+
 A stopped definition is not a wait object. Never end an iteration describing a
 definition that published its result as an active monitor: either it was
 resumed with `rerun` in this iteration, or the iteration's wait object is
@@ -121,6 +136,7 @@ repeat the failure comment while the question remains unanswered.
 | --- | --- |
 | "The schedule keeps running, so I can just finish." | Any published result stopped it. Resume with `rerun <script-id>` or remove it. |
 | "Cancelling one run leaves the schedule intact." | That run still publishes a result, which stops the definition. |
+| "`rerun` starts a run now, so I will ask before resuming." | No command resumes later. A request to keep the schedule is the decision: `rerun <script-id>` and say one run starts now. |
 | "I will schedule it again to resume monitoring." | A second definition duplicates the work. `rerun <script-id>` resumes the recorded one. |
 | "`rerun <name>` is clearer than the ID." | Names are not resolved; only `scr-...` IDs work. |
 | "It succeeded, so nothing stopped." | Success is not quiet. Only `$TARIBOY_QUIET_EXIT` (`111`) is quiet. |
