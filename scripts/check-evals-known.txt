@@ -4,6 +4,5 @@
 # a violation removes its line in the same commit.
 duplicate: images/tariboy-image-creator/evals/files/cli-text-command.json
 duplicate: images/tariboy-release-publisher/evals/files/cli-text-command.json
-run-result: images/tariboss/evals/cli-text/results.json
 unused: images/tariboy-image-creator/evals/files/cli-text-command.json
 unused: images/tariboy-release-publisher/evals/files/cli-text-command.json
