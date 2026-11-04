@@ -28,7 +28,7 @@
 # $EVAL_DIR. No daemon socket is needed. The stand-in accepts the real CLI's
 # arguments, rejects others, resolves only `scr-...` and `srun-...` IDs, prints
 # in the real CLI's format, and applies the lifecycle that SKILL.md describes:
-# `run` and `schedule` add a definition, `rerun` makes it active, cancelling a
+# `run` and `schedule` add a definition, `rerun` makes it active with a new running run, cancelling a
 # run publishes its result and stops the definition, `rm` removes it. It
 # starts no command. Grade the actor on its response and calls.log.
 set -euo pipefail
@@ -68,6 +68,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 EVAL_DIR = HERE.parents[2]
 STATE = HERE / "daemon.json"
+HISTORY = HERE / "runs.json"
 P, R = "scr-dev-20260921061500-", "srun-dev-20260921061500-"
 LOGS = "/home/agent/.tariboy/agents/dev/scripts/"
 
@@ -111,9 +112,9 @@ class Usage(Exception): pass
 class Failure(Exception): pass
 
 
-def find(defs, ident):
+def find(defs, history, ident):
     for d in defs:
-        if d["id"] == ident or d["latest_run"]["id"] == ident:
+        if ident in [d["id"], d["latest_run"]["id"]] + [r["id"] for r in history.get(d["id"], [])]:
             return d
     raise Failure(f"script {ident} not found")
 
@@ -158,6 +159,7 @@ def create(defs, args, scheduled):
 
 def main(args):
     defs = json.loads(STATE.read_text())
+    history = json.loads(HISTORY.read_text()) if HISTORY.exists() else {}
     cmd = args[0] if args else ""
     if args in (["-h"], ["--help"]):
         print("usage: scripts.sh <run|schedule|ls|runs|logs|rerun|cancel|rm> ... [--json]"); return
@@ -169,21 +171,26 @@ def main(args):
         ids = [a for a in args[1:] if not a.startswith("--")]
         if not ids:
             raise Usage(f"tools script {cmd}: <id> is required")
-        d = find(defs, ids[0])
+        d = find(defs, history, ids[0])
         if cmd == "runs":
-            show({"count": 1, "runs": [d["latest_run"]]})
+            runs = [d["latest_run"]] + history.get(d["id"], [])
+            show({"count": len(runs), "runs": runs})
         elif cmd == "logs":
             print("(empty log)")
         elif cmd == "rerun":
             if d["state"] == "cancelled":
                 raise Failure(f"script {d['id']} is cancelled")
             d["state"] = "active"
+            n = max(int(x["latest_run"]["id"][len(R):]) for x in defs) + 1
+            history.setdefault(d["id"], []).insert(0, d["latest_run"])
             run = {k: v for k, v in d["latest_run"].items() if k not in ("exit_code", "finished_at")}
-            d["latest_run"] = dict(run, status="running")
+            d["latest_run"] = dict(run, id=f"{R}{n:09d}", log_path=f"{LOGS}{R}{n:09d}.log",
+                                   created_at="2026-09-21T09:16:00Z", started_at="2026-09-21T09:16:00Z",
+                                   status="running")
             show(d)
         elif cmd == "cancel":
             if ids[0].startswith(R):
-                if d["latest_run"]["status"] != "running":
+                if d["latest_run"]["id"] != ids[0] or d["latest_run"]["status"] != "running":
                     raise Failure(f"run {ids[0]} is not running")
                 d["latest_run"] = dict(d["latest_run"], status="cancelled", exit_code=-1, finished_at="2026-09-21T09:15:30Z")
                 d["state"] = "completed"
@@ -197,11 +204,13 @@ def main(args):
     else:
         raise Usage("tools script: unknown command " + " ".join(args))
     STATE.write_text(json.dumps(defs))
+    HISTORY.write_text(json.dumps(history))
 
 
 argv = sys.argv[1:]
 if argv[:1] == ["--init"]:
     STATE.write_text(json.dumps(STATES[argv[1]]))
+    HISTORY.write_text("{}")
     sys.exit(0)
 with open(EVAL_DIR / "calls.log", "a") as log:
     log.write(" ".join(shlex.quote(a) for a in ["scripts.sh", *argv]) + "\n")
