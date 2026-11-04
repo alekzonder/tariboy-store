@@ -32,8 +32,8 @@
       "expectations": [
         "Reads task and publish-release",
         "Reuses task and existing durable monitor",
-        "Keeps task active awaiting script.result; no bump/push repeat",
-        "Handles delivered letters and finishes iteration only, never closes release task"
+        "Keeps TARI-7 open awaiting the monitor's next script.result: wait_customer with the monitor active, or an unchanged status, passes; no repeated bump, commit, tag or push and no ttasks done",
+        "Ends with scripts/loop.sh done as the final action and never closes TARI-7 (no completion comment, no ttasks done); this prompt delivers no letters, so letter handling is not graded"
       ]
     },
     {
