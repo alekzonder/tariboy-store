@@ -129,7 +129,7 @@
     "tariboy-workflow-authoring": {
       "source": "./skills/tariboy-workflow-authoring",
       "sourceType": "local",
-      "computedHash": "b3350cafdf26766b4fddb09fe383092edf5482817ec2804a26e49b8321bd73eb"
+      "computedHash": "4dcd2c663c7975447a5f53c4ac2f37925c54ebc3878ee2e579084b2175a205c4"
     },
     "tasks": {
       "source": "../../skills/tasks",

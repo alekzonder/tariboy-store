@@ -60,15 +60,6 @@ discrepancy on the task. Never infer support from one example: `run_as: agent`
 on a check does not make it valid on a watch. Never invent a field: the loader
 rejects unknown ones; prove a candidate with `tariboy workflow validate --path`.
 
-A simulation, a dry run and "do not run commands" do not skip this read. They
-forbid commands that act or change state; opening a page changes nothing. Fetch
-both pages with your web fetch tool before you answer, and name in the answer
-what each page says on the point. A page you could not fetch is named as
-unreachable, never answered from memory. The answer on a source states that the
-daemon keeps every reported key per queue and source name forever, so the
-script keeps no list of reported items. The key decides what is new and holds
-no secret.
-
 ## Source layout
 
 ```text
