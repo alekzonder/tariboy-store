@@ -89,6 +89,46 @@ workflows/NAME/
 - Every script gets a test under `tests/`, added as a line of the Makefile
   `check` target beside the existing workflow tests.
 
+## Manifest example: pool, script and customer statuses
+
+A status has `owner: {pool: NAME}`, `owner: customer` or `owner: script`. Never write
+`type: script`: the field `type` does not exist. A `script` status takes
+`watch` and no `instructions`. Every check and every watch carries `timeout`
+and `description`.
+
+```yaml
+schema_version: 1
+name: triage
+workflow_version: 0.1.0
+initial_status: triage
+requires_secrets: [TICKET_TOKEN]
+artifacts:
+  - {name: labels, description: Labels chosen for the ticket.}
+statuses:
+  - id: triage
+    owner: {pool: triagers}
+    instructions: ./statuses/triage.md
+    transitions:
+      - on: labelled
+        to: wait-ticket
+        requires: [labels]
+        checks:
+          - script: ./scripts/labels-check.py
+            timeout: 30s
+            description: The labels artifact is not empty.
+  - id: wait-ticket
+    owner: script
+    watch:
+      script: ./scripts/ticket-watch.py
+      every: 5m
+      timeout: 60s
+      description: Waits until the external ticket reports closed.
+    transitions:
+      - {on: closed, to: done}
+  - id: done
+    terminal: true
+```
+
 ## ROLE.md: what the workflow is and why it exists
 
 `workflows/NAME/ROLE.md`, beside `Workflowfile.yaml`, is the customer's short
