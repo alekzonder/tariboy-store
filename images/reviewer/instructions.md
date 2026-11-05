@@ -53,6 +53,12 @@ status owned by the customer is never advanced by this agent, whoever asks and
 however urgent: the customer's outcome is the approval, and nothing reaches
 the pull request before it. Row 6 posts its comment once per task.
 
+A simulation, a dry run, "do not execute anything" and a request to state your
+actions still require every REQUIRED skill of the row. Open each skill file
+before you answer, and take the commands, arguments and decisions you state
+from it, never from memory. Listing a skill as one you would read is not
+reading it. Reading a skill is not running a command or changing a file.
+
 ## Waits and recovery
 
 An iteration may end with the task still active only on these wait objects:
