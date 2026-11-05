@@ -26,6 +26,61 @@ Inspect with `scripts/scripts.sh ls`, `scripts/scripts.sh runs`, and
 `scripts/scripts.sh logs`; use `scripts/scripts.sh rerun`,
 `scripts/scripts.sh cancel`, or `scripts/scripts.sh rm` for lifecycle control.
 
+## After `run` or `schedule`, do not wait in the iteration
+
+**REQUIRED:** Queueing a definition ends your work on it in this iteration.
+Do these two steps, then continue with other work or finish the iteration:
+
+1. Record the `scr-...` script ID as the wait object, on the task or in the
+   context entry.
+2. Finish the iteration. The result arrives as a `script.result` message in
+   the prompt of a later iteration.
+
+New letters enter the prompt only at the start of an iteration. An agent that
+waits inside the iteration never sees the `script.result` message, also when
+the run was interrupted. So, after `run` or `schedule`:
+
+- Do not poll the output file, the log, `scripts/scripts.sh runs`,
+  `scripts/scripts.sh logs` or `scripts/scripts.sh ls` to see whether the run
+  finished.
+- Do not use `sleep`, `until`, `while`, `tail -f`, `watch`, a Monitor tool or
+  any other background wait loop for the run or for its output.
+- Do not make the next step of this iteration depend on the run's output.
+  Read the output in the iteration that receives the `script.result` message.
+
+One read of `ls` or `runs` to record the ID or to verify a saved command is
+allowed. A request to get the output "now" or "in this iteration" does not
+change this: queue the run, record the ID and say that the output is read after
+the `script.result` message arrives.
+
+## An interrupted one-off run
+
+A `script.result` message with status `interrupted` for a one-off run (`mode`
+`once`) means a daemon restart stopped the command at an unknown point. The
+definition is `completed`. Handle it in this order:
+
+1. Read `scripts/scripts.sh runs <script-id>` and `scripts/scripts.sh logs
+   <run-id>` for what the run did, and read the command's source with a file
+   read. Never execute the command to test it.
+2. Decide whether a repeat is safe. A repeat is safe only when the command has
+   no effect outside its own working files, or when its source shows it is
+   idempotent or resumes from saved progress.
+3. Safe: run `scripts/scripts.sh rerun <script-id>` with the `scr-...` ID of
+   the message and record the same ID as the wait object. End your reply with
+   this sentence, with the real ID: "Rerun `<script-id>`; the new result
+   arrives as a `script.result` message in a later iteration." Then finish the
+   iteration.
+4. Not safe, or unknown: do not rerun and do not start a new run. The effect
+   can be an email, a payment, a deploy, a write to a remote system or a
+   deletion. Ask one question on the task with `ttasks ask`, mentioning the
+   customer. Name the command, say what is unknown (what the interrupted run
+   already did) and ask whether to repeat it. Set the task to `wait_customer`
+   and finish the iteration.
+
+Never run `scripts/scripts.sh run <name> -- <command>` again for the same work:
+it creates a second definition. Repeating a command with an external effect
+without the check above is forbidden.
+
 ## Address every definition by its script ID
 
 **REQUIRED:** `rerun`, `cancel`, and `rm` accept only the `scr-...` script ID
@@ -139,4 +194,7 @@ repeat the failure comment while the question remains unanswered.
 | "`rerun` starts a run now, so I will ask before resuming." | No command resumes later. A request to keep the schedule is the decision: `rerun <script-id>` and say one run starts now. |
 | "I will schedule it again to resume monitoring." | A second definition duplicates the work. `rerun <script-id>` resumes the recorded one. |
 | "`rerun <name>` is clearer than the ID." | Names are not resolved; only `scr-...` IDs work. |
+| "I will wait for the output file in this iteration." | The `script.result` message cannot arrive until the next iteration. Record the ID and finish. |
+| "A short `sleep` loop on the log is cheap." | It is the same wait. Do not poll `runs`, `logs` or files after `run`. |
+| "The run was interrupted, so I run it again." | Check the effect first. `rerun <script-id>` only when a repeat is safe; otherwise `ttasks ask`. |
 | "It succeeded, so nothing stopped." | Success is not quiet. Only `$TARIBOY_QUIET_EXIT` (`111`) is quiet. |

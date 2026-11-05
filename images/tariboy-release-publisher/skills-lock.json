@@ -34,7 +34,7 @@
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "993a177543f37dc82091c7391cfca03e7f0728eab7dcc94364830ca2b9b588ef"
+      "computedHash": "52cffaed3852a67571f1d874cd4c854b0f0414a3022fd193ec2d0722ceb89c11"
     },
     "simple-english": {
       "source": "AminBlg/SimpleEnglish",
