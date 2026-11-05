@@ -346,6 +346,13 @@ forbidden paths. A workflow that fails validation fails the check and prints
 the daemon's error list. The check never uses the live Tariboy base directory,
 runtime directory, or HTTP listener.
 
+The check also runs `scripts/check-skills-lock.py`. It recomputes the hash of
+every `sourceType: local` skill in each `images/*/skills-lock.json` and fails
+when a `computedHash` is stale. The automatic Store build refuses an image with
+a stale hash (`skills_lock_mismatch`). After a change to `skills/NAME` or to an
+image-local skill, run `npx skills experimental_install` in each consuming
+image directory and commit the new `skills-lock.json`.
+
 The check also fails when an image or a workflow has no `ROLE.md`, an empty
 `ROLE.md`, or a `ROLE.md` of more than 500 characters. Two images have no
 `ROLE.md` because they will be removed: `llm-as-judge` and

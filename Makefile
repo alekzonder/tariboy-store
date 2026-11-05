@@ -10,6 +10,8 @@ check:
 	python3 -B skills/cli-text/evals/check-text.py >/dev/null
 	python3 -B skills/cli-text/evals/check-shell-layer.py >/dev/null
 	python3 -B scripts/check-writing-style.py
+	python3 -B scripts/test-check-skills-lock.py
+	python3 -B scripts/check-skills-lock.py
 	python3 -B scripts/test-check-evals.py
 	python3 -B scripts/check-evals.py
 	python3 -B scripts/test-closure-monitor.py
