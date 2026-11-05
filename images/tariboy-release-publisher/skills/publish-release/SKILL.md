@@ -169,6 +169,16 @@ create a second definition for either monitor, and never leave a stopped one
 recorded as the wait object. Record the watch script ID/run ID and resume
 event on TARI. On restart inspect/reuse the recorded monitor; never queue
 duplicates.
+
+While the matching run is not finished, the task stays active and your answer
+and the TARI record state these three items, in a simulation too (name the
+`scr-...` ID the `schedule` command returns as a placeholder):
+
+- Monitor: schedule name, such as `release-vX.Y.Z-watch`, and `scr-...` script ID
+  of the one `gh run watch` (or of the find-run poll, until the run is found).
+- Resume event: that definition's next `script.result`.
+- Next action: after the result, verify the run and the release assets, then
+  `rm SCRIPT_ID` and complete; never `ttasks done` before.
 If watch cannot authenticate, use a recurring `gh run view RUN_ID --repo
 OWNER/REPO --json headSha,headBranch,event,status,conclusion,url` instead.
 
