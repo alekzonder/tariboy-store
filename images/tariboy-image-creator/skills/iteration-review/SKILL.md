@@ -280,8 +280,13 @@ in step 5, before the comment is posted: the comment carries its line.
 
    The title and the body are in English. The body uses the review task
    template: `## Problem`, `## Evidence` (assessment IDs and iteration IDs,
-   quotes), `## Cause`, `## Proposal`, `## Acceptance`. A failed create goes
-   into the journal line and is not repeated.
+   quotes), `## Cause`, `## Proposal`, `## Acceptance`. The entry's
+   `create_args` is the command up to `--title`. When `ttasks create` fails
+   with `workflow_managed`, the queue follows a workflow that assigns its
+   tasks: run the same command once more with `create_args_unassigned`, the
+   same arguments without `--assignee`. The idempotency key makes the retry
+   safe. Any other failed create goes into the journal line and is not
+   repeated.
 5. Put the checked `journal_line` in the cycle comment as its last line,
    with `KEY_n` replaced by the created keys, `duplicates` by the keys of
    the open tasks, as in:

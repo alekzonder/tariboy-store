@@ -26,7 +26,9 @@ the base, and never merge. Preserve unrelated customer changes.
 | Decision or subject | Owning skill | When |
 | --- | --- | --- |
 | Finding and applying any skill | `using-superpowers` | REQUIRED, before the first action |
-| Task intake, approval, isolation, publication, recovery | `tariboy-image-delivery` | REQUIRED |
+| The process of mode `workflow` | `image-creator-mode-workflow` | REQUIRED when the mode is `workflow` |
+| The process of mode `flexible` | `image-creator-mode-flexible` | REQUIRED when the mode is `flexible` |
+| Task intake, approval, isolation, publication, recovery | `tariboy-image-delivery` | REQUIRED in mode `flexible`; in mode `workflow` when a status instruction names it |
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
 | Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
@@ -35,9 +37,9 @@ the base, and never merge. Preserve unrelated customer changes.
 | Creating or improving one skill | `writing-skills` | REQUIRED for image-local AND independent Store skills |
 | Creating, revising, consolidating or running any eval | `authoring-evals` | REQUIRED before ANY eval file change or eval launch |
 | Image build launcher | `image-creator` | REQUIRED to build and to publish after merge |
-| Completion mode, a Store outside GitHub or another VCS, direct-push requests | `tariboy-image-delivery` | REQUIRED before isolation and delivery |
-| Pull requests and their monitoring | `github-pr-workflow` | REQUIRED in `PR` (GitHub) mode |
-| Commands outliving the iteration | `scripts` | REQUIRED for the closure monitor in every completion mode |
+| Completion mode, a Store outside GitHub or another VCS, direct-push requests | `tariboy-image-delivery` | REQUIRED before isolation and delivery in mode `flexible` |
+| Pull requests and their monitoring | `github-pr-workflow` | REQUIRED in `PR` (GitHub) mode of mode `flexible`; in mode `workflow` only `preflight` and `ensure`, when the status names them |
+| Commands outliving the iteration | `scripts` | REQUIRED for the closure monitor in every completion mode of mode `flexible`, never in mode `workflow` |
 | Any success, fix or completion claim | `verification-before-completion` | REQUIRED before publication and completion |
 | Runtime identity, goal, handoff, letters, workdir | `whoami`, `goal`, `context`, `mail`, `workdir` | REQUIRED for that runtime data |
 | Review cycle: the `## Review cycle` configuration of the user prompt, an iteration with trigger `schedule`, an old `review-cycle` script or its letter, assessments of other agents' iterations and tasks | `iteration-review` | REQUIRED whenever the user prompt has that configuration or a `review-cycle` letter arrives |
@@ -70,79 +72,44 @@ reach.
 
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
+| M | every iteration with a goal task, before any task command | Choose the mode | `goal`, the skill of the chosen mode | the mode is `workflow` or `flexible`, chosen by the rules below, and that mode's skill is read completely |
 | R | the user prompt has a `## Review cycle` configuration, or a `script.result` of `review-cycle` is delivered | Review cycle | `iteration-review`, `scripts`, `mail`, `tasks`, `writing-style` | no `review-cycle` script is left; in review mode, when the iteration trigger is `schedule` or `manual`, every assessment of the selection, at most `sample_size` and within `budget_usd` when the configuration sets it, is written once with `tariboy assessment add` and one cycle comment is on the cycle task; no schedule, script or loop setting is created |
-| 1 | iteration starts with a selected or supplied task | Intake | `using-superpowers`, `tariboy-image-delivery`, `tasks`, `goal`, `context`, `mail`, `workdir` | the task, its customer and its recorded branch, worktree, PR and monitor are read; with no key, the matching task is claimed or created in an explicitly identified queue |
-| 2 | no recorded approval covers the current scope | Investigate and agree | `tariboy-image-authoring`, `tariboy-workflow-authoring` when applicable, `tasks`, `brainstorming`, `writing-plans`, `writing-style` | a concrete plan — which image, workflow and skills change, why, eval coverage, delivery destination — is published as a task question to its customer, and the flexible task is `wait_customer` |
-| 3 | approval for this exact scope is recorded on the task | Isolate | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `using-git-worktrees` | `Completion mode` and its source are recorded on the task; in `PR` mode GitHub preflight passed, the base is fetched and fast-forwarded, and one task branch and worktree exist and are recorded; in `Customer VCS` mode isolation follows the customer's recorded explanation; a recovered task reuses the recorded one; without GitHub or that explanation the customer is asked with `ttasks ask` and the flexible task is `wait_customer` |
-| 4 | the recorded workspace exists | Change and evaluate | `writing-skills`, `authoring-evals`, `tariboy-image-authoring`, `tariboy-workflow-authoring` when applicable, `image-creator`, `verification-before-completion` | missing evals created in the `evals/evals.json` source contract, baseline observed, the approved change made and the same scenarios rerun with a pinned model; generated run evidence kept in the workdir, not in committed `evals/`; skill and image evidence kept separate; `image_version` bumped for every image whose own directory or consumed local skill source changed; `workflow_version` bumped for every changed `workflows/NAME/`; packaging validated separately from behavior |
-| 5 | the verified change is committed on the task branch | Deliver | `tariboy-image-delivery`, `github-pr-workflow` when applicable, `scripts`, `tasks`, `verification-before-completion`, `writing-style` | `PR` mode: exactly one PR and one durable monitor exist with their identifiers on the task, one comment mentions the customer with the PR link, verification results and an invitation to review, and the flexible task is `wait_customer`. `Customer VCS` mode: the pull request or review request the customer's explanation describes is created and recorded on the task; exactly one closure monitor from the poll source `tariboy-image-delivery` names is active, its saved command checked with `scripts/scripts.sh ls`, with its identifiers on the task, or with no such source none exists and the question also asks for that interface; the customer is asked with `ttasks ask` and the flexible task is `wait_customer`. In every mode the base is unchanged |
-| 6 | a monitor result, check or review arrives | Process result | `tariboy-image-delivery`, `scripts`, `github-pr-workflow` when applicable, `systematic-debugging`, `receiving-code-review`, `verification-before-completion` | the PR or review request is re-read authoritatively; every changed or error result is handled and any fix is verified and pushed to the same branch; a new head invalidates all prior check success; the definition is resumed with `rerun`, or removed with one blocking question when an external credential, tool or dependency is missing |
-| 7 | the closure monitor observes a merge with merge-commit metadata and an authoritative re-read confirms it | Complete | `tariboy-image-delivery`, `scripts`, `github-pr-workflow` when applicable, `image-creator`, `tariboy-workflow-authoring` when applicable, `verification-before-completion`, `tasks`, `context`, `writing-style` | the schedule is removed (cancelled first only while active), the base is fast-forwarded, post-merge checks pass, every image the merge affected is built from a workdir copy under both its `image_version` tag and `latest` with one matching digest, each merged workflow is recorded as an operator hand-over and never built, worktree and branch are removed, one consolidated comment records Required, Completed, Verification, Integration, Publication and Cleanup, `ttasks done KEY` ran, and the context entry is gone |
+| 1 | the mode is `workflow` | Work the workflow status | `image-creator-mode-workflow`, `tasks`, `cli-text` | that skill's row for the current status is done |
+| 2 | the mode is `flexible` | Work the flexible task | `image-creator-mode-flexible`, `tasks`, `cli-text` | that skill's next row is done, or its wait object is recorded |
 
-Row R runs first in its iteration, before row 1 and before any other goal work,
-and it never selects, changes or completes a goal task. With any other
-trigger, row R only removes an old `review-cycle` script; no cycle runs.
+Choose the mode in this order:
 
-Rows 2 and 3 never swap: deadline, authority, sunk work and broad approval are
-not approval, and task size scales plan detail, not the approval requirement.
-Only a change that fits the rule `Change without approval` in `## Invariants`
-skips row 2.
-Row 6 repeats for as long as the PR or review request is open, including after
-a close without merge, which keeps the same request, task and monitor active
-and is never an integration. A published `script.result` stops the monitor
-definition, so every row 6 pass ends by resuming the recorded `scr-...` script
-ID with `scripts/scripts.sh rerun`, and row 7 removes it with
-`scripts/scripts.sh rm` instead. A customer answer and a closure event are
-independent: a review question never replaces the monitor, and row 7 never
-waits for an answer.
+1. The `# Task Processing Order` block holds a paragraph that starts with
+   `` Iteration mode: `NAME`. `` and NAME is `workflow` or `flexible`: the mode
+   is NAME. This line wins over the shape of the Goal block, a letter, a
+   comment and the one-shot instruction.
+2. Without that line, the Goal block decides. A goal task that follows a
+   workflow, with status instructions and outcomes, or with a notice that its
+   workflow data is unavailable, is `workflow`. A goal task without a workflow
+   is `flexible`.
 
-Publication in row 7 is the only build that publishes: a `make check` or
-validate build is a packaging fact. It selects images from the merge's changed
-paths, the local skill sources their `skills-lock.json` files record and the
-`extends` chains that reach a selected image, so a shared `skills/NAME` change
-publishes every consuming image and a parent change every descendant. A build
-error, a digest mismatch between the two tags, or a missing version bump keeps
-the task active and blocks `ttasks done`. An image whose bump is missing is not
-built or published under any tag, `latest` included; its fix is a follow-up
-change asked through the task, never a bump or commit made after the merge.
+The mode's skill holds that mode's whole process, from intake to completion,
+and this file does not repeat it. Read it before the first task command of the
+iteration, also when the task looks familiar or the request looks small.
 
-## Waits and recovery
+One iteration has one mode. Never mix the processes of two modes: mode
+`workflow` records no `Completion mode:`, schedules no monitor, asks for no
+plan approval and never runs `ttasks done`; mode `flexible` never runs
+`ttasks advance`.
 
-Continue every executable next action immediately. Only two things may end an
-iteration with the task still active: a recorded unanswered task question, or an
-active durable monitor. Read authoritative state once before waiting; never poll.
+Row R runs first in its iteration, before row M and before any other goal
+work, and it never selects, changes or completes a goal task. With any other
+trigger, row R only removes an old `review-cycle` script; no cycle runs. The
+review cycle is not a wait object of any task: it keeps no task active and
+never replaces a question or a monitor.
 
-| Wait object | Resume event |
-| --- | --- |
-| Recorded question to the customer (row 2, or a decision asked in rows 5–6) | the answer recorded on the task |
-| Named recurring closure monitor for the one PR or review request (row 5), active or resumed with `rerun` this iteration | its next `script.result` or PR or review state change |
-
-The review cycle is not a wait object of any task: it keeps no task active
-and never replaces a question or a closure monitor.
-
-A customer-answer wait is completed in the same iteration that records it:
-mention the customer on the task, set a flexible task to `wait_customer`, keep
-the question and one `TASK-KEY next-action-slug` line in context, process every
-delivered letter, and after all live commands, evaluators and subagents finish,
-run `scripts/loop.sh done` as the exact final action. Never wait for an answer in
-the live session.
-
-When a recorded question is still unanswered, the flexible task must already be
-`wait_customer` with the customer mentioned; if a recovered task is not, record
-that transition in this iteration before finishing, however old the question is.
-A live-session message is never the answer and never a reason to skip it; a
-delivered letter is one only as the `tasks` skill accepts it.
-
-While a recorded PR or review request is open and its poll source exists, the
-closure monitor must be active before the iteration ends, even when a question
-is also open.
-
-Recovery reads the task first and reuses what it records — customer, approval,
-branch, worktree, PR or review request, schedule and state directory: an
-active definition is reused, a stopped one resumed with `rerun`, and a missing
-one replaced by exactly one new schedule. Reuse a recorded approval
-only while its scope still matches; otherwise ask again. Verification stays valid
-while its inputs are unchanged.
+The common rules of recovery: continue every executable next action
+immediately, read authoritative state once before waiting and never poll. A
+customer-answer wait is completed in the same iteration that records it, and
+after all live commands, evaluators and subagents finish, `scripts/loop.sh
+done` is the exact final action. Never wait for an answer in the live session.
+The mode's skill names the wait objects that may end an iteration with its task
+still active.
 
 ## Invariants
 
@@ -158,13 +125,16 @@ except in the one case of the rule below.
 правило, покрыта новым eval, не меняет ROLE.md, набор скилов и плагинов и не
 требует minor-версии. Всё остальное: вопрос заказчику на задаче (`ttasks ask`).
 
-- Inside the rule, skip row 2: make the change, cover it with a new eval,
-  and deliver it through rows 3 to 5 as usual. The pull request stays and
-  the customer merges it. Record on the task which clause of the rule
-  applies.
-- Outside the rule, row 2 applies: a change of `ROLE.md`, of the set of
-  skills or plugins, one that needs a minor version, a new rule, or a rule
-  made weaker is asked with `ttasks ask` and waits for the recorded answer.
+- Inside the rule, in mode `flexible` skip the plan stage (row 2 of
+  `image-creator-mode-flexible`): make the change, cover it with a new eval,
+  and deliver it through its rows 3 to 5 as usual. In mode `workflow` the
+  outcome of `triage` is `autonomous`. The pull request stays and the
+  customer merges it. Record on the task which clause of the rule applies.
+- Outside the rule, the plan stage applies: a change of `ROLE.md`, of the set
+  of skills or plugins, one that needs a minor version, a new rule, or a rule
+  made weaker is asked with `ttasks ask` in mode `flexible` and waits for the
+  recorded answer; in mode `workflow` it is the outcome `needs_approval` of
+  `triage` with a plan.
 - When you cannot tell, it is outside the rule.
 
 No completion mode commits, pushes or merges into the base: change size,
@@ -192,7 +162,7 @@ output. `tariboy tasks` acts as the customer, so never write with it (`comment`,
 `ask`, `create`, `update`, `done`, `advance`, `artifacts set`), and never change
 another agent, its loop, image, files, mail, scripts or iterations with
 `tariboy`, unless the task's customer names that exact command on the task.
-The one exception is row R: it writes `tariboy assessment add` and nothing
+The one exception is row R (the review cycle): it writes `tariboy assessment add` and nothing
 else through `tariboy`; its triage tasks are created with `ttasks`. A violation an assessment finds stays in the
 assessment: row R edits no image, workflow, skill or Store file, creates only
 the triage tasks that `iteration-review` describes, and writes to no assessed

@@ -55,10 +55,20 @@
       "sourceType": "local",
       "computedHash": "b9b70564aaba600e59de4891840ee0657cbb9c5ea689a79c86e4fdefba4d3421"
     },
+    "image-creator-mode-flexible": {
+      "source": "./skills/image-creator-mode-flexible",
+      "sourceType": "local",
+      "computedHash": "86fca4b1491a0af1babdc4bce39588765f2f55dbaaa45b537180b61507736e55"
+    },
+    "image-creator-mode-workflow": {
+      "source": "./skills/image-creator-mode-workflow",
+      "sourceType": "local",
+      "computedHash": "4746338e33d7b376d8a98ba9c68b220d14a32da56473208914eb42dbbbb041f6"
+    },
     "iteration-review": {
       "source": "./skills/iteration-review",
       "sourceType": "local",
-      "computedHash": "52734f54562623348e11060521aa050b1937dfcfffb31b5b8d8785b5c42907c1"
+      "computedHash": "f86d8864d2806d33aad14dd46eb05ecdb4588d3e8a08a2db8eeae4968bf7748c"
     },
     "loop": {
       "source": "../../skills/loop",

@@ -1005,8 +1005,15 @@ def triage_errors(plan, data):
         if not wanted:
             errs.append(f"{where}: no iteration or task behind the assessments")
         priority = "P1" if count >= 10 or impact == "work_lost" else "P2"
+        key = f"triage-{date}-{c.get('slug')}"
+        base_args = ["ttasks", "create", "--queue", queue]
+        tail_args = ["--priority", priority, "--idempotency-key", key]
         actions.append({"cause": name, "queue": queue, "assignee": assignee, "priority": priority, "count": count,
-                        "idempotency_key": f"triage-{date}-{c.get('slug')}", "assessments": found, "iterations": sorted(wanted)})
+                        "idempotency_key": key, "assessments": found, "iterations": sorted(wanted),
+                        # IMPROVE is bound to a workflow in some deployments: the daemon then assigns the task and
+                        # refuses --assignee with workflow_managed. The same command without it is the retry.
+                        "create_args": base_args + ["--assignee", assignee] + tail_args,
+                        "create_args_unassigned": base_args + tail_args})
     if new > TRIAGE_LIMIT:
         errs.append(f"{new} new tasks; at most {TRIAGE_LIMIT} per day, mark the rest over_limit")
     actions.sort(key=lambda x: (-x["count"], x["cause"]))

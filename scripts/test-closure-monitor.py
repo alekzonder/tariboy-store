@@ -22,6 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IMAGE = os.path.join(ROOT, "images", "tariboy-image-creator")
 SKILL = os.path.join(IMAGE, "skills", "tariboy-image-delivery", "SKILL.md")
 INSTRUCTIONS = os.path.join(IMAGE, "instructions.md")
+FLEXIBLE = os.path.join(IMAGE, "skills", "image-creator-mode-flexible", "SKILL.md")
 
 FAKE_SCRIPTS = r'''#!/usr/bin/env python3
 import json, os, subprocess, sys
@@ -118,6 +119,7 @@ class ClosureMonitorContract(unittest.TestCase):
         cls.skill = read(SKILL)
         cls.closure = section(cls.skill, "Closure monitor")
         cls.instructions = read(INSTRUCTIONS)
+        cls.flexible = read(FLEXIBLE)
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -243,8 +245,11 @@ class ClosureMonitorContract(unittest.TestCase):
         self.assertNotEqual(new_sid, sid)
 
     def test_instructions_agree_with_skill_lifecycle(self):
-        text = self.instructions
-        self.assertIn("| `scripts` | REQUIRED for the closure monitor in every completion mode |", text)
+        # The flexible process (rows 1-7 and its waits) lives in the mode skill; the
+        # image instructions keep the skills table and choose the mode.
+        self.assertIn("| `scripts` | REQUIRED for the closure monitor in every completion mode of mode `flexible`, never in mode `workflow` |", self.instructions)
+        self.assertIn("`image-creator-mode-flexible`", self.instructions)
+        text = self.flexible
         row6 = re.search(r"^\| 6 \|.*$", text, re.M).group(0)
         row7 = re.search(r"^\| 7 \|.*$", text, re.M).group(0)
         for row in (row6, row7):

@@ -502,6 +502,27 @@ class TriageCheck(unittest.TestCase):
         self.assertIn("infra and noise 1 (cause d, 1)", res["journal_line"])
         self.assertEqual(res["create"][0]["idempotency_key"], "triage-2026-11-05-a")
 
+    def test_create_args_assign_first_and_retry_without_assignee_when_workflow_managed(self):
+        code, res = triage([cause("a", "improve", [1]), cause("b", "tariboyd", [2])])
+        self.assertEqual(code, 0, res)
+        by = {x["cause"]: x for x in res["create"]}
+        # First answer: the queue takes an assignee, the command carries it.
+        improve = by["cause a"]
+        self.assertEqual(improve["create_args"], ["ttasks", "create", "--queue", "IMPROVE", "--assignee", "tariboy-image-creator",
+                                                  "--priority", "P2", "--idempotency-key", "triage-2026-11-05-a"])
+        # workflow_managed answer: the same command without --assignee, same key, so the retry is safe.
+        self.assertEqual(improve["create_args_unassigned"], ["ttasks", "create", "--queue", "IMPROVE",
+                                                             "--priority", "P2", "--idempotency-key", "triage-2026-11-05-a"])
+        self.assertNotIn("--assignee", improve["create_args_unassigned"])
+        tari = by["cause b"]
+        self.assertEqual(tari["create_args"][4:6], ["--assignee", "tariboy-pm"])
+        self.assertEqual([a for a in tari["create_args"] if a != "--assignee" and a != "tariboy-pm"], tari["create_args_unassigned"])
+
+    def test_skill_documents_the_workflow_managed_retry(self):
+        text = (SCRIPT.parent.parent / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("workflow_managed", text)
+        self.assertIn("create_args_unassigned", text)
+
     def test_duplicate_needs_an_open_task(self):
         code, res = triage([cause("a", "improve", [1], duplicate_of="IMPROVE-aa11")])
         self.assertEqual((code, res["create"]), (0, []))
