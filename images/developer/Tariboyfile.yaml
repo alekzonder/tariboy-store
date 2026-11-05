@@ -1,5 +1,5 @@
 schema_version: 2
-image_version: 0.23.12
+image_version: 0.23.13
 plugins:
     - name: whoami
     - name: context

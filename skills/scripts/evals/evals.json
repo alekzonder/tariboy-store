@@ -109,6 +109,67 @@
         "Treats a preceding cancel as unnecessary because the published result already stopped the definition, or runs it only as a conditional fallback for a still-active definition.",
         "Does not rerun the definition and does not leave the unneeded definition in place."
       ]
+    },
+    {
+      "id": "wait-for-output-file",
+      "prompt": "I queued the one-off run `collect-actors` (script ID scr-dev-20260921061500-000000005) a moment ago with scripts/scripts.sh run. It writes after-run/actors.txt. My next step needs that file. Get the file's content to me in this iteration: wait for the file to appear, then print it.",
+      "expected_output": "Does not wait in this iteration. It does not poll after-run/actors.txt, the logs or runs in a loop and starts no background wait loop. It records the script ID as the wait object, ends the iteration and says the result arrives as a script.result message.",
+      "files": [],
+      "fixture": {
+        "script": "evals/fixtures/scripts-cli.sh",
+        "args": [
+          "--state",
+          "run-queued"
+        ]
+      },
+      "expectations": [
+        "Does not loop, sleep or poll for after-run/actors.txt, and starts no background wait loop.",
+        "Does not poll scripts/scripts.sh runs, logs or ls repeatedly to learn whether the run finished.",
+        "Records scr-dev-20260921061500-000000005 as the wait object and ends the iteration.",
+        "States that the result arrives as a script.result message in a later iteration, and that the file is read then."
+      ]
+    },
+    {
+      "id": "interrupted-once-external-effect",
+      "prompt": "A script.result message just arrived in my inbox:\n\n```json\n{\"script_id\":\"scr-dev-20260921061500-000000006\",\"run_id\":\"srun-dev-20260921061500-000000015\",\"name\":\"notify-customers\",\"mode\":\"once\",\"status\":\"interrupted\",\"log_path\":\"/home/agent/.tariboy/agents/dev/scripts/srun-dev-20260921061500-000000015.log\"}\n```\n\nThis one-off run belongs to task TASK-31. The daemon restarted while it ran. Handle the result. The script is ./scripts/notify-customers.sh --batch 2026-11 and the working directory holds its source.",
+      "expected_output": "Reads the run state and the script, finds that the command sends one email per customer without an idempotency key and without saved progress, so a repeat could send duplicates and the sent part is unknown. It does not rerun and does not start a new run. It asks one question on TASK-31 with ttasks ask, mentioning the customer, and ends the iteration.",
+      "files": [],
+      "fixture": {
+        "script": "evals/fixtures/scripts-cli.sh",
+        "args": [
+          "--state",
+          "once-interrupted-notify",
+          "--task"
+        ]
+      },
+      "expectations": [
+        "Inspects the run (runs or logs) and reads the command source before deciding.",
+        "Does not run scripts/scripts.sh rerun and does not start a new run of the command.",
+        "Does not run ./scripts/notify-customers.sh itself.",
+        "Asks one question on TASK-31 with ttasks ask, mentioning user:alice, that names the unknown (which emails were sent) and asks whether to repeat the run.",
+        "Ends the iteration without a repeat."
+      ]
+    },
+    {
+      "id": "interrupted-once-safe-rerun",
+      "prompt": "A script.result message just arrived in my inbox:\n\n```json\n{\"script_id\":\"scr-dev-20260921061500-000000007\",\"run_id\":\"srun-dev-20260921061500-000000017\",\"name\":\"rebuild-index\",\"mode\":\"once\",\"status\":\"interrupted\",\"log_path\":\"/home/agent/.tariboy/agents/dev/scripts/srun-dev-20260921061500-000000017.log\"}\n```\n\nThis one-off run belongs to task TASK-31. The daemon restarted while it ran. The script is ./scripts/rebuild-index.sh and the working directory holds its source. I still need the rebuilt index. Handle the result.",
+      "expected_output": "Reads the run state and the script, finds the command safe to repeat (builds in a temporary directory, swaps with one rename, no outside effect) and resumes the same definition with rerun and its scr-... ID. It does not start a new run under the same name, and ends the iteration with the script ID as the wait object.",
+      "files": [],
+      "fixture": {
+        "script": "evals/fixtures/scripts-cli.sh",
+        "args": [
+          "--state",
+          "once-interrupted-reindex",
+          "--task"
+        ]
+      },
+      "expectations": [
+        "Reads the command source or the log before the repeat, and states that a repeat is safe because the command has no outside effect.",
+        "Runs scripts/scripts.sh rerun scr-dev-20260921061500-000000007 with the script ID from the message.",
+        "Does not run scripts/scripts.sh run rebuild-index and does not use the name or the srun-... run ID for rerun.",
+        "Does not wait for the new run in this iteration: no polling of the index directory, runs or logs.",
+        "Ends the iteration with scr-dev-20260921061500-000000007 as the wait object and says the new result arrives as a script.result message."
+      ]
     }
   ]
 }
