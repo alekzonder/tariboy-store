@@ -1,0 +1,388 @@
+{
+ "date": "2026-11-05",
+ "assessments": 38,
+ "violations": [
+  {
+   "assessment_id": "as-20261105T000100Z-000001",
+   "iteration_id": "developer-20261105T110000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000200Z-000002",
+   "iteration_id": "developer-20261104T120000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000300Z-000003",
+   "iteration_id": "developer-20261105T130000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000400Z-000004",
+   "iteration_id": "developer-20261104T140000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000500Z-000005",
+   "iteration_id": "developer-20261105T150000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000600Z-000006",
+   "iteration_id": "developer-20261104T160000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000700Z-000007",
+   "iteration_id": "developer-20261105T170000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000800Z-000008",
+   "iteration_id": "developer-20261104T180000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T000900Z-000009",
+   "iteration_id": "developer-20261105T190000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer skipped the required verification skill.",
+   "quote": "The developer skipped the required verif"
+  },
+  {
+   "assessment_id": "as-20261105T010000Z-000010",
+   "iteration_id": "reviewer-20261104T100000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010100Z-000011",
+   "iteration_id": "reviewer-20261105T110000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010200Z-000012",
+   "iteration_id": "reviewer-20261104T120000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010300Z-000013",
+   "iteration_id": "reviewer-20261105T130000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010400Z-000014",
+   "iteration_id": "reviewer-20261104T140000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010500Z-000015",
+   "iteration_id": "reviewer-20261105T150000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010600Z-000016",
+   "iteration_id": "reviewer-20261104T160000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010700Z-000017",
+   "iteration_id": "reviewer-20261105T170000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "The reviewer approved without reading th"
+  },
+  {
+   "assessment_id": "as-20261105T010800Z-000018",
+   "iteration_id": "tariboss-20261104T180000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T010900Z-000019",
+   "iteration_id": "tariboss-20261105T190000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020000Z-000020",
+   "iteration_id": "tariboss-20261104T100000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020100Z-000021",
+   "iteration_id": "tariboss-20261105T110000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020200Z-000022",
+   "iteration_id": "tariboss-20261104T120000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020300Z-000023",
+   "iteration_id": "tariboss-20261105T130000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020400Z-000024",
+   "iteration_id": "tariboss-20261104T140000-1",
+   "task_key": "",
+   "agent": "tariboss",
+   "image": "tariboss:0.5.7",
+   "axis": "image_process",
+   "description": "tariboss answered a letter without recording it on the task.",
+   "quote": "tariboss answered a letter without recor"
+  },
+  {
+   "assessment_id": "as-20261105T020500Z-000025",
+   "iteration_id": "docs-20261105T150000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T020600Z-000026",
+   "iteration_id": "docs-20261104T160000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T020700Z-000027",
+   "iteration_id": "docs-20261105T170000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T020800Z-000028",
+   "iteration_id": "docs-20261104T180000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T020900Z-000029",
+   "iteration_id": "docs-20261105T190000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T030000Z-000030",
+   "iteration_id": "docs-20261104T100000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs wrote a comment in English to a Russian customer.",
+   "quote": "docs wrote a comment in English to a Rus"
+  },
+  {
+   "assessment_id": "as-20261105T030100Z-000031",
+   "iteration_id": "developer-20261105T110000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer merged its own pull request.",
+   "quote": "The developer merged its own pull reques"
+  },
+  {
+   "assessment_id": "as-20261105T030200Z-000032",
+   "iteration_id": "developer-20261104T120000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer merged its own pull request.",
+   "quote": "The developer merged its own pull reques"
+  },
+  {
+   "assessment_id": "as-20261105T030300Z-000033",
+   "iteration_id": "developer-20261105T130000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer merged its own pull request.",
+   "quote": "The developer merged its own pull reques"
+  },
+  {
+   "assessment_id": "as-20261105T030400Z-000034",
+   "iteration_id": "developer-20261104T140000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer merged its own pull request.",
+   "quote": "The developer merged its own pull reques"
+  },
+  {
+   "assessment_id": "as-20261105T030500Z-000035",
+   "iteration_id": "developer-20261105T150000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer merged its own pull request.",
+   "quote": "The developer merged its own pull reques"
+  },
+  {
+   "assessment_id": "as-20261105T030600Z-000036",
+   "iteration_id": "reviewer-20261104T160000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer left no context entry after a wait.",
+   "quote": "The reviewer left no context entry after"
+  },
+  {
+   "assessment_id": "as-20261105T030700Z-000037",
+   "iteration_id": "reviewer-20261105T170000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer left no context entry after a wait.",
+   "quote": "The reviewer left no context entry after"
+  },
+  {
+   "assessment_id": "as-20261105T030800Z-000038",
+   "iteration_id": "docs-20261104T180000-1",
+   "task_key": "",
+   "agent": "docs",
+   "image": "docs:1.2.0",
+   "axis": "image_process",
+   "description": "docs closed a task without the completion comment.",
+   "quote": "docs closed a task without the completio"
+  }
+ ],
+ "infra": [],
+ "open_tasks": []
+}

@@ -1,0 +1,65 @@
+{
+ "date": "2026-11-05",
+ "assessments": 5,
+ "violations": [
+  {
+   "assessment_id": "as-20261105T000100Z-000001",
+   "iteration_id": "developer-20261105T110000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer pushed a commit before its check passed.",
+   "quote": "git push origin task-branch"
+  },
+  {
+   "assessment_id": "as-20261105T000200Z-000002",
+   "iteration_id": "developer-20261104T120000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer pushed a commit before its check passed.",
+   "quote": "git push origin task-branch"
+  },
+  {
+   "assessment_id": "as-20261105T000300Z-000003",
+   "iteration_id": "developer-20261105T130000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer pushed a commit before its check passed.",
+   "quote": "git push origin task-branch"
+  },
+  {
+   "assessment_id": "as-20261105T000400Z-000004",
+   "iteration_id": "reviewer-20261104T140000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "gh pr review --approve"
+  },
+  {
+   "assessment_id": "as-20261105T000500Z-000005",
+   "iteration_id": "reviewer-20261105T150000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "The reviewer approved without reading the diff.",
+   "quote": "gh pr review --approve"
+  }
+ ],
+ "infra": [],
+ "open_tasks": [
+  {
+   "key": "IMPROVE-p7k2",
+   "queue": "IMPROVE",
+   "title": "developer pushes a commit before its check passes",
+   "status": "open"
+  }
+ ]
+}

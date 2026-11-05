@@ -15,6 +15,10 @@ Subcommands (all JSON on stdout, diagnostics on stderr):
              done tasks that are ready for a task assessment, as assessor jobs
   validate   --dir DIR                            check every DIR/out/*.json and its parts notes before it is written
   add        --dir DIR [--assessor NAME]          write every valid assessment the assessor has not written yet
+  triage-input --assessor NAME [--out FILE] [--window S]
+             the violations and `infra:` lines of this assessor's last 24 h, with the open tasks of IMPROVE and TARI
+  triage-check --plan FILE --input FILE
+             check a triage plan against that input; print the tasks to create and the journal line
 
 Only `add` writes to the daemon (`tariboy assessment add`). Everything else reads.
 """
@@ -914,6 +918,113 @@ def cmd_add(a):
         sys.exit(1)
 
 
+TRIAGE_LIMIT = 5              # new tasks one triage creates, all queues together
+TRIAGE_QUEUES = {"improve": ("IMPROVE", "tariboy-image-creator"), "tariboyd": ("TARI", "tariboy-pm")}
+TRIAGE_ROUTES = ("improve", "tariboyd", "infra", "noise")
+TRIAGE_IMPACT = ("work_lost", "degraded", "none")
+
+
+def cmd_triage_input(a):
+    """Violations of the last 24 hours of one assessor, with the open tasks of IMPROVE and TARI."""
+    now = parse_time(a.now) if a.now else dt.datetime.now(dt.timezone.utc)
+    if a.input:
+        data = read_json(a.input, {})
+        rows, open_tasks = data.get("assessments", []), data.get("open_tasks", [])
+    else:
+        listing = tb("assessment", "ls", "--assessor", a.assessor, "--limit", "1000", "--history")
+        rows = []
+        for row in listing.get("assessments", []):
+            when = parse_time(row.get("created_at", ""))
+            if when is None or now - when > dt.timedelta(seconds=a.window) or not row.get("violation_count"):
+                continue
+            rows.append(tb("assessment", "show", row["id"])["assessment"])
+        tasks = tb("tasks", "list", "--queue", "IMPROVE,TARI", "--limit", "500")
+        open_tasks = [{"key": t.get("key"), "queue": t.get("queue"), "title": t.get("title"), "status": t.get("status")}
+                      for t in tasks.get("tasks", [])]
+    violations, infra = [], []
+    for r in rows:
+        for v in r.get("violations") or []:
+            violations.append({"assessment_id": r["id"], "iteration_id": r.get("iteration_id", ""), "task_key": r.get("task_key", ""),
+                               "agent": r.get("subject_agent", ""), "image": f"{r.get('image_ref', '')}:{r.get('image_version', '')}",
+                               "axis": v.get("axis"), "description": v.get("description"), "quote": v.get("quote")})
+        for m in re.finditer(r"infra:\s*([^;\n]+)", r.get("summary", "")):
+            infra.append({"assessment_id": r["id"], "iteration_id": r.get("iteration_id", ""), "text": m.group(1).strip()})
+    result = {"date": now.strftime("%Y-%m-%d"), "assessments": len(rows), "violations": violations, "infra": infra, "open_tasks": open_tasks}
+    if a.out:
+        write_json(a.out, result)
+    out({k: (len(v) if isinstance(v, list) else v) for k, v in result.items()} | {"out": a.out})
+
+
+def triage_errors(plan, data):
+    """Return (errors, actions, journal line) for a triage plan against the triage input."""
+    errs, actions = [], []
+    ids = {v["assessment_id"] for v in data.get("violations", [])} | {i["assessment_id"] for i in data.get("infra", [])}
+    iters = {v["assessment_id"]: v.get("iteration_id") or v.get("task_key") for v in data.get("violations", [])}
+    open_keys = {t["key"] for t in data.get("open_tasks", [])}
+    date = plan.get("date") or data.get("date", "")
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(date)):
+        errs.append("date must be YYYY-MM-DD")
+    causes = plan.get("causes")
+    if not isinstance(causes, list):
+        return ["causes must be a list"], [], ""
+    created, dups, over, noise = [], [], [], []
+    new = 0
+    for i, c in enumerate(causes):
+        name = str(c.get("cause", "")).strip()
+        where = f"cause {i} ({name or 'no name'})"
+        route, impact = c.get("route"), c.get("impact", "none")
+        found = c.get("assessments") or []
+        if not name or not re.fullmatch(r"[a-z0-9-]{1,40}", str(c.get("slug", ""))):
+            errs.append(f"{where}: needs cause text and slug [a-z0-9-]")
+        if route not in TRIAGE_ROUTES:
+            errs.append(f"{where}: route must be one of {', '.join(TRIAGE_ROUTES)}")
+            continue
+        if impact not in TRIAGE_IMPACT:
+            errs.append(f"{where}: impact must be one of {', '.join(TRIAGE_IMPACT)}")
+        if not found or len(set(found)) != len(found) or not set(found) <= ids:
+            errs.append(f"{where}: assessments must be unique IDs from the triage input")
+            continue
+        count = len(found)
+        if route in ("infra", "noise"):
+            if c.get("duplicate_of") or c.get("over_limit"):
+                errs.append(f"{where}: {route} makes no task, so it has no duplicate_of or over_limit")
+            noise.append((name, count))
+            continue
+        queue, assignee = TRIAGE_QUEUES[route]
+        dup = c.get("duplicate_of")
+        if dup:
+            if dup not in open_keys:
+                errs.append(f"{where}: duplicate_of {dup} is not an open task of IMPROVE or TARI")
+            dups.append((dup, name, count))
+            continue
+        if c.get("over_limit"):
+            over.append((name, count))
+            continue
+        new += 1
+        wanted = {x for x in (iters.get(f) for f in found) if x}
+        if not wanted:
+            errs.append(f"{where}: no iteration or task behind the assessments")
+        priority = "P1" if count >= 10 or impact == "work_lost" else "P2"
+        actions.append({"cause": name, "queue": queue, "assignee": assignee, "priority": priority, "count": count,
+                        "idempotency_key": f"triage-{date}-{c.get('slug')}", "assessments": found, "iterations": sorted(wanted)})
+    if new > TRIAGE_LIMIT:
+        errs.append(f"{new} new tasks; at most {TRIAGE_LIMIT} per day, mark the rest over_limit")
+    actions.sort(key=lambda x: (-x["count"], x["cause"]))
+    line = (f"Triage {date}: causes {len(causes)}; created "
+            + (", ".join(f"KEY_{n} ({x['cause']}, assessments {x['count']})" for n, x in enumerate(actions, 1)) or "none")
+            + "; duplicates " + (", ".join(f"{k} ({n}, {m})" for k, n, m in dups) or "none")
+            + f"; candidates over limit {len(over)}" + (" (" + "; ".join(f"{n}, {m}" for n, m in over) + ")" if over else "")
+            + f"; infra and noise {len(noise)}" + (" (" + "; ".join(f"{n}, {m}" for n, m in noise) + ")" if noise else ""))
+    return errs, actions, line
+
+
+def cmd_triage_check(a):
+    errs, actions, line = triage_errors(read_json(a.plan, {}), read_json(a.input, {}))
+    out({"ok": not errs, "errors": errs, "create": actions, "journal_line": line})
+    if errs:
+        sys.exit(1)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -939,9 +1050,14 @@ def main():
     s = sub.add_parser("validate"); s.add_argument("--dir", required=True)
     s = sub.add_parser("add"); s.add_argument("--dir", required=True)
     s.add_argument("--assessor", default=os.environ.get("TARIBOY_AGENT", ""), help="this agent; default $TARIBOY_AGENT")
+    s = sub.add_parser("triage-input"); s.add_argument("--assessor", default=os.environ.get("TARIBOY_AGENT", ""))
+    s.add_argument("--out", default=""); s.add_argument("--window", type=int, default=86400)
+    s.add_argument("--now", default=""); s.add_argument("--input", default="", help="rows as JSON instead of the daemon (tests)")
+    s = sub.add_parser("triage-check"); s.add_argument("--plan", required=True); s.add_argument("--input", required=True)
     a = p.parse_args()
     {"cost": cmd_cost, "candidates": cmd_candidates, "coverage": cmd_coverage, "pack": cmd_pack, "tasks": cmd_tasks,
-     "validate": cmd_validate, "add": cmd_add}[a.cmd](a)
+     "validate": cmd_validate, "add": cmd_add, "triage-input": cmd_triage_input,
+     "triage-check": cmd_triage_check}[a.cmd](a)
 
 
 if __name__ == "__main__":
