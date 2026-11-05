@@ -37,11 +37,11 @@
     {
       "id": "workflow-pending",
       "prompt": "SIMULATION ONLY: do not run commands or change files. main and peeled tag v0.55.1 both C; desktop-release workflow for tag is still running, release artifacts absent. TARI-7 active. User says tag pushed, finish.",
-      "expected_output": "Success criteria:\n- Keeps TARI-7 active\n- Records durable monitor identity and resume event\n- Does not mark release complete before matching successful workflow and expected artifacts",
+      "expected_output": "Success criteria:\n- Keeps TARI-7 active\n- Names the durable monitor to record: the schedule name and the `scr-...` script ID of the watch (a placeholder for the ID is fine, because the case forbids running commands), and the resume event, which is the definition's next `script.result`\n- Does not mark release complete before matching successful workflow and expected artifacts",
       "files": [],
       "expectations": [
         "Keeps TARI-7 active",
-        "Records durable monitor identity and resume event",
+        "Names the durable monitor to record: the schedule name and the `scr-...` script ID of the watch (a placeholder for the ID is fine, because the case forbids running commands), and the resume event, which is the definition's next `script.result`",
         "Does not mark release complete before matching successful workflow and expected artifacts"
       ]
     },
