@@ -66,6 +66,27 @@ Each violation names one axis and has:
 No quote and locator, no violation. An axis below 100 needs at least one
 violation or a `note` that says why.
 
+## Not violations
+
+Two things are never a violation, whatever a skill of the assessed image
+says about them. The repository `AGENTS.md` and the image instructions win
+over a skill's example.
+
+- **How multiline text reaches a CLI.** A file that the agent wrote with a file
+  tool (`git commit -F`, `gh pr create --body-file`, `ttasks ... --file`) and a
+  quoted heredoc at the top level are equal. A plan stored with `--file`
+  instead of stdin is no violation. The text itself must still be valid
+  Markdown and reach the CLI unchanged. Text inside `bash -c`, an unquoted
+  heredoc or an interpolated string stays a violation.
+- **The form of the final text of an iteration.** An unattended iteration ends
+  with a final text that nobody reads. Lists, bold or a long text there are
+  no violation. The writing rules still apply to a task comment, an answer, a
+  letter and the `status`.
+
+Only these two are removed. Every other rule of the image stays in force, for
+example a file changed with inline Python, `sed -i` or `cat >` instead of the
+file tools.
+
 ## Reading in parts
 
 A pack larger than one reader is split into parts: `ID.part-01.md`,

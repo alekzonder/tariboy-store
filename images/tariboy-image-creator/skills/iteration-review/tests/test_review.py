@@ -441,5 +441,31 @@ class Parts(unittest.TestCase):
         self.assertEqual(code, 0, report)
 
 
+class RubricTransport(unittest.TestCase):
+    """The rubric is prose for a model reader; these checks pin the two rules that must not be penalized."""
+    RUBRIC = (Path(__file__).resolve().parent.parent / "rubric.md").read_text()
+
+    def section(self):
+        head = "## Not violations"
+        self.assertIn(head, self.RUBRIC, "rubric lacks a 'Not violations' section")
+        body = self.RUBRIC.split(head, 1)[1]
+        return body.split("\n## ", 1)[0].lower()
+
+    def test_a_file_or_a_quoted_heredoc_is_not_a_violation(self):
+        text = self.section()
+        for word in ("--file", "--body-file", "git commit -f", "quoted heredoc", "agents.md", "stdin"):
+            self.assertIn(word, text)
+
+    def test_the_form_of_the_final_chat_text_is_not_a_violation(self):
+        text = self.section()
+        for word in ("final text", "lists", "bold"):
+            self.assertIn(word, text)
+
+    def test_other_rules_stay_in_force(self):
+        text = self.section()
+        self.assertIn("only these two", text)
+        self.assertIn("inline python", text)
+
+
 if __name__ == "__main__":
     unittest.main()
