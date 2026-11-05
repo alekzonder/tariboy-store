@@ -30,7 +30,13 @@ Before the first command, file read of the task or text, open these skills with
 the Skill tool, in this order, and read each one completely: `using-superpowers`,
 `goal`, `ponytail`, then the skill of the chosen mode. Opening a skill is not
 running a command. Do it also when the iteration looks small or familiar, and
-again after a context compaction.
+again after a context compaction. A request that says "simulation", "dry run"
+or "do not run commands" forbids commands that act or change state, never
+opening a skill: open every skill that this section and the stage table name
+before you answer, and take each command, flag and decision you state from
+those skills, never from memory. An answer that says you have not read a
+skill, or that writes a command as a placeholder, is incomplete: stop, open
+the skill, then answer.
 
 Open the stage skill before the first action of its stage, never from memory:
 

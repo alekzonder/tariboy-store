@@ -5,32 +5,32 @@
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/brainstorming/SKILL.md",
-      "computedHash": "b344a85378eb5e5da192bceb0f9c0c15a4820a3ee8b5ad867e3a70ef3c691e3d"
+      "computedHash": "759eaa3b4b3d06d9e1c98c24bcd58eeb4d2faf724b3239f81e8559aa41e28fdd"
     },
     "cli-text": {
       "source": "../../skills/cli-text",
       "sourceType": "local",
-      "computedHash": "f15901d6dd08beef56effae99d12f1b9b539f3eeaa2d64c9ce122b70a4a0fe14"
+      "computedHash": "d8c8c0953cb00ae6cd9450b6f5c9f4a1d9115eca2a55ecbdaf72450c47947395"
     },
     "context": {
       "source": "../../skills/context",
       "sourceType": "local",
-      "computedHash": "996f18279386689ec7f0ed868e17a34b79f6262cd41f086a568ba476404ad476"
+      "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
     },
     "developer-mode-flexible": {
       "source": "./skills/developer-mode-flexible",
       "sourceType": "local",
-      "computedHash": "81e19b7b72f4f15a5d9c34ba9bc20c3691fe0634d0f266f50ce9751965b4415c"
+      "computedHash": "8e98542f4a9244cfd41eedbabc694861997bcc534c443f5ce62c5dcc2f315233"
     },
     "developer-mode-request": {
       "source": "./skills/developer-mode-request",
       "sourceType": "local",
-      "computedHash": "950de57b02d8d9de6427b321ebd77dfb4b0bce488e288c4e3c9c1720583ec973"
+      "computedHash": "f842393e218621c80263a8ef9631c8b831f88ff1ad6d3fbb9097b813b091eb0d"
     },
     "developer-mode-workflow": {
       "source": "./skills/developer-mode-workflow",
       "sourceType": "local",
-      "computedHash": "706a065e10d85a2f71068e642ef90c943c26f819fc65692b0701bdd55bf696fd"
+      "computedHash": "273538fdbdcdbe97ee0290dc5e6e13b5c15504a5f530d7f0ba880da699aa9eac"
     },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
@@ -42,7 +42,7 @@
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/executing-plans/SKILL.md",
-      "computedHash": "f695ccea105b04a4827dc3bcabb8ee88c4fc868ce853c00193ea30aaa352e1b5"
+      "computedHash": "cc778643e7d4cf455da8fab2d435d6ba26e59c0fc4aef29d892540185a54ff60"
     },
     "finishing-a-development-branch": {
       "source": "obra/superpowers",
@@ -53,22 +53,22 @@
     "github-pr-workflow": {
       "source": "./skills/github-pr-workflow",
       "sourceType": "local",
-      "computedHash": "e1f1b847444babdf314bff312d3b65c6ad24989ea6f15747e6e2e3108f64b09c"
+      "computedHash": "4f8de7602392ace026e85c9279fc17b557a1ee21d4df495db2137b00d59c38c0"
     },
     "goal": {
       "source": "../../skills/goal",
       "sourceType": "local",
-      "computedHash": "44376fa9fe1e9dd2438b01bf18929ffb9d729c01e339ccdda58f3c17b87ffbe3"
+      "computedHash": "4efbf128f2b6950aff3901a58f03cd50cd867c57791843a6a00563e8f8afdf60"
     },
     "loop": {
       "source": "../../skills/loop",
       "sourceType": "local",
-      "computedHash": "62b1a3795a37fafbc95cde4ada57ec4c3d38031a4e412b9a39c7638c5a9942c3"
+      "computedHash": "d035ef2a1a8985e98f228220d1626a5521b7a608f08ede75e956cf01270d3ef6"
     },
     "mail": {
       "source": "../../skills/mail",
       "sourceType": "local",
-      "computedHash": "30d12966eec77904e2ad2edeb9d269f27661a6983a14142345d849335d7a7abc"
+      "computedHash": "b8cc6d79c63db4e88f557a494e87dd8cef02ef09a9012a3665db2b417d839b98"
     },
     "ponytail": {
       "source": "DietrichGebert/ponytail",
@@ -91,7 +91,7 @@
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "993a177543f37dc82091c7391cfca03e7f0728eab7dcc94364830ca2b9b588ef"
+      "computedHash": "f777315b399d5625c599ab6eb21d8b214e3ffe5e24660123c8e6e4eda1e5b6f7"
     },
     "simple-english": {
       "source": "AminBlg/SimpleEnglish",
@@ -108,24 +108,24 @@
     "status": {
       "source": "../../skills/status",
       "sourceType": "local",
-      "computedHash": "97abae33692e585f144810dae3ee6fa42286d7231747ae29779e366a24f27ab3"
+      "computedHash": "437187bede4b07301069ea76662126deb0b74b14cd74240a60ee3f8aafee6591"
     },
     "subagent-driven-development": {
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/subagent-driven-development/SKILL.md",
-      "computedHash": "8b425d9ea00698e83a5d41c1d23f19bdc60ce2006b1234e419ba868e266000c3"
+      "computedHash": "92a9fefb8e11bfc77e95bb1557a1b01b390261a53fa71b3aa773a5c8aa2cf3a9"
     },
     "systematic-debugging": {
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/systematic-debugging/SKILL.md",
-      "computedHash": "b7b6e98c3bffe371893bdb69845ec61124a65b6a96313dc8d6a2bce4437b13eb"
+      "computedHash": "276fb0aadb002ab930cc2a56de89e16995a2e3e70b33587652bf0a5fb123148d"
     },
     "tasks": {
       "source": "../../skills/tasks",
       "sourceType": "local",
-      "computedHash": "4f44ba15e44995b768ee84972aa93ee5f11dfe97505abb649eb653bbee069a93"
+      "computedHash": "70e23ad80d9e9700ae383c9b967a6c0840fcf10f64765ba7122372580160bc8d"
     },
     "test-driven-development": {
       "source": "obra/superpowers",
@@ -154,12 +154,12 @@
     "whoami": {
       "source": "../../skills/whoami",
       "sourceType": "local",
-      "computedHash": "1481e8e1adf3b6439d30962e5955d5a7983e391902e004fcc887ea432b318b78"
+      "computedHash": "1233f523b6296292af951b76a2d947d09f47fb83f57bb61a7d192ae2c1aa24e4"
     },
     "workdir": {
       "source": "../../skills/workdir",
       "sourceType": "local",
-      "computedHash": "485da575b6fd463df76338a8fa32a48edf24e611cb9c79fecac34f015e962b16"
+      "computedHash": "cc348cbd1ef5873dac6ecfae713eb10e40592bf7f7c4d6f17461d756368aabfd"
     },
     "writing-plans": {
       "source": "obra/superpowers",
@@ -176,7 +176,7 @@
     "writing-style": {
       "source": "../../skills/writing-style",
       "sourceType": "local",
-      "computedHash": "8b9eea05277c56bfa97bf36e60204eeaf79bc217e26130370c7b3990eee5a22e"
+      "computedHash": "50039e87c3341dd7d872b841a36cb46c1355f5e3a25f46b0b8ceec61bdb1bade"
     }
   }
 }
