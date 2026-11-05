@@ -25,7 +25,9 @@ A release may also start without a request, when the role has no other work and
 no release task is active. Starting it alone authorizes exactly two things:
 fetching plus read-only analysis, and creating that one task with its concrete
 plan. It is never its own approval, so no file, branch, `main` or tag change may
-follow until the customer's answer is recorded on that task. Use the customer
+follow until the customer's answer is recorded on that task. When you state what
+a self-started release allows, say in words: "Starting the release on my own is
+not approval to publish it." Use the customer
 recorded by the role when the request names none. When the range since the last
 stable tag is empty, or tags and upstream contradict each other, record that
 finding and stop: do not create a task that merely asks what to do. When a
