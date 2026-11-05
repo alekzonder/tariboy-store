@@ -467,5 +467,60 @@ class RubricTransport(unittest.TestCase):
         self.assertIn("inline python", text)
 
 
+DATA = {"date": "2026-11-05",
+        "violations": [{"assessment_id": f"as-{n}", "iteration_id": f"it-{n}", "task_key": "", "agent": "dev", "image": "dev:1",
+                        "axis": "image_process", "description": "d", "quote": "q"} for n in range(1, 13)],
+        "infra": [{"assessment_id": "as-20", "iteration_id": "it-20", "text": "exit 137"}],
+        "open_tasks": [{"key": "IMPROVE-aa11", "queue": "IMPROVE", "title": "t", "status": "open"}]}
+
+
+def cause(slug, route, ids, **kw):
+    return dict({"cause": f"cause {slug}", "slug": slug, "route": route, "impact": "degraded",
+                 "assessments": [f"as-{n}" for n in ids]}, **kw)
+
+
+def triage(causes):
+    with tempfile.TemporaryDirectory() as tmp:
+        plan, data = Path(tmp) / "plan.json", Path(tmp) / "in.json"
+        plan.write_text(json.dumps({"date": "2026-11-05", "causes": causes}))
+        data.write_text(json.dumps(DATA))
+        proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "triage-check", "--plan", str(plan), "--input", str(data)],
+                              capture_output=True, text=True)
+        return proc.returncode, json.loads(proc.stdout)
+
+
+class TriageCheck(unittest.TestCase):
+    def test_routes_and_priority(self):
+        code, res = triage([cause("a", "improve", range(1, 11)), cause("b", "tariboyd", [11]),
+                            cause("c", "tariboyd", [12], impact="work_lost"), cause("d", "infra", ["20"])])
+        self.assertEqual(code, 0, res)
+        got = {x["cause"]: (x["queue"], x["assignee"], x["priority"]) for x in res["create"]}
+        self.assertEqual(got["cause a"], ("IMPROVE", "tariboy-image-creator", "P1"))
+        self.assertEqual(got["cause b"], ("TARI", "tariboy-pm", "P2"))
+        self.assertEqual(got["cause c"][2], "P1")
+        self.assertNotIn("cause d", got)
+        self.assertIn("infra and noise 1 (cause d, 1)", res["journal_line"])
+        self.assertEqual(res["create"][0]["idempotency_key"], "triage-2026-11-05-a")
+
+    def test_duplicate_needs_an_open_task(self):
+        code, res = triage([cause("a", "improve", [1], duplicate_of="IMPROVE-aa11")])
+        self.assertEqual((code, res["create"]), (0, []))
+        self.assertIn("duplicates IMPROVE-aa11 (cause a, 1)", res["journal_line"])
+        code, res = triage([cause("a", "improve", [1], duplicate_of="IMPROVE-zzzz")])
+        self.assertEqual(code, 1)
+
+    def test_limit_of_five(self):
+        causes = [cause(f"c{n}", "improve", [n]) for n in range(1, 7)]
+        self.assertEqual(triage(causes)[0], 1)
+        causes[5]["over_limit"] = True
+        code, res = triage(causes)
+        self.assertEqual((code, len(res["create"])), (0, 5))
+        self.assertIn("candidates over limit 1 (cause c6, 1)", res["journal_line"])
+
+    def test_unknown_assessment_or_route_is_refused(self):
+        self.assertEqual(triage([cause("a", "improve", [99])])[0], 1)
+        self.assertEqual(triage([cause("a", "devqueue", [1])])[0], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

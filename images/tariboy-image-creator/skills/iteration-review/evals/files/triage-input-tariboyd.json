@@ -1,0 +1,38 @@
+{
+ "date": "2026-11-05",
+ "assessments": 3,
+ "violations": [
+  {
+   "assessment_id": "as-20261105T000100Z-000001",
+   "iteration_id": "reviewer-20261105T110000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "ttasks update returned not_found right after the status change although the task exists; the daemon dropped the write.",
+   "quote": "error: not_found task TARI-1"
+  },
+  {
+   "assessment_id": "as-20261105T000200Z-000002",
+   "iteration_id": "reviewer-20261104T120000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "ttasks update returned not_found right after the status change although the task exists; the daemon dropped the write.",
+   "quote": "error: not_found task TARI-1"
+  },
+  {
+   "assessment_id": "as-20261105T000300Z-000003",
+   "iteration_id": "reviewer-20261105T130000-1",
+   "task_key": "",
+   "agent": "reviewer",
+   "image": "reviewer:0.6.9",
+   "axis": "image_process",
+   "description": "ttasks update returned not_found right after the status change although the task exists; the daemon dropped the write.",
+   "quote": "error: not_found task TARI-1"
+  }
+ ],
+ "infra": [],
+ "open_tasks": []
+}

@@ -1,0 +1,38 @@
+{
+ "date": "2026-11-05",
+ "assessments": 3,
+ "violations": [
+  {
+   "assessment_id": "as-20261105T000100Z-000001",
+   "iteration_id": "developer-20261105T110000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer rule 'verify before done' is missing in instructions.md, so the agent finished without running make check.",
+   "quote": "ttasks done TASK-1 without make check"
+  },
+  {
+   "assessment_id": "as-20261105T000200Z-000002",
+   "iteration_id": "developer-20261104T120000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer rule 'verify before done' is missing in instructions.md, so the agent finished without running make check.",
+   "quote": "ttasks done TASK-1 without make check"
+  },
+  {
+   "assessment_id": "as-20261105T000300Z-000003",
+   "iteration_id": "developer-20261105T130000-1",
+   "task_key": "",
+   "agent": "developer",
+   "image": "developer:0.23.10",
+   "axis": "image_process",
+   "description": "The developer rule 'verify before done' is missing in instructions.md, so the agent finished without running make check.",
+   "quote": "ttasks done TASK-1 without make check"
+  }
+ ],
+ "infra": [],
+ "open_tasks": []
+}

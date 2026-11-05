@@ -182,7 +182,8 @@ holds only cycle work.
       `REVIEW add --dir "$DIR"`, which runs
       `tariboy assessment add --file OUT_PATH` for it.
    5. Count it in the comment as a task assessment, not as an iteration.
-5. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
+5. When triage is due, run "Triage" below first: its line goes into the
+   comment. `REVIEW cost --agent ASSESSOR --since START` gives the cycle cost, and
    `REVIEW coverage --agents AGENTS --since SINCE --assessor ASSESSOR`
    gives the window figures. Post one comment on `cycle_task` with this
    command (`cli-text` quoted heredoc). Put the real value in place of
@@ -220,6 +221,7 @@ holds only cycle work.
    - Cycle cost: X USD of budget_usd Y USD
    - Cost of one assessment: X USD (cycle cost / assessments written, iterations and tasks)
    - Re-assessment to iteration-review/2: done RE_DONE, left RE_LEFT (iterations IT_DONE / IT_LEFT, tasks TASK_DONE / TASK_LEFT)
+   - Triage: the line of "Triage" step 5 when triage was due, else `Triage: not due`
    CYCLE_EOF
    )
    ttasks comment CYCLE_TASK "$BODY"
@@ -227,6 +229,64 @@ holds only cycle work.
 
 6. Continue with the letters and the goal of the iteration. The cycle
    leaves no script or schedule behind.
+
+## Triage
+
+Once per UTC day the cycle turns the violations of the assessments into
+tasks, by cause, without duplicates, in the right queue. Triage is due in the
+first cycle after 00:00 UTC whose cycle task has no `Triage YYYY-MM-DD` line
+for today's date. Read the comments of `cycle_task` once to know. Triage runs
+in step 5, before the comment is posted: the comment carries its line.
+
+1. `REVIEW triage-input --assessor ASSESSOR --out "$DIR/triage-input.json"`
+   collects the violations and the `infra:` lines of the assessments this
+   assessor wrote in the last 24 hours, with the open tasks of IMPROVE and
+   TARI. It reads only.
+2. Group the violations by cause: one cause is one defect to fix, not one
+   rule word. Write `"$DIR/triage.json"`:
+
+   ```json
+   {"date": "YYYY-MM-DD", "causes": [
+     {"cause": "text", "slug": "short-kebab-id", "route": "improve",
+      "impact": "work_lost", "assessments": ["as-..."],
+      "duplicate_of": "IMPROVE-xxxx", "over_limit": false}]}
+   ```
+
+   - `route` is `improve` for an image instruction, skill, workflow or
+     Store defect: queue IMPROVE, assignee `tariboy-image-creator`. It is
+     `tariboyd` for a defect of the daemon: queue TARI, assignee
+     `tariboy-pm`. Never use DEV. It is `infra` for an `infra:` cause and
+     `noise` for a one-off without a cause to fix: no task, only the journal.
+   - `impact` is `work_lost` when the work was lost or redone, `degraded`
+     when the result was worse, `none` otherwise.
+   - `assessments` lists every assessment ID behind the cause.
+   - `duplicate_of` is the key of an open task in the input that already
+     covers the cause. Set it instead of creating a task.
+   - `over_limit: true` marks a cause that is over the limit of 5 new tasks.
+     Rank by number of assessments, then by impact; the top 5 are created.
+3. `REVIEW triage-check --plan "$DIR/triage.json" --input "$DIR/triage-input.json"`
+   refuses a plan with an unknown route, assessment or duplicate key, or
+   with more than 5 new tasks. Fix the plan until `ok` is true. It prints
+   `create` (queue, assignee, priority, idempotency key, assessment and
+   iteration IDs) and `journal_line`. The priority is P1 with 10 or more
+   assessments or `work_lost`, else P2.
+4. For each entry of `create`, run `ttasks create` with the entry's values
+   (`cli-text` quoted heredoc for the description):
+
+   ```bash
+   ttasks create --queue QUEUE --assignee ASSIGNEE --priority PRIORITY \
+     --idempotency-key KEY --title 'TITLE' --description "$BODY"
+   ```
+
+   The title and the body are in English. The body uses the review task
+   template: `## Problem`, `## Evidence` (assessment IDs and iteration IDs,
+   quotes), `## Cause`, `## Proposal`, `## Acceptance`. A failed create goes
+   into the journal line and is not repeated.
+5. Put the checked `journal_line` in the cycle comment as its last line,
+   with `KEY_n` replaced by the created keys, `duplicates` by the keys of
+   the open tasks, as in:
+
+   `Triage YYYY-MM-DD: causes N; created KEY (cause, assessments M), ...; duplicates KEY (cause, M), ...; candidates over limit N (cause, M; ...); infra and noise N (cause, M; ...)`
 
 ### Assessor prompt
 
@@ -267,18 +327,21 @@ cycle.
 ## Limits
 
 In review mode the only writes are `tariboy assessment add`, the one cycle
-comment on `cycle_task` and the removal of an old `review-cycle` script. A
-violation found by
-an assessment stays in the assessment:
+comment on `cycle_task`, the removal of an old `review-cycle` script and the
+tasks of "Triage" (`ttasks create` in IMPROVE and TARI, at most 5 a day). A
+violation found by an assessment stays in the assessment:
 
 - never edit an image, workflow, skill or Store file because of it;
-- never create a task, comment on an assessed task, or write to an assessed
-  agent;
+- never create a task except by "Triage", comment on an assessed task, or
+  write to an assessed agent;
 - never run `tariboy iteration tag` or another `tariboy` write.
 
 | Thought | Reality |
 | --- | --- |
-| "This violation needs an improvement task now." | The assessment is the record. Improvement tasks come from the customer. |
+| "This violation needs an improvement task now." | The assessment is the record. Only "Triage" creates tasks, once a day, after the duplicate check. |
+| "This cause is already an open task, but a new one is quicker." | Set `duplicate_of`; create nothing. |
+| "Six causes are worth a task; the limit is only a guide." | Create the top 5; mark the rest `over_limit` and list them in the journal line. |
+| "This is a daemon defect; DEV is the usual queue." | Route `tariboyd` goes to TARI, assignee `tariboy-pm`. Never DEV. |
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
 | "I will assess this one again with better evidence." | An iteration with an `iteration-review/2` assessment is processed. |
 | "The pack is huge; the first parts show enough." | Read every part in order. The last part scores from the notes of all parts. |

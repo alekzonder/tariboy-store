@@ -73,6 +73,46 @@
           "read-in-parts"
         ]
       }
+    },
+    {
+      "id": "triage-duplicate-no-task",
+      "prompt": "You are the reviewer agent. The review cycle of 2026-11-05 is running and triage is due: the cycle task has no `Triage 2026-11-05` line yet. The workspace has the triage input evals/files/triage-input-duplicate.json, written by `review.py triage-input`. Two causes: developer pushes before its check (3 assessments, an open task IMPROVE-p7k2 covers it) and reviewer approves without reading the diff (2 assessments). Do the triage by the skill: write the plan, check it with `review.py triage-check`, and state the exact `ttasks create` commands you would run with the text of each task and the journal line for the cycle comment. `ttasks` is not available in this sandbox: do not run it, and write nothing outside the workspace.",
+      "expected_output": "Success criteria:\n- Marks the developer push cause `duplicate_of` IMPROVE-p7k2 and creates no task for it\n- Creates one new task for the reviewer cause, in IMPROVE with assignee tariboy-image-creator and priority P2\n- The journal line names IMPROVE-p7k2 under duplicates with the number of assessments, 3\n- Runs `review.py triage-check` and fixes the plan until `ok` is true",
+      "files": [
+        "evals/files/triage-input-duplicate.json"
+      ]
+    },
+    {
+      "id": "triage-limit-five",
+      "prompt": "You are the reviewer agent. The review cycle of 2026-11-05 is running and triage is due: the cycle task has no `Triage 2026-11-05` line yet. The workspace has the triage input evals/files/triage-input-many-causes.json, written by `review.py triage-input`. Seven causes with 9, 8, 7, 6, 5, 2 and 1 assessments. Do the triage by the skill: write the plan, check it with `review.py triage-check`, and state the exact `ttasks create` commands you would run with the text of each task and the journal line for the cycle comment. `ttasks` is not available in this sandbox: do not run it, and write nothing outside the workspace.",
+      "expected_output": "Success criteria:\n- Creates exactly 5 tasks, for the causes with 9, 8, 7, 6 and 5 assessments\n- Marks the causes with 2 and 1 assessments `over_limit: true` and creates no task for them\n- The journal line has `candidates over limit 2` and names both causes with their assessment numbers",
+      "files": [
+        "evals/files/triage-input-many-causes.json"
+      ]
+    },
+    {
+      "id": "triage-route-improve",
+      "prompt": "You are the reviewer agent. The review cycle of 2026-11-05 is running and triage is due: the cycle task has no `Triage 2026-11-05` line yet. The workspace has the triage input evals/files/triage-input-improve.json, written by `review.py triage-input`. One cause in an instruction of the developer image, 3 assessments. Do the triage by the skill: write the plan, check it with `review.py triage-check`, and state the exact `ttasks create` commands you would run with the text of each task and the journal line for the cycle comment. `ttasks` is not available in this sandbox: do not run it, and write nothing outside the workspace.",
+      "expected_output": "Success criteria:\n- Routes the cause to `improve`: queue IMPROVE, assignee tariboy-image-creator\n- Does not use queue DEV or TARI\n- The task text is in English and has the sections Problem, Evidence, Cause, Proposal, Acceptance; Evidence lists the assessment IDs and iteration IDs",
+      "files": [
+        "evals/files/triage-input-improve.json"
+      ]
+    },
+    {
+      "id": "triage-route-tariboyd",
+      "prompt": "You are the reviewer agent. The review cycle of 2026-11-05 is running and triage is due: the cycle task has no `Triage 2026-11-05` line yet. The workspace has the triage input evals/files/triage-input-tariboyd.json, written by `review.py triage-input`. One cause that is a defect of the daemon, 3 assessments. Do the triage by the skill: write the plan, check it with `review.py triage-check`, and state the exact `ttasks create` commands you would run with the text of each task and the journal line for the cycle comment. `ttasks` is not available in this sandbox: do not run it, and write nothing outside the workspace.",
+      "expected_output": "Success criteria:\n- Routes the cause to `tariboyd`: queue TARI, assignee tariboy-pm\n- Does not use queue DEV or IMPROVE\n- The task lists the assessment IDs and iteration IDs as evidence",
+      "files": [
+        "evals/files/triage-input-tariboyd.json"
+      ]
+    },
+    {
+      "id": "triage-route-infra-no-task",
+      "prompt": "You are the reviewer agent. The review cycle of 2026-11-05 is running and triage is due: the cycle task has no `Triage 2026-11-05` line yet. The workspace has the triage input evals/files/triage-input-infra.json, written by `review.py triage-input`. Three `infra:` lines about exit 137 and no violation. Do the triage by the skill: write the plan, check it with `review.py triage-check`, and state the exact `ttasks create` commands you would run with the text of each task and the journal line for the cycle comment. `ttasks` is not available in this sandbox: do not run it, and write nothing outside the workspace.",
+      "expected_output": "Success criteria:\n- Routes the cause to `infra` and creates no task\n- The journal line has `created none` and `infra and noise 1 (` with the cause and 3 assessments\n- Runs no `ttasks create`",
+      "files": [
+        "evals/files/triage-input-infra.json"
+      ]
     }
   ]
 }

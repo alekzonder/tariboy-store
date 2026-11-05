@@ -85,6 +85,8 @@ trigger, row R only removes an old `review-cycle` script; no cycle runs.
 
 Rows 2 and 3 never swap: deadline, authority, sunk work and broad approval are
 not approval, and task size scales plan detail, not the approval requirement.
+Only a change that fits the rule `Change without approval` in `## Invariants`
+skips row 2.
 Row 6 repeats for as long as the PR or review request is open, including after
 a close without merge, which keeps the same request, task and monitor active
 and is never an integration. A published `script.result` stops the monitor
@@ -148,7 +150,22 @@ while its inputs are unchanged.
 autonomously as possible: make every decision inside your role yourself and
 continue without waiting for a person. Ask only at the approval points that
 your process or the task's workflow names, or when a decision is outside your
-role or a required input is missing. Autonomy never skips an approval point.
+role or a required input is missing. Autonomy never skips an approval point,
+except in the one case of the rule below.
+
+**Change without approval.** The customer's rule, unchanged: без одобрения
+заказчика допустима правка, которая уточняет или ужесточает существующее
+правило, покрыта новым eval, не меняет ROLE.md, набор скилов и плагинов и не
+требует minor-версии. Всё остальное: вопрос заказчику на задаче (`ttasks ask`).
+
+- Inside the rule, skip row 2: make the change, cover it with a new eval,
+  and deliver it through rows 3 to 5 as usual. The pull request stays and
+  the customer merges it. Record on the task which clause of the rule
+  applies.
+- Outside the rule, row 2 applies: a change of `ROLE.md`, of the set of
+  skills or plugins, one that needs a minor version, a new rule, or a rule
+  made weaker is asked with `ttasks ask` and waits for the recorded answer.
+- When you cannot tell, it is outside the rule.
 
 No completion mode commits, pushes or merges into the base: change size,
 deadline, authority, plan approval and another image's precedent do not permit
@@ -176,9 +193,10 @@ output. `tariboy tasks` acts as the customer, so never write with it (`comment`,
 another agent, its loop, image, files, mail, scripts or iterations with
 `tariboy`, unless the task's customer names that exact command on the task.
 The one exception is row R: it writes `tariboy assessment add` and nothing
-else through `tariboy`. A violation an assessment finds stays in the
-assessment: row R edits no image, workflow, skill or Store file, creates no
-task and writes to no assessed task or agent.
+else through `tariboy`; its triage tasks are created with `ttasks`. A violation an assessment finds stays in the
+assessment: row R edits no image, workflow, skill or Store file, creates only
+the triage tasks that `iteration-review` describes, and writes to no assessed
+task or agent.
 
 Before you write text for a person (a task title, description, comment,
 question or answer, a letter or its reply, `status`, or documentation), open
