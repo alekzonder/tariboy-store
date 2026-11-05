@@ -6,8 +6,7 @@ and routing cases for `developer`. Individual skill behavior belongs to
 
 The cases cover the three iteration modes:
 
-- `workflow`: the `WORKFLOW-*` cases, moved from `tariboy-workflow-developer`
-  with their text unchanged, and `MODE-LINE-WORKFLOW-FALLBACK`.
+- `workflow`: the `WORKFLOW-*` cases and `MODE-LINE-WORKFLOW-FALLBACK`.
 - `flexible`: the cases without a prefix and `MODE-LINE-FLEXIBLE-VS-LETTER`.
 - `request`: the `REQUEST-*` cases.
 
