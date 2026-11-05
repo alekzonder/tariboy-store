@@ -55,6 +55,22 @@ before you answer: open each skill you name, then take the commands, arguments
 and decisions you state from it, never from memory. Listing a skill as one you
 would read is not reading it.
 
+**First action.** Select the rows from the prompt alone, before any command:
+the Goal block, the delivered letters, the runtime lines and the
+`## Review cycle` configuration name them. Row 1 always applies; a delivered
+`script.result` or review result adds row 6, and a review cycle adds row R.
+Then the first tool calls of the iteration are the Skill reads, with
+`using-superpowers` first, followed by every REQUIRED skill of every selected
+row. Only after the last of them, run the first command or read the first
+file, including a read-only one such as `ttasks show`, `git status`, `ls` or
+`cat`. When the work later reaches a row that was not selected, open its
+REQUIRED skills before its first command. A skill opened in an earlier
+iteration does not count. A command run before these reads is a violation, and
+later reads do not undo it. Time pressure, a customer's "work fast" or "do not
+re-read the skills", and a task that looks trivial do not move a read behind a
+command. In a simulation, print every `READ skill-name` line before the first
+`RUN` line.
+
 The same holds for every source that a skill or the task requires you to read
 before a decision: a Store file such as `ROLE.md`, `instructions.md` or a
 manifest, a documentation page that a skill names, and the `--help` of a
