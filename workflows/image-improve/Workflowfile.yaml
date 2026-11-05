@@ -1,0 +1,115 @@
+schema_version: 1
+name: image-improve
+workflow_version: 0.1.0
+initial_status: triage
+requires_secrets: [GITHUB_TOKEN]
+limits:
+    idle_iterations: 3
+    rejected_requests: 5
+    script_failures: 3
+    unavailable_grace: 5m
+artifacts:
+    - name: triage
+      description: "The triage record as Key: value lines, with the decision, route, duplicate check, rule clause and reason."
+    - name: plan
+      description: The plan the customer approves, as Markdown with four sections.
+    - name: branch
+      description: Name of the task's branch, the pull request's head.
+    - name: evals
+      description: Eval evidence as JSON, with the model, the cost and the base and new result of each new or changed scenario.
+    - name: verification
+      description: Verification on the pull request's head commit, as Markdown, with its full SHA.
+    - name: pull_request
+      description: URL of the pull request for this task.
+    - name: merge_commit
+      description: Merge commit recorded by the watch.
+    - name: rework
+      description: >-
+        The customer's request for more work, as Markdown. Set it while the task is in merge to send the task back to implement at the next watch run.
+    - name: publication
+      description: Publication evidence as JSON, with each image's version, the digest of the version tag and of latest, and each merged workflow's version.
+statuses:
+    - id: triage
+      owner: {pool: image-creators}
+      instructions: ./statuses/triage.md
+      transitions:
+        - on: needs_approval
+          to: approval
+          requires: [triage, plan]
+          checks:
+            - script: ./scripts/triage-check.py
+              timeout: 30s
+              description: The triage record names the decision needs_approval, the improve route, no duplicate, and the plan has its four sections.
+        - on: autonomous
+          to: implement
+          requires: [triage]
+          checks:
+            - script: ./scripts/triage-check.py
+              timeout: 30s
+              description: The triage record names the decision autonomous, the improve route, no duplicate, a patch version and the rule clause that applies.
+        - on: close
+          to: closed
+          requires: [triage]
+          checks:
+            - script: ./scripts/triage-check.py
+              timeout: 30s
+              description: The triage record names the decision close, why the task closes as duplicate, wrong route or noise, and a reason.
+    - id: approval
+      owner: customer
+      instructions: ./statuses/approval.md
+      transitions:
+        - {on: approved, to: implement}
+        - {on: changes_requested, to: triage}
+        - {on: rejected, to: closed}
+    - id: implement
+      owner: {pool: image-creators}
+      instructions: ./statuses/implement.md
+      limits: {idle_iterations: 6}
+      transitions:
+        - on: ready
+          to: deliver
+          requires: [branch, evals, verification]
+          checks:
+            - script: ./scripts/evals-check.py
+              timeout: 30s
+              description: The evals artifact records base and new for every new or changed scenario, new passes at least 2 of 3 runs and is not worse than base.
+    - id: deliver
+      owner: {pool: image-creators}
+      instructions: ./statuses/deliver.md
+      transitions:
+        - on: submitted
+          to: merge
+          requires: [pull_request, branch, verification]
+          checks:
+            - script: ./scripts/pr-open.py
+              timeout: 60s
+              description: The pull request is open from the branch at the verified head commit, targets the default branch, and its text does not name the task key.
+    - id: merge
+      owner: script
+      watch:
+        script: ./scripts/pr-watch.py
+        every: 120s
+        timeout: 60s
+        description: Waits for the customer to merge the pull request; reports the customer's rework, requested changes, a merge conflict, or a close without a merge. It never merges.
+      limits: {script_failures: 10}
+      transitions:
+        - {on: merged, to: publish}
+        - {on: rework, to: implement}
+        - {on: changes_requested, to: implement}
+        - {on: conflict, to: implement}
+        - {on: closed_unmerged, to: implement}
+    - id: publish
+      owner: {pool: image-creators}
+      instructions: ./statuses/publish.md
+      transitions:
+        - on: published
+          to: done
+          requires: [publication]
+          checks:
+            - script: ./scripts/published-check.py
+              timeout: 30s
+              description: Each published image has its version and latest under one full digest, and each merged workflow has its version.
+    - id: done
+      terminal: true
+    - id: closed
+      terminal: true

@@ -18,6 +18,8 @@ check:
 	./scripts/test-check-images.sh
 	python3 -B workflows/development/tests/test_checks.py
 	python3 -B workflows/development/tests/test_monitor.py
+	python3 -B workflows/image-improve/tests/test_checks.py
+	python3 -B workflows/image-improve/tests/test_watch.py
 	python3 -B images/developer/skills/github-pr-workflow/tests/test_github_pr.py
 	python3 -B workflows/pr-review/tests/test_scripts.py
 	python3 -B images/reviewer/skills/pull-request-review/tests/test_github_review.py

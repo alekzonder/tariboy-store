@@ -185,6 +185,35 @@ publishes reviews. The queue needs the secrets `GITHUB_TOKEN` and
 `REVIEW_REPOSITORIES`; the reviewer agents need `GITHUB_TOKEN` in their own
 environment to publish.
 
+The `image-improve` workflow takes an improvement of an image, workflow or skill
+from the reviewer's triage task to a published image. A task starts in `triage`,
+which the `image-creators` pool owns. The image creator checks the task for a
+duplicate, the route and noise, and applies the rule `Change without approval`:
+
+| Status | Owner | Outcomes |
+| --- | --- | --- |
+| `triage` | pool `image-creators` | `needs_approval` to `approval`, `autonomous` to `implement`, `close` to `closed` |
+| `approval` | customer | `approved` to `implement`, `changes_requested` to `triage`, `rejected` to `closed` |
+| `implement` | pool `image-creators` | `ready` to `deliver` |
+| `deliver` | pool `image-creators` | `submitted` to `merge` |
+| `merge` | script | `merged` to `publish`; `rework`, `changes_requested`, `conflict`, `closed_unmerged` to `implement` |
+| `publish` | pool `image-creators` | `published` to `done` |
+
+The checks stop a task that skips a step. `triage-check.py` compares the triage
+record with the outcome. `evals-check.py` rejects `ready` without an `evals`
+artifact, or when a new or changed scenario has no base and new result, when
+new passes fewer than 2 of 3 runs, or when new is worse than base.
+`pr-open.py` needs one open pull request from the branch at the verified
+commit. The `merge` watch only waits: the customer merges, and the workflow
+never does. `published-check.py` rejects `published` unless each image has its
+version tag and `latest` under one full digest in the `publication` artifact,
+and each merged workflow has its version. The check cannot read the registry,
+so the customer confirms the record with `tariboy image ls`.
+
+Create the tasks in a queue bound to the workflow without an assignee: the
+daemon gives each task to the pool. Run the pool with `tariboy-image-creator`
+in mode `workflow`. The reviewer's triage creates such tasks in `IMPROVE`.
+
 ### Workflow evals
 
 A workflow eval case tests the instructions of one status. The runner puts one
@@ -284,6 +313,21 @@ the `# Task Processing Order` block. That line wins over the Goal block. If the
 line is not in the prompt, the agent uses the Goal block: a workflow task is
 `workflow`, a task without a workflow is `flexible`, and no goal task is
 `request`.
+
+## Image creator modes
+
+`official/tariboy-image-creator` is one image for two iteration modes. Each
+mode has its own skill in the image:
+
+| Mode | Iteration | Skill |
+| --- | --- | --- |
+| `workflow` | The goal task follows a workflow, for example a task of the `IMPROVE` queue bound to `image-improve`. The status instructions set the process. | `image-creator-mode-workflow` |
+| `flexible` | The goal task has no workflow, for example a task of the `TASK` queue. The skill sets the process: plan, approval, one pull request, its monitor and completion. | `image-creator-mode-flexible` |
+
+The agent reads its mode from the daemon line `` Iteration mode: `NAME`. `` in
+the `# Task Processing Order` block. That line wins over the Goal block. If the
+line is not in the prompt, the Goal block decides. The review cycle is part of
+`instructions.md` and runs in either mode.
 
 ## Daemon version
 
