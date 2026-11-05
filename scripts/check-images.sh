@@ -59,7 +59,7 @@ PY
 # Every image and workflow carries the customer's ROLE.md: English text of at
 # most 500 characters (`wc -m`), see README.md. The images listed in
 # role_exempt are being removed from the Store and get no ROLE.md.
-role_exempt=' llm-as-judge tariboy-workflow-developer '
+role_exempt=' llm-as-judge '
 check_roles() {
   local source=$1
   local dir

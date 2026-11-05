@@ -18,7 +18,7 @@ check:
 	./scripts/test-check-images.sh
 	python3 -B workflows/development/tests/test_checks.py
 	python3 -B workflows/development/tests/test_monitor.py
-	python3 -B images/tariboy-workflow-developer/skills/github-pr-workflow/tests/test_github_pr.py
+	python3 -B images/developer/skills/github-pr-workflow/tests/test_github_pr.py
 	python3 -B workflows/pr-review/tests/test_scripts.py
 	python3 -B images/reviewer/skills/pull-request-review/tests/test_github_review.py
 	python3 -B images/tariboy-image-creator/skills/iteration-review/tests/test_review.py

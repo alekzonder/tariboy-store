@@ -285,11 +285,6 @@ line is not in the prompt, the agent uses the Goal block: a workflow task is
 `workflow`, a task without a workflow is `flexible`, and no goal task is
 `request`.
 
-`official/tariboy-workflow-developer` is the older image for workflow tasks
-only. It stays in the Store without changes while agents move to
-`official/developer`. A separate change removes it two weeks after the last
-agent moves, if no agent moves back.
-
 ## Daemon version
 
 This Store needs a daemon with workflow images and `TARIBOY_QUIET_EXIT`:
@@ -354,9 +349,8 @@ image-local skill, run `npx skills experimental_install` in each consuming
 image directory and commit the new `skills-lock.json`.
 
 The check also fails when an image or a workflow has no `ROLE.md`, an empty
-`ROLE.md`, or a `ROLE.md` of more than 500 characters. Two images have no
-`ROLE.md` because they will be removed: `llm-as-judge` and
-`tariboy-workflow-developer`.
+`ROLE.md`, or a `ROLE.md` of more than 500 characters. One image has no
+`ROLE.md` because it will be removed: `llm-as-judge`.
 
 The check also runs `scripts/check-evals.py` on the files that Git tracks.
 It fails on a file in `evals/files/` or `evals/fixtures/` that no case or
