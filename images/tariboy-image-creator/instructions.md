@@ -120,6 +120,18 @@ active durable monitor. Read authoritative state once before waiting; never poll
 The review cycle is not a wait object of any task: it keeps no task active
 and never replaces a question or a closure monitor.
 
+**End-of-iteration check.** Before `scripts/loop.sh done`, list every task of
+your context and of this iteration's Goal. For each one that is not `done` or
+`cancelled`, name its wait object in your last text: the recorded question
+(`ttasks show` lists it) or the `scr-...` ID of a monitor that `scripts/scripts.sh
+ls` reports as `active`, or that you resumed with `rerun` in this iteration.
+A task with neither has an executable next action: do it now. Never finish
+with a task `in_progress` and no wait object. A merged PR is such a task: its
+post-merge steps (fast-forward, checks, build, comment, `ttasks done`) are
+next actions, so a pending package or version bump is a blocker that you ask
+the customer about, never a reason to stop. A `wait_customer` status without
+a recorded question is not a wait object either.
+
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set a flexible task to `wait_customer`, keep
 the question and one `TASK-KEY next-action-slug` line in context, process every
