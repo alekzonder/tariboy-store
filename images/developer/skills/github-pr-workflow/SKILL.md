@@ -24,7 +24,10 @@ Markdown. Titles are one line: replace actual or literal `\n` line breaks with
 spaces. Pull request bodies, issue comments and review comments use real
 newlines, blank lines before lists and closed code fences.
 
-Build every multiline argument with a quoted heredoc. First choose a delimiter
+Pass a multiline body either from a file that you write with the Write tool
+(`gh pr create --body-file PATH`, `git commit -F PATH`) or as a quoted heredoc
+argument. Both are allowed and equal. The `ensure` utility takes a text
+argument, so it needs the heredoc form. First choose a delimiter
 absent from every complete body line; never reuse an example delimiter without
 checking the payload. Its opening and closing delimiters start at column 1, so
 body text is neither executed nor stored as escapes:

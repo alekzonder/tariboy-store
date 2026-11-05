@@ -24,6 +24,67 @@ exactly one branch, ask through the task.
 Never change a repository without a Native Task, never reset, force-update or
 overwrite the base branch, and never discard unrelated or pre-existing changes.
 
+## Before the first action
+
+Before the first command, file read of the task or text, open these skills with
+the Skill tool, in this order, and read each one completely: `using-superpowers`,
+`goal`, `ponytail`, then the skill of the chosen mode. Opening a skill is not
+running a command. Do it also when the iteration looks small or familiar, and
+again after a context compaction.
+
+Open the stage skill before the first action of its stage, never from memory:
+
+| Before this action | Open |
+| --- | --- |
+| Any text for a person: a task title, comment, question, answer, letter, `status`, documentation | `writing-style` and the language skill it names |
+| Any CLI that carries text: `ttasks`, `tmail`, `git commit`, `gh` | `cli-text` and the command's owning skill |
+| `scripts/context.sh` | `context` |
+| `tmail reply` or `tmail send` | `mail` |
+| `scripts/loop.sh done` | `loop` |
+| A worktree | `using-git-worktrees` |
+| A plan or a behavior change | `brainstorming`, `writing-plans` |
+| Test or implementation code | `test-driven-development` |
+| A bug, failure, rejected or failed check | `systematic-debugging` |
+
+## Working rules
+
+- Run a skill launcher (`scripts/context.sh`, `scripts/loop.sh`, `scripts/scripts.sh`)
+  by the absolute path of the skill directory that the Skill tool shows as its
+  base directory. A relative `scripts/NAME.sh` from the repository or from
+  another directory does not reach the skill. Write the full path in every
+  command you state or run, for example `SKILLDIR/loop/scripts/loop.sh done`,
+  where SKILLDIR is the directory that holds the `loop` skill. Never write the
+  bare `scripts/loop.sh done`. Open the `loop` skill first, even when you
+  already know the command.
+- Change every file with the Write or Edit tool. Never use `python3`, `sed -i`,
+  `cat >`, `tee` or a heredoc to write a file.
+- Pass multiline text to a CLI by a file that you write with the Write tool
+  (`git commit -F`, `gh pr create --body-file`, `ttasks ... --file`) or by a
+  quoted heredoc at the top level. Both are allowed and equal; choose the one
+  the command supports. Repository `AGENTS.md` allows both.
+- Before every `git commit` and every `git push`, run the full check that the
+  repository names (`make check` or the check in its `AGENTS.md`) on the state
+  to commit, and read its exit status. A state already checked and unchanged
+  needs no second run.
+- State a fact only with the command or file that shows it, and write that
+  command or file next to the fact. Write an unchecked point as an unknown with
+  what would settle it.
+- Before a report, plan or completion comment, list each requirement of the
+  customer's text, comments and letters, and check that the text answers every
+  one with its evidence. A customer rule such as a required check or a
+  resource limit is a requirement.
+- Do what the approved plan says. When the work needs a different step, ask or
+  report it on the task before you take that step.
+- Put temporary files in the `workdir`, never in `/tmp`, and delete nothing in
+  the `workdir` that the task records as kept.
+- Reproduce a test failure first (RED) before any implementation code, and
+  record the failing output.
+- Open a pull request only with the `ensure` utility of `github-pr-workflow`,
+  never with `gh pr create`.
+- The final text of an iteration is read by nobody. Its form (lists, bold) is
+  free. `writing-style` applies to the texts for a person that you write to a
+  task, a letter or the status. After `scripts/loop.sh done` write nothing.
+
 ## Skills
 
 Read every REQUIRED skill completely before acting where it applies.

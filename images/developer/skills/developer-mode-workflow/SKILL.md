@@ -48,8 +48,10 @@ because that owner's decision is the transition.
 - Store only the artifacts the outcome requires or the status names, exactly
   as the status describes them. A one-line value (a branch, a URL) is the
   VALUE argument: `ttasks artifacts set KEY NAME VALUE`. Markdown (a plan, a
-  verification) goes on standard input, with no VALUE argument, through a
-  quoted heredoc:
+  verification) goes in with no VALUE argument, either from a file that you
+  write with the Write tool (`--file PATH`) or on standard input through a
+  quoted heredoc. Both are allowed and equal; the status instructions do not
+  forbid either. A quoted heredoc looks like this:
 
   ```bash
   ttasks artifacts set KEY NAME <<'ARTIFACT_EOF'
