@@ -29,9 +29,12 @@ ends:
 5. Verify: run the complete relevant suite on the committed branch and record
    its output and exit status.
 6. Deliver. PR mode: one pull request and one durable monitor through
-   `github-pr-workflow`, both recorded, the customer asked to review, the task
-   `wait_customer`. Local-merge mode: merge into the base branch by repository
-   convention and run the suite again on the resulting base branch.
+   `github-pr-workflow`, both recorded, the PR URL set in the task field with
+   `ttasks update KEY --pull-request URL`, one publication comment that
+   mentions the customer with the PR link and the verification result, the
+   customer asked to review, the task `wait_customer`. Local-merge mode: merge
+   into the base branch by repository convention and run the suite again on the
+   resulting base branch.
 7. Process every monitor result, check, review and comment; push fixes to the
    same branch. A new head invalidates every earlier check result. Repeat this
    step while the pull request is open; a pull request closed without a merge
