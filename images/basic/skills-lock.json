@@ -4,32 +4,32 @@
     "cli-text": {
       "source": "../../skills/cli-text",
       "sourceType": "local",
-      "computedHash": "dee295c8be369ea86d2e08d86afe9ba997d6652dfbe733364e6fc8d864f67e72"
+      "computedHash": "f15901d6dd08beef56effae99d12f1b9b539f3eeaa2d64c9ce122b70a4a0fe14"
     },
     "context": {
       "source": "../../skills/context",
       "sourceType": "local",
-      "computedHash": "0bf555069ae55a008884bf3aaa6c2d85264cfad6b39cedafac5a1967c342c1b6"
+      "computedHash": "996f18279386689ec7f0ed868e17a34b79f6262cd41f086a568ba476404ad476"
     },
     "goal": {
       "source": "../../skills/goal",
       "sourceType": "local",
-      "computedHash": "4efbf128f2b6950aff3901a58f03cd50cd867c57791843a6a00563e8f8afdf60"
+      "computedHash": "44376fa9fe1e9dd2438b01bf18929ffb9d729c01e339ccdda58f3c17b87ffbe3"
     },
     "loop": {
       "source": "../../skills/loop",
       "sourceType": "local",
-      "computedHash": "09d8bbcf2122f9d5176cd3d0ed3ffc33155223a2f3cae3c60ee463a6bab549f5"
+      "computedHash": "62b1a3795a37fafbc95cde4ada57ec4c3d38031a4e412b9a39c7638c5a9942c3"
     },
     "mail": {
       "source": "../../skills/mail",
       "sourceType": "local",
-      "computedHash": "b8cc6d79c63db4e88f557a494e87dd8cef02ef09a9012a3665db2b417d839b98"
+      "computedHash": "30d12966eec77904e2ad2edeb9d269f27661a6983a14142345d849335d7a7abc"
     },
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "f777315b399d5625c599ab6eb21d8b214e3ffe5e24660123c8e6e4eda1e5b6f7"
+      "computedHash": "993a177543f37dc82091c7391cfca03e7f0728eab7dcc94364830ca2b9b588ef"
     },
     "simple-english": {
       "source": "AminBlg/SimpleEnglish",
@@ -46,27 +46,27 @@
     "status": {
       "source": "../../skills/status",
       "sourceType": "local",
-      "computedHash": "437187bede4b07301069ea76662126deb0b74b14cd74240a60ee3f8aafee6591"
+      "computedHash": "97abae33692e585f144810dae3ee6fa42286d7231747ae29779e366a24f27ab3"
     },
     "tasks": {
       "source": "../../skills/tasks",
       "sourceType": "local",
-      "computedHash": "cf09d386f80c42afaf09c4cca5fff40c83ef8614876ce477b66274b4343257ac"
+      "computedHash": "4f44ba15e44995b768ee84972aa93ee5f11dfe97505abb649eb653bbee069a93"
     },
     "whoami": {
       "source": "../../skills/whoami",
       "sourceType": "local",
-      "computedHash": "1233f523b6296292af951b76a2d947d09f47fb83f57bb61a7d192ae2c1aa24e4"
+      "computedHash": "1481e8e1adf3b6439d30962e5955d5a7983e391902e004fcc887ea432b318b78"
     },
     "workdir": {
       "source": "../../skills/workdir",
       "sourceType": "local",
-      "computedHash": "cc348cbd1ef5873dac6ecfae713eb10e40592bf7f7c4d6f17461d756368aabfd"
+      "computedHash": "485da575b6fd463df76338a8fa32a48edf24e611cb9c79fecac34f015e962b16"
     },
     "writing-style": {
       "source": "../../skills/writing-style",
       "sourceType": "local",
-      "computedHash": "50039e87c3341dd7d872b841a36cb46c1355f5e3a25f46b0b8ceec61bdb1bade"
+      "computedHash": "8b9eea05277c56bfa97bf36e60204eeaf79bc217e26130370c7b3990eee5a22e"
     }
   }
 }
