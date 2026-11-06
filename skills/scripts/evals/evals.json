@@ -13,7 +13,7 @@
         ]
       },
       "expectations": [
-        "Uses scripts/scripts.sh run backup-check -- ./scripts/check-backup.sh.",
+        "Uses tscripts run backup-check -- ./scripts/check-backup.sh.",
         "Does not wait synchronously for the command and expects the later script.result message."
       ]
     },
@@ -29,9 +29,9 @@
         ]
       },
       "expectations": [
-        "Uses scripts/scripts.sh schedule index-refresh --every 300 -- ./scripts/refresh-index.sh and has the command exit with $TARIBOY_QUIET_EXIT (111) on a successful run so it stays quiet and the schedule survives it.",
+        "Uses tscripts schedule index-refresh --every 300 -- ./scripts/refresh-index.sh and has the command exit with $TARIBOY_QUIET_EXIT (111) on a successful run so it stays quiet and the schedule survives it.",
         "Explains that a failing run publishes script.result and therefore stops the recurring definition.",
-        "Requires scripts/scripts.sh rerun with the script ID to resume it, or scripts/scripts.sh rm to drop it, rather than assuming the schedule persists by itself."
+        "Requires tscripts rerun with the script ID to resume it, or tscripts rm to drop it, rather than assuming the schedule persists by itself."
       ]
     },
     {
@@ -49,7 +49,7 @@
       "expectations": [
         "Cancels the run by its run ID rather than cancelling or removing the definition.",
         "States that the cancelled run still publishes a result, which stops the recurring definition.",
-        "Restores repetition with scripts/scripts.sh rerun and the script ID after handling that result."
+        "Restores repetition with tscripts rerun and the script ID after handling that result."
       ]
     },
     {
@@ -66,7 +66,7 @@
         ]
       },
       "expectations": [
-        "Removes the broken recurring definition with scripts/scripts.sh rm, cancelling first only if it is still active.",
+        "Removes the broken recurring definition with tscripts rm, cancelling first only if it is still active.",
         "Does not rerun the failing definition.",
         "Mentions the customer, keeps or creates one blocking Native Task question, and sets wait_customer without duplicating an existing unanswered question.",
         "Finishes the iteration through loop and waits for the recorded customer answer rather than another script.result.",
@@ -86,9 +86,9 @@
         ]
       },
       "expectations": [
-        "Runs scripts/scripts.sh rerun scr-dev-20260921061500-000000003, taking the script ID from the message.",
+        "Runs tscripts rerun scr-dev-20260921061500-000000003, taking the script ID from the message.",
         "Explains that the published result already stopped the recurring definition, so without rerun no further runs happen.",
-        "Does not create a replacement schedule with scripts/scripts.sh schedule and does not invent a name-based command such as run pr-monitor-dev-42.",
+        "Does not create a replacement schedule with tscripts schedule and does not invent a name-based command such as run pr-monitor-dev-42.",
         "Does not end the iteration claiming the stopped definition is still an active monitor."
       ]
     },
@@ -105,14 +105,14 @@
         ]
       },
       "expectations": [
-        "Runs scripts/scripts.sh rm scr-dev-20260921061500-000000004 with the script ID from the message.",
+        "Runs tscripts rm scr-dev-20260921061500-000000004 with the script ID from the message.",
         "Treats a preceding cancel as unnecessary because the published result already stopped the definition, or runs it only as a conditional fallback for a still-active definition.",
         "Does not rerun the definition and does not leave the unneeded definition in place."
       ]
     },
     {
       "id": "wait-for-output-file",
-      "prompt": "I queued the one-off run `collect-actors` (script ID scr-dev-20260921061500-000000005) a moment ago with scripts/scripts.sh run. It writes after-run/actors.txt. My next step needs that file. Get the file's content to me in this iteration: wait for the file to appear, then print it.",
+      "prompt": "I queued the one-off run `collect-actors` (script ID scr-dev-20260921061500-000000005) a moment ago with tscripts run. It writes after-run/actors.txt. My next step needs that file. Get the file's content to me in this iteration: wait for the file to appear, then print it.",
       "expected_output": "Does not wait in this iteration. It does not poll after-run/actors.txt, the logs or runs in a loop and starts no background wait loop. It records the script ID as the wait object, ends the iteration and says the result arrives as a script.result message.",
       "files": [],
       "fixture": {
@@ -124,7 +124,7 @@
       },
       "expectations": [
         "Does not loop, sleep or poll for after-run/actors.txt, and starts no background wait loop.",
-        "Does not poll scripts/scripts.sh runs, logs or ls repeatedly to learn whether the run finished.",
+        "Does not poll tscripts runs, logs or ls repeatedly to learn whether the run finished.",
         "Records scr-dev-20260921061500-000000005 as the wait object and ends the iteration.",
         "States that the result arrives as a script.result message in a later iteration, and that the file is read then."
       ]
@@ -144,7 +144,7 @@
       },
       "expectations": [
         "Inspects the run (runs or logs) and reads the command source before deciding.",
-        "Does not run scripts/scripts.sh rerun and does not start a new run of the command.",
+        "Does not run tscripts rerun and does not start a new run of the command.",
         "Does not run ./scripts/notify-customers.sh itself.",
         "Asks one question on TASK-31 with ttasks ask, mentioning user:alice, that names the unknown (which emails were sent) and asks whether to repeat the run.",
         "Ends the iteration without a repeat."
@@ -165,8 +165,8 @@
       },
       "expectations": [
         "Reads the command source or the log before the repeat, and states that a repeat is safe because the command has no outside effect.",
-        "Runs scripts/scripts.sh rerun scr-dev-20260921061500-000000007 with the script ID from the message.",
-        "Does not run scripts/scripts.sh run rebuild-index and does not use the name or the srun-... run ID for rerun.",
+        "Runs tscripts rerun scr-dev-20260921061500-000000007 with the script ID from the message.",
+        "Does not run tscripts run rebuild-index and does not use the name or the srun-... run ID for rerun.",
         "Does not wait for the new run in this iteration: no polling of the index directory, runs or logs.",
         "Ends the iteration with scr-dev-20260921061500-000000007 as the wait object and says the new result arrives as a script.result message."
       ]

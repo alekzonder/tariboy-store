@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fixture for the scripts skill evals: the skill with a stand-in scripts CLI.
+# Fixture for the scripts skill evals: the skill with a stand-in tscripts CLI.
 #
 # Usage: scripts-cli.sh [--state STATE] [--targets] [--task]
 #   --state STATE   the definitions the daemon already holds (default: empty)
@@ -22,14 +22,16 @@
 #
 # The fixture creates:
 #   $EVAL_DIR/skill/scripts/SKILL.md             the file of the revision under test
-#   $EVAL_DIR/skill/scripts/scripts/scripts.sh   the stand-in for the daemon-backed CLI
-#   $EVAL_DIR/skill/scripts/scripts/daemon.py    its daemon, with state in daemon.json
+#   $EVAL_DIR/skill/scripts/scripts/scripts.sh   the real thin launcher: exec tscripts "$@"
+#   $EVAL_DIR/bin/tscripts                       the stand-in for the daemon-backed tscripts CLI
+#   $EVAL_DIR/bin/daemon.py                      its daemon, with state in daemon.json
 #   $EVAL_DIR/scripts/*.sh                       with --targets or --task, see above
-#   $EVAL_DIR/bin/ttasks                         with --task; put $EVAL_DIR/bin first on PATH
+#   $EVAL_DIR/bin/ttasks                         with --task
 #   $EVAL_DIR/calls.log                          one line per stand-in call, in order
 #
-# Give the actor the skill from $EVAL_DIR/skill/scripts and run it in
-# $EVAL_DIR. No daemon socket is needed. The stand-in accepts the real CLI's
+# Give the actor the skill from $EVAL_DIR/skill/scripts, run it in $EVAL_DIR and
+# put $EVAL_DIR/bin first on PATH, so that `tscripts` resolves to the stand-in.
+# No daemon socket is needed. The stand-in accepts the real CLI's
 # arguments, rejects others, resolves only `scr-...` and `srun-...` IDs, prints
 # in the real CLI's format, and applies the lifecycle that SKILL.md describes:
 # `run` and `schedule` add a definition, `rerun` makes it active with a new running run, cancelling a
@@ -55,22 +57,25 @@ case "$state" in
   *) echo "scripts-cli.sh: unknown state $state" >&2; exit 2 ;;
 esac
 
-mkdir -p "$skill/scripts"
+mkdir -p "$skill/scripts" "$EVAL_DIR/bin"
 cp "$suite_root/SKILL.md" "$skill/"
 : > "$EVAL_DIR/calls.log"
 
-cat > "$skill/scripts/scripts.sh" <<'SCRIPTS_CLI_EOF'
+cp "$suite_root/scripts/scripts.sh" "$skill/scripts/scripts.sh"
+chmod +x "$skill/scripts/scripts.sh"
+
+cat > "$EVAL_DIR/bin/tscripts" <<'SCRIPTS_CLI_EOF'
 #!/usr/bin/env bash
 exec python3 -B "$(dirname "$0")/daemon.py" "$@"
 SCRIPTS_CLI_EOF
-chmod +x "$skill/scripts/scripts.sh"
+chmod +x "$EVAL_DIR/bin/tscripts"
 
-cat > "$skill/scripts/daemon.py" <<'DAEMON_EOF'
+cat > "$EVAL_DIR/bin/daemon.py" <<'DAEMON_EOF'
 import json, shlex, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-EVAL_DIR = HERE.parents[2]
+EVAL_DIR = HERE.parent
 STATE = HERE / "daemon.json"
 HISTORY = HERE / "runs.json"
 P, R = "scr-dev-20260921061500-", "srun-dev-20260921061500-"
@@ -220,7 +225,7 @@ if argv[:1] == ["--init"]:
     HISTORY.write_text("{}")
     sys.exit(0)
 with open(EVAL_DIR / "calls.log", "a") as log:
-    log.write(" ".join(shlex.quote(a) for a in ["scripts.sh", *argv]) + "\n")
+    log.write(" ".join(shlex.quote(a) for a in ["tscripts", *argv]) + "\n")
 JSON = "--json" in argv
 argv = [a for a in argv if a != "--json"]
 try:
@@ -230,7 +235,7 @@ except Usage as e:
 except Failure as e:
     print(e, file=sys.stderr); sys.exit(1)
 DAEMON_EOF
-python3 -B "$skill/scripts/daemon.py" --init "$state"
+python3 -B "$EVAL_DIR/bin/daemon.py" --init "$state"
 
 record() {
   # $1 file, $2 logged name, $3 body; the body runs after the call is logged
@@ -251,7 +256,6 @@ if [ "$targets" = true ]; then
 fi
 
 if [ "$task" = true ]; then
-  mkdir -p "$EVAL_DIR/bin"
   record "$EVAL_DIR/scripts/loop.sh" loop.sh 'case "${1:-}" in
   done) echo "iteration: done" ;;
   *) echo "usage: loop.sh <done [--idle]|start|stop>" >&2; exit 2 ;;

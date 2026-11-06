@@ -368,7 +368,7 @@ rules. In short:
 ## Checks
 
 Requirements: Bash, GNU Make, Python 3, Git, ripgrep, Node.js/npm, and matching
-`tariboy` plus `tariboyd` binaries on `PATH`. Override the binaries with
+`tariboy`, `tariboyd` and `tscripts` binaries on `PATH`. Override the binaries with
 `TARIBOY_BIN` and `TARIBOYD_BIN`.
 
 ```bash
