@@ -95,7 +95,7 @@
     "scripts": {
       "source": "../../skills/scripts",
       "sourceType": "local",
-      "computedHash": "52cffaed3852a67571f1d874cd4c854b0f0414a3022fd193ec2d0722ceb89c11"
+      "computedHash": "9cfd6dbe1fa73f819c4db657794e461d236e7cca8ad0fd2c33d2e053eea63cc9"
     },
     "simple-english": {
       "source": "AminBlg/SimpleEnglish",

@@ -5,26 +5,47 @@ description: Use when a local command must continue beyond the current Tariboy i
 
 # Durable Scripts
 
-This skill's `scripts/scripts.sh` launcher lives inside this skill directory
-and calls the identity-bound daemon through `TARIBOY_TOOLS_SOCKET`.
-Execute the launcher when command execution is available. If it is unavailable,
-return the exact command instead; never claim a script was queued, scheduled,
-rerun, cancelled, or removed unless the command succeeded.
+The `tscripts` command (the `tariboy-scripts` binary) calls the
+identity-bound daemon through `TARIBOY_TOOLS_SOCKET`. Execute it when command
+execution is available. If it is unavailable, return the exact command
+instead; never claim a script was queued, scheduled, rerun, cancelled, or
+removed unless the command succeeded.
 
-Run once with `scripts/scripts.sh run <name> -- <command>`. Queue it exactly once,
+The launcher `scripts/scripts.sh` in this skill directory is a thin wrapper
+that runs `exec tscripts "$@"`. It accepts the same arguments, so an older
+instruction that names `scripts/scripts.sh` means the same command.
+
+| Command | Use |
+| --- | --- |
+| `tscripts run <name> [--description <text>] -- <command>` | Queue a one-off run |
+| `tscripts schedule <name> --every <seconds> [--description <text>] -- <command>` | Create a recurring definition |
+| `tscripts ls` | List definitions with their `scr-...` IDs and state |
+| `tscripts runs <id>` | List the runs of a definition |
+| `tscripts logs <id>` | Read the log of a run |
+| `tscripts rerun <id>` | Run a definition now and return it to `active` |
+| `tscripts cancel <id>` | Cancel a definition, or one active run |
+| `tscripts rm <id>` | Remove a definition |
+
+Every command takes `--json` for machine-readable output. `run` and `schedule`
+need the separator `--`: everything after it is the command, joined with single
+spaces, and every flag goes before it. `--every` takes a positive number of
+seconds. `schedule` has no `--quiet-exit`: a recurring command stays quiet by
+exiting with `$TARIBOY_QUIET_EXIT`.
+
+Run once with `tscripts run <name> -- <command>`. Queue it exactly once,
 finish the iteration, and consume the later `script.result` message instead of
 waiting in the current iteration.
 
-Run repeatedly with `scripts/scripts.sh schedule <name> --every <seconds> -- <command>`.
+Run repeatedly with `tscripts schedule <name> --every <seconds> -- <command>`.
 Runs never overlap. A run that exits with `$TARIBOY_QUIET_EXIT` (`111`)
 publishes nothing and keeps the schedule; it is the only outcome that does.
 The daemon exports the code to every run, so a shell command stays quiet with
 `exit "${TARIBOY_QUIET_EXIT:-111}"` and a Python one with
 `sys.exit(int(os.environ.get("TARIBOY_QUIET_EXIT", "111")))`.
 
-Inspect with `scripts/scripts.sh ls`, `scripts/scripts.sh runs`, and
-`scripts/scripts.sh logs`; use `scripts/scripts.sh rerun`,
-`scripts/scripts.sh cancel`, or `scripts/scripts.sh rm` for lifecycle control.
+Inspect with `tscripts ls`, `tscripts runs`, and
+`tscripts logs`; use `tscripts rerun`,
+`tscripts cancel`, or `tscripts rm` for lifecycle control.
 
 ## After `run` or `schedule`, do not wait in the iteration
 
@@ -40,8 +61,8 @@ New letters enter the prompt only at the start of an iteration. An agent that
 waits inside the iteration never sees the `script.result` message, also when
 the run was interrupted. So, after `run` or `schedule`:
 
-- Do not poll the output file, the log, `scripts/scripts.sh runs`,
-  `scripts/scripts.sh logs` or `scripts/scripts.sh ls` to see whether the run
+- Do not poll the output file, the log, `tscripts runs`,
+  `tscripts logs` or `tscripts ls` to see whether the run
   finished.
 - Do not use `sleep`, `until`, `while`, `tail -f`, `watch`, a Monitor tool or
   any other background wait loop for the run or for its output.
@@ -59,13 +80,13 @@ A `script.result` message with status `interrupted` for a one-off run (`mode`
 `once`) means a daemon restart stopped the command at an unknown point. The
 definition is `completed`. Handle it in this order:
 
-1. Read `scripts/scripts.sh runs <script-id>` and `scripts/scripts.sh logs
+1. Read `tscripts runs <script-id>` and `tscripts logs
    <run-id>` for what the run did, and read the command's source with a file
    read. Never execute the command to test it.
 2. Decide whether a repeat is safe. A repeat is safe only when the command has
    no effect outside its own working files, or when its source shows it is
    idempotent or resumes from saved progress.
-3. Safe: run `scripts/scripts.sh rerun <script-id>` with the `scr-...` ID of
+3. Safe: run `tscripts rerun <script-id>` with the `scr-...` ID of
    the message and record the same ID as the wait object. End your reply with
    this sentence, with the real ID: "Rerun `<script-id>`; the new result
    arrives as a `script.result` message in a later iteration." Then finish the
@@ -77,7 +98,7 @@ definition is `completed`. Handle it in this order:
    already did) and ask whether to repeat it. Set the task to `wait_customer`
    and finish the iteration.
 
-Never run `scripts/scripts.sh run <name> -- <command>` again for the same work:
+Never run `tscripts run <name> -- <command>` again for the same work:
 it creates a second definition. Repeating a command with an external effect
 without the check above is forbidden.
 
@@ -89,7 +110,7 @@ fails with `not found`, and `run <name> -- <command>` creates a second
 definition instead of resuming the stopped one.
 
 Take the ID from the `script_id` field of the `script.result` message that woke
-you, from the creation output, or from `scripts/scripts.sh ls`. Record the
+you, from the creation output, or from `tscripts ls`. Record the
 script ID, not only the name, wherever a durable monitor is recorded.
 
 ## A published result stops the schedule
@@ -119,7 +140,7 @@ observation.
 1. **Still needed** — resume the same definition:
 
    ```bash
-   scripts/scripts.sh rerun <script-id>
+   tscripts rerun <script-id>
    ```
 
    `rerun` runs it now and returns the definition to `active`, so its fixed
@@ -129,11 +150,11 @@ observation.
 2. **No longer needed** — remove it:
 
    ```bash
-   scripts/scripts.sh rm <script-id>
+   tscripts rm <script-id>
    ```
 
    The published result already stopped it, so no `cancel` is needed. Run
-   `scripts/scripts.sh cancel <script-id>` first only when `ls` still reports
+   `tscripts cancel <script-id>` first only when `ls` still reports
    `state: active`.
 
 ### Stop one run, keep the schedule
@@ -145,8 +166,8 @@ and the fixed delay follows that run.
 A request to stop the current run but keep the schedule is decision 1, so
 the person has already given it. Complete it in one turn:
 
-1. `scripts/scripts.sh cancel <run-id>` with the running `srun-...` ID.
-2. `scripts/scripts.sh rerun <script-id>` with the definition's `scr-...` ID.
+1. `tscripts cancel <run-id>` with the running `srun-...` ID.
+2. `tscripts rerun <script-id>` with the definition's `scr-...` ID.
 3. Reply with these three facts, in this order: the cancelled run published
    a result, and that result stopped the definition; `rerun` resumed it; one
    new run started now, and the fixed delay follows it.
@@ -164,10 +185,10 @@ dependency, is no longer a valid wait object. Its failing result already
 stopped it, so take branch 2 above and never `rerun` it:
 
 ```bash
-scripts/scripts.sh rm <script-id>
+tscripts rm <script-id>
 ```
 
-Run `scripts/scripts.sh cancel <script-id>` before it only when `ls` still
+Run `tscripts cancel <script-id>` before it only when `ls` still
 reports `state: active`. Then, for a Native Task:
 
 1. Mention the customer and ask one blocking question. Reuse a matching

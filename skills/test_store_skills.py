@@ -85,6 +85,11 @@ class StoreSkillsTest(unittest.TestCase):
             with self.subTest(skill=skill):
                 script = ROOT / skill / "scripts" / f"{command}.sh"
                 self.assertTrue(script.is_file(), script)
+                if skill == "scripts":
+                    # The launcher is a thin wrapper around the tscripts binary.
+                    self.assertEqual(script.read_text(), '#!/bin/sh\nexec tscripts "$@"\n')
+                    self.assertFalse(script.with_suffix(".py").exists())
+                    continue
                 implementation = script.with_suffix(".py")
                 self.assertTrue(implementation.is_file(), implementation)
                 source = implementation.read_text()
@@ -97,7 +102,7 @@ class StoreSkillsTest(unittest.TestCase):
             "whoami": "From the directory containing this SKILL.md, run `scripts/whoami.sh`",
             "mail": "scripts/mail.sh",
             "schedule": "scripts/schedule.sh",
-            "scripts": "scripts/scripts.sh",
+            "scripts": "tscripts",
             "image-creator": "scripts/image_creator.sh",
         }
         for skill, entrypoint in expected.items():
@@ -221,7 +226,7 @@ class StoreSkillsTest(unittest.TestCase):
                 process, request = self.run_script(relative, args, {})
                 self.assertEqual(process.returncode, 0, process.stderr)
                 self.assertEqual(request[0], [method, route])
-                self.assertEqual(request[1], b"" if body is None else json.dumps(body).encode())
+                self.assertEqual(request[1], b"") if body is None else self.assertEqual(json.loads(request[1]), body)
 
     def test_schedule_add_sends_the_recipient_principal(self):
         process, request = self.run_script(
