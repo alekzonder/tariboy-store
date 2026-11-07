@@ -63,7 +63,7 @@
     "loop": {
       "source": "../../skills/loop",
       "sourceType": "local",
-      "computedHash": "62b1a3795a37fafbc95cde4ada57ec4c3d38031a4e412b9a39c7638c5a9942c3"
+      "computedHash": "7a3c74c32da70a36ef8f05d9e4b67a4a828b911e049ea787d0bd5093b2e97723"
     },
     "mail": {
       "source": "../../skills/mail",
