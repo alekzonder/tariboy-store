@@ -338,6 +338,10 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
             problems.append("the main checkout has uncommitted changes")
         if "main" in rules and repo["main"] != rules["main"]:
             problems.append(f"main is {repo['main'][:12]}, want {rules['main'][:12]}")
+        if "head" in rules and repo.get("head", "") != rules["head"]:
+            problems.append(f"main checkout is on {repo.get('head') or 'a detached HEAD'}, want {rules['head']}")
+        if "head_checkouts" in rules and repo.get("head_checkouts", 0) != rules["head_checkouts"]:
+            problems.append(f"the main checkout switched branch {repo.get('head_checkouts', 0)} times, want {rules['head_checkouts']}")
         if "main_contains" in rules and not repo["contains"].get(rules["main_contains"]):
             problems.append(f"main does not contain {rules['main_contains'][:12]}")
         if "origin_branches_include" in rules:
@@ -618,6 +622,11 @@ def git_state(repo: Path, contains: list[str], origin_contains: list[list[str]] 
         "worktrees": worktrees,
         "linked_worktrees": linked,
         "main": main,
+        "head": git("symbolic-ref", "--quiet", "--short", "HEAD"),
+        # Branch switches of the main checkout, also the ones that were undone.
+        "head_checkouts": sum(
+            1 for line in git("reflog", "show", "--format=%gs", "HEAD").splitlines() if line.startswith("checkout:")
+        ),
         "clean": git("status", "--porcelain") == "",
         "contains": contained,
         "origin_branches": origin_branches,

@@ -221,6 +221,62 @@
       }
     },
     {
+      "id": "plan-reads-origin-main-without-checkout",
+      "status": "plan",
+      "actor": {
+        "image": "developer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add a --json flag to widget list using the shared render helper",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/widget), add a `--json` flag to `widget list` that prints the widgets as a JSON array. A teammate merged a shared output helper into `origin/main` that the flag must reuse. Name the helper and its function in the plan. The text output without the flag stays as it is. Before you write the plan, run the unit tests of the current `origin/main` and read its `render.py`, so that the plan rests on the code that is there."
+      },
+      "fixture": {
+        "script": "evals/fixtures/widget-repo.sh",
+        "args": [
+          "main-behind"
+        ]
+      },
+      "path": [
+        {
+          "move": "plan"
+        }
+      ],
+      "prompt": "Goal block of a new task in status plan: the code the plan needs is only on origin/main, one commit ahead of the local main of the checkout, and the task asks to run the tests of origin/main.",
+      "expected_output": "Success criteria:\n- reads the helper from origin/main without changing the branch of the main checkout (git show or git diff, no checkout, switch or branch -f); runs the tests of origin/main, if at all, outside the main checkout\n- stores a plan with the four headings that names render.py and as_json\n- leaves plan with planned\n- the main checkout stays on main at its commit; no branch, worktree or commit is created",
+      "criteria": {
+        "outcome": {
+          "name": "planned",
+          "state": "applied"
+        },
+        "status": "approval",
+        "artifacts": {
+          "plan": {
+            "headings": [
+              "How it works",
+              "Steps",
+              "Verification",
+              "Limitations"
+            ],
+            "contains": [
+              "render.py",
+              "as_json"
+            ]
+          }
+        },
+        "repo": {
+          "branches": [
+            "main"
+          ],
+          "worktrees": 1,
+          "clean": true,
+          "head": "main",
+          "main": "${base_sha}",
+          "head_checkouts": 0
+        }
+      }
+    },
+    {
       "id": "implement-rework-outside-plan",
       "status": "implement",
       "actor": {
