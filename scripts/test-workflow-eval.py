@@ -45,6 +45,8 @@ def snapshot(**fields):
             "branches": ["main"],
             "worktrees": 1,
             "main": "a" * 40,
+            "head": "main",
+            "head_checkouts": 0,
             "clean": True,
             "contains": {},
             "origin_branches": ["main"],
@@ -188,6 +190,21 @@ class CriteriaTest(unittest.TestCase):
         )
         self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
         self.assertEqual(failed(runner.check_criteria(criteria, bad, ACTOR)), ["comments", "repo"])
+
+    def test_head_criterion_fails_on_a_detached_or_other_branch(self):
+        criteria = {"repo": {"head": "main"}}
+        on_main = snapshot()
+        detached = snapshot(repo=dict(snapshot()["repo"], head=""))
+        other = snapshot(repo=dict(snapshot()["repo"], head="dev/x"))
+        self.assertEqual(failed(runner.check_criteria(criteria, on_main, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, detached, ACTOR)), ["repo"])
+        self.assertEqual(failed(runner.check_criteria(criteria, other, ACTOR)), ["repo"])
+
+    def test_head_checkouts_criterion_fails_on_an_undone_switch(self):
+        criteria = {"repo": {"head_checkouts": 0}}
+        switched_back = snapshot(repo=dict(snapshot()["repo"], head="main", head_checkouts=2))
+        self.assertEqual(failed(runner.check_criteria(criteria, snapshot(), ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, switched_back, ACTOR)), ["repo"])
 
 
 class OriginAndPullsTest(unittest.TestCase):
