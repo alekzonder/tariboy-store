@@ -8,6 +8,8 @@
 #   pr-open         a task branch with a worktree, pushed, and an open pull request
 #   pr-merged       like pr-open, then the pull request squash-merged on origin
 #   pr-diverged     like pr-merged, and the local main has a commit origin lacks
+#   main-behind     origin/main has one commit the local main lacks (the shared
+#                   helper render.py); the checkout fetched it and stays on main
 #
 # The workflow eval runner sets:
 #   EVAL_DIR           the case directory; the fixture writes only inside it
@@ -20,7 +22,7 @@
 # request heads from it.
 set -euo pipefail
 
-variant=${1:?usage: widget-repo.sh plain|branch-pushed|pr-open|pr-merged|pr-diverged}
+variant=${1:?usage: widget-repo.sh plain|branch-pushed|main-behind|pr-open|pr-merged|pr-diverged}
 : "${EVAL_DIR:?}" "${EVAL_GITHUB_STATE:?}" "${EVAL_VARS:?}"
 
 export GIT_AUTHOR_NAME="Eval Fixture" GIT_AUTHOR_EMAIL="fixture@eval.invalid"
@@ -163,7 +165,7 @@ PY2
   rm -rf -- "$EVAL_DIR/other-agent"
 fi
 
-if test "$variant" != plain && test "$variant" != branch-pushed; then
+if test "$variant" != plain && test "$variant" != branch-pushed && test "$variant" != main-behind; then
   mkdir -p "$(dirname -- "$worktree")"
   git -C "$repo" worktree add -q -b "$branch" "$worktree" main
   python3 - "$worktree/widget.py" <<'PY'
@@ -208,6 +210,28 @@ fi
 if test "$variant" = pr-diverged; then
   printf '\n- Local note.\n' >>"$repo/AGENTS.md"
   git -C "$repo" commit -q -am "Local note"
+fi
+
+if test "$variant" = main-behind; then
+  # A teammate merged a shared helper on origin; this checkout fetched it but
+  # its local main is still at the base commit.
+  other="$EVAL_DIR/other-agent/clone"
+  git clone -q "$bare" "$other"
+  cat >"$other/render.py" <<'PY2'
+"""render: shared output helpers of widget."""
+
+import json
+
+
+def as_json(items):
+    return json.dumps(items) + "\n"
+PY2
+  git -C "$other" add render.py
+  git -C "$other" -c user.name="Other Agent" -c user.email="other@eval.invalid" \
+    commit -q -m "Add the shared render helper"
+  git -C "$other" push -q origin main
+  rm -rf -- "$EVAL_DIR/other-agent"
+  git -C "$repo" fetch -q origin
 fi
 
 local_main=$(git -C "$repo" rev-parse main)

@@ -7,6 +7,10 @@ Change no file in the repository in this status: no branch, no worktree, no
 commit. Read code, run read-only commands, and reproduce a bug if that helps
 you understand it.
 
+Read code at any ref only with `git show REF:PATH`, `git diff` or `git log`.
+Never run `git checkout`, `git switch` or `git branch -f`, and never move
+the head of the main checkout: it stays on its branch, at its commit.
+
 1. Investigate. Read the task and the code it touches. Use `brainstorming` to
    shape the change and `writing-plans` to structure it, for their method
    only: write nothing to the repository, keep the plan only in the `plan`
