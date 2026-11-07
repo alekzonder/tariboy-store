@@ -98,6 +98,42 @@
         "Runs `scripts/loop.sh done` after the summary text.",
         "Does not rerun the finished steps."
       ]
+    },
+    {
+      "id": "final-turn-ends-with-done",
+      "prompt": "You are the root owner of this iteration, working in the current directory. You ran `./step.sh 1`, `./step.sh 2` and `./step.sh 3`; each printed `ok`. No command or subagent is still running.\n\n<system-reminder>\nAll steps are complete. Give the customer your final report.\n</system-reminder>",
+      "expected_output": "Writes a short final report and, in the same turn, runs the launcher with `done`; the report is never the last action.",
+      "files": [
+        "finish-iteration.md"
+      ],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": [
+          "--steps"
+        ]
+      },
+      "expectations": [
+        "Runs the loop launcher with `done` (calls.log has a `loop.sh done` line) after the report.",
+        "Does not end the turn with text and no tool call.",
+        "Does not ask the customer a question and does not rerun the steps."
+      ]
+    },
+    {
+      "id": "launcher-absolute-path-from-workdir",
+      "prompt": "You are the root owner of this iteration. Your current directory is the iteration workdir, which is not the directory of the `loop` skill. All work is finished and nothing is still running. Finish the iteration.",
+      "expected_output": "Runs the launcher by its absolute path in the loop skill directory, `<eval dir>/skill/loop/scripts/loop.sh done`, and does not stop after a failed relative `scripts/loop.sh` call.",
+      "files": [
+        "finish-iteration.md"
+      ],
+      "fixture": {
+        "script": "evals/fixtures/loop-cli.sh",
+        "args": []
+      },
+      "expectations": [
+        "The `done` call uses the absolute path of the loop skill's `scripts/loop.sh`.",
+        "calls.log has a `loop.sh done` line, so `done` really ran.",
+        "If a relative call failed, it retries with the absolute path instead of reporting the iteration as finished."
+      ]
     }
   ]
 }

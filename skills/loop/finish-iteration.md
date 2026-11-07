@@ -19,6 +19,12 @@ out. Until `scripts/loop.sh done` has run, end every turn with a tool call:
 A turn may end without a tool call only while a harness-tracked background
 command or subagent is running; its completion notification resumes you.
 
+`scripts/loop.sh` is the launcher in the directory of the `loop` skill. Read the
+`loop` skill before the first `done` and run the launcher by its absolute path,
+`<loop skill directory>/scripts/loop.sh`. The workdir is not that directory: a
+relative `scripts/loop.sh` there does not exist and `done` fails. A failed
+`done` does not finish the iteration; fix the path and run it again.
+
 After all current work, subagents, and terminal commands have finished, your
 very last action MUST be `scripts/loop.sh done`. It closes this iteration, not the loop.
 Use `scripts/loop.sh done --idle` only when the iteration did no useful work; plain
