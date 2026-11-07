@@ -5,6 +5,11 @@ description: Use when an agent needs to complete its Tariboy iteration or contro
 
 # Iteration loop
 
+Run the launcher by its absolute path: `scripts/loop.sh` below means
+`<this skill's base directory>/scripts/loop.sh`. A relative path from the
+workdir does not exist there, and a failed `done` does not finish the
+iteration; fix the path and run it again.
+
 Use `scripts/loop.sh done` as the iteration's final action, after all current
 work and commands have finished and the iteration should actually end. If work
 may continue, leave the iteration open; a progress status does not finish it.
