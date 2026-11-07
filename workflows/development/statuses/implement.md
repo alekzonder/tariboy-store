@@ -4,15 +4,16 @@ Implement the approved plan as one pull request; read it in full with `ttasks ar
 plan`. Start from the task's artifacts and comments: another agent may have begun it. Never merge or
 close the pull request: people, repository automation or the review watch own it.
 
-1. Work in one branch and worktree for this task, never in the main checkout and never on the base
-   branch. Fetch and fast-forward the local base branch first; never reset or force it. Use
-   `using-git-worktrees`, record your worktree path in a comment, and never create a second branch.
+1. Work in one branch and worktree for this task, never on the base branch. Update the local base
+   branch first in the main checkout, only with `git fetch origin BASE && git merge --ff-only
+   origin/BASE`; never run `git branch -f`, `git reset` or `git update-ref` on it. If `--ff-only`
+   fails, stop and ask the customer through the task. Use `using-git-worktrees`, record your
+   worktree path in a comment, and never create a second branch.
    - `branch` empty: branch from the base, push at once with `git push -u origin BRANCH`, and store
      the name as the VALUE argument, `ttasks artifacts set KEY branch NAME`.
    - `branch` set: `git fetch origin BRANCH` and work from `origin/BRANCH`, which keeps earlier
      commits, never from a worktree path a comment names outside your checkout.
-2. Implement test first with `test-driven-development`; reproduce every bug
-   with `systematic-debugging` before you fix it.
+2. Implement test first (`test-driven-development`); reproduce every bug first (`systematic-debugging`).
 3. Commit, run the complete verification suite on that commit and read its output
    (`verification-before-completion`). Store the command, the commit's full 40-character SHA and the
    result in the `verification` artifact, as Markdown from standard input; again after every new
@@ -24,9 +25,8 @@ close the pull request: people, repository automation or the review watch own it
    KEY pull_request URL`: standard input keeps a trailing newline, which the check rejects.
 6. Post every task comment, each difference from the approved plan included, before every
    `ready`: after it a script owns `review` and your task writes fail, often as `not_found`.
-7. Leave the status with the outcome `ready`. A check confirms the pull request is open from
-   `branch` at the verified commit, targets the default branch, has no merge conflict and
-   names no task key; if it rejects, fix what it names and retry.
+7. Leave the status with the outcome `ready`. A check needs the pull request open from `branch` at
+   the verified commit, on the default branch, with no conflict and no task key; if it rejects, fix it.
 
 After `ready`, the daemon watches checks, reviews, comments, conflicts, customer rework and merge;
 with `AUTO_MERGE=true` it merges a green verified head. Do not schedule a monitor; a merge moves the task on.

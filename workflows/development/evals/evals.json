@@ -277,6 +277,70 @@
       }
     },
     {
+      "id": "implement-base-behind",
+      "status": "implement",
+      "actor": {
+        "image": "developer",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add a --json flag to widget list using the shared render helper",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/widget), add a `--json` flag to `widget list` that prints the widgets as a JSON array. A teammate merged a shared output helper `render.as_json` into `origin/main`; the flag must reuse it. The text output without the flag stays as it is."
+      },
+      "fixture": {
+        "script": "evals/fixtures/widget-repo.sh",
+        "args": [
+          "main-behind"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "plan",
+            "## How it works\n\n`widget list --json` prints the widget list with `render.as_json` from the shared helper on `origin/main`; without the flag the output stays as it is.\n\n## Steps\n\n1. Update the local base branch from `origin/main`, so `render.py` is there.\n2. Add a failing test in `test_widget.py` for `list_widgets(as_json=True)`.\n3. Add the `as_json` parameter to `list_widgets`, using `render.as_json`, and the `--json` flag to the `list` subcommand.\n4. Run `python3 -m unittest`.\n\n## Verification\n\n`python3 -m unittest` from the repository root passes, including the new test.\n\n## Limitations\n\nOnly `list` gets the flag.\n"
+          ]
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of a task in implement with an approved plan: the shared helper is only on origin/main, one commit ahead of the local main of the checkout, which fetched it and stays on main.",
+      "expected_output": "Success criteria:\n- brings local main to origin/main with `git merge --ff-only` (no `branch -f`, `reset` or `update-ref`)\n- works on one task branch and worktree, not on main; the main checkout stays on main\n- stores branch, verification with the full head SHA, and pull_request in the form https://github.com/eval/widget/pull/N\n- leaves implement with ready and the pr-open check accepts it",
+      "timeout_s": 1800,
+      "criteria": {
+        "outcome": {
+          "name": "ready",
+          "state": "applied"
+        },
+        "status": "review",
+        "artifacts": {
+          "branch": {
+            "matches": "^[^\\s]+$"
+          },
+          "verification": {
+            "matches": "[0-9a-f]{40}"
+          },
+          "pull_request": {
+            "matches": "^https://github\\.com/eval/widget/pull/[0-9]+$"
+          }
+        },
+        "comments": {
+          "worktree_path": true
+        },
+        "repo": {
+          "main": "${origin_main}",
+          "main_updated_only_by": [
+            "commit",
+            "merge",
+            "pull"
+          ],
+          "head": "main",
+          "head_checkouts": 0,
+          "min_worktrees": 2
+        }
+      }
+    },
+    {
       "id": "implement-rework-outside-plan",
       "status": "implement",
       "actor": {
@@ -534,7 +598,7 @@
         }
       ],
       "prompt": "Goal block of a task in complete after the review watch saw the pull request squash-merged; the task branch and worktree still exist locally.",
-      "expected_output": "Success criteria:\n- fast-forwards local main to the merge commit\n- removes the worktree and the local task branch\n- posts one comment with Required:, Completed:, Verification:, Integration:, Cleanup:\n- leaves complete with cleaned and the merged-on-base check accepts it",
+      "expected_output": "Success criteria:\n- fast-forwards local main to the merge commit with `git merge --ff-only` (no `branch -f`, `reset` or `update-ref`)\n- removes the worktree and the local task branch\n- posts one comment with Required:, Completed:, Verification:, Integration:, Cleanup:\n- leaves complete with cleaned and the merged-on-base check accepts it",
       "criteria": {
         "outcome": {
           "name": "cleaned",
@@ -555,7 +619,12 @@
             "main"
           ],
           "worktrees": 1,
-          "main_contains": "${merge_sha}"
+          "main_contains": "${merge_sha}",
+          "main_updated_only_by": [
+            "commit",
+            "merge",
+            "pull"
+          ]
         }
       }
     },
@@ -617,7 +686,12 @@
         ],
         "status": "complete",
         "repo": {
-          "main": "${local_main}"
+          "main": "${local_main}",
+          "main_updated_only_by": [
+            "commit",
+            "merge",
+            "pull"
+          ]
         }
       }
     }

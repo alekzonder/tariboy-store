@@ -23,6 +23,11 @@ exactly one branch, ask through the task.
 
 Never change a repository without a Native Task, never reset, force-update or
 overwrite the base branch, and never discard unrelated or pre-existing changes.
+Update the local base branch only with `git fetch origin BASE && git merge
+--ff-only origin/BASE` in the main checkout; if `--ff-only` fails, stop and ask
+through the task. Never run `git branch -f`, `git reset --hard` or `git
+update-ref` on the base branch. The main checkout stays on its own branch: never
+run `git checkout` or `git switch` in it, also not to read code at another ref.
 
 ## Before the first action
 
@@ -54,6 +59,8 @@ Open the stage skill before the first action of its stage, never from memory:
 
 ## Working rules
 
+- Change every file with the Write or Edit tool. Never use `python3`, `sed -i`,
+  `perl -i`, `cat >`, `printf >`, `echo >>`, `tee` or a heredoc to write a file.
 - Run a skill launcher (`scripts/context.sh`, `scripts/loop.sh`, `scripts/scripts.sh`)
   by the absolute path of the skill directory that the Skill tool shows as its
   base directory. A relative `scripts/NAME.sh` from the repository or from
@@ -62,8 +69,6 @@ Open the stage skill before the first action of its stage, never from memory:
   where SKILLDIR is the directory that holds the `loop` skill. Never write the
   bare `scripts/loop.sh done`. Open the `loop` skill first, even when you
   already know the command.
-- Change every file with the Write or Edit tool. Never use `python3`, `sed -i`,
-  `cat >`, `tee` or a heredoc to write a file.
 - Pass multiline text to a CLI by a file that you write with the Write tool
   (`git commit -F`, `gh pr create --body-file`, `ttasks ... --file`) or by a
   quoted heredoc at the top level. Both are allowed and equal; choose the one

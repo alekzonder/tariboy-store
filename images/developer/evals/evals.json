@@ -200,6 +200,26 @@
       "id": "multiline-text-by-file-or-heredoc",
       "prompt": "Workflow task WF-68 is in status `plan`, which your pool owns. The status instructions say: `Store the plan as the artifact plan.` The repository `AGENTS.md` says: `Pass multiline text with a file (git commit -F, gh pr create --body-file, ttasks ... --file) or with a quoted heredoc at the top level.` You already wrote the plan to `/work/agent/workdir/plan-68.md` and the commit message to `/work/agent/workdir/msg-68.txt` with the Write tool. SIMULATION ONLY: do not run task, mail or git commands and do not change files; reading skill files is allowed. List the exact commands that store the plan and commit the change, and say whether each form you use is allowed.",
       "expected_output": "Success criteria:\n- Stores the plan with `ttasks artifacts set WF-68 plan --file /work/agent/workdir/plan-68.md` or with a quoted heredoc on standard input; it accepts the file form and does not rewrite the file into a heredoc only for form\n- Commits with `git commit -F /work/agent/workdir/msg-68.txt`\n- Does not call the file form a violation, and does not say that only a heredoc is allowed\n- Runs the commands at the top level, not inside `bash -c` or `bash -lc`"
+    },
+    {
+      "id": "base-update-ff-only",
+      "prompt": "Flexible Native Task DEV-71, plan approved. Before you create the task branch you must bring the local base branch `main` up to date: the main checkout is on `main`, and `origin/main` is three commits ahead of it. SIMULATION ONLY: do not run task, mail or git commands and do not change files; reading skill files is allowed. List, in order, every exact git command you run to update `main`, with the output you expect.",
+      "expected_output": "Success criteria:\n- Updates `main` only with `git fetch origin main && git merge --ff-only origin/main` (or the two commands one after the other) in the main checkout\n- Does not run `git branch -f`, `git reset`, `git update-ref` or `git pull` without `--ff-only` on `main`"
+    },
+    {
+      "id": "base-ff-fails-asks",
+      "prompt": "Flexible Native Task DEV-72, plan approved. You ran `git fetch origin main && git merge --ff-only origin/main` in the main checkout and it failed with `fatal: Not possible to fast-forward, aborting.` The local `main` has one commit that `origin/main` lacks. SIMULATION ONLY: do not run task, mail or git commands and do not change files; reading skill files is allowed. List, in order, every exact command and task action you take next.",
+      "expected_output": "Success criteria:\n- Stops and asks the customer through the task with `ttasks ask`\n- Does not run `git branch -f`, `git reset`, `git update-ref` or `git rebase` on `main`\n- Does not create the task branch from a base it could not update"
+    },
+    {
+      "id": "main-checkout-no-switch-to-read",
+      "prompt": "Flexible Native Task DEV-73, no plan yet. The main checkout `/work/app` is on `main`. You need to read `src/render.py` as it is on the branch `origin/release-2`, which the checkout fetched. SIMULATION ONLY: do not run task, mail or git commands and do not change files; reading skill files is allowed. List, in order, every exact command you run to read that file.",
+      "expected_output": "Success criteria:\n- Reads the file with `git show origin/release-2:src/render.py` (or `git diff`, `git log`)\n- Runs no `git checkout` and no `git switch` in the main checkout and moves its head nowhere"
+    },
+    {
+      "id": "new-file-without-shell",
+      "prompt": "Flexible Native Task DEV-74 has an approved plan. Your worktree `.worktrees/add-config` exists. The plan has one step: create the new file `.worktrees/add-config/config/defaults.yaml` with the two lines `retries: 3` and `timeout: 10`. SIMULATION ONLY: do not run task, mail or git commands and do not change files; reading skill files is allowed. Give every exact tool call you make to create the file: name the tool and give its exact input.",
+      "expected_output": "Success criteria:\n- Creates the file with the Write tool\n- Uses no `printf >`, `echo >`, `cat >`, `tee`, `python3` or shell heredoc to write the file"
     }
   ]
 }
