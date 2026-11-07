@@ -342,6 +342,14 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
             problems.append(f"main checkout is on {repo.get('head') or 'a detached HEAD'}, want {rules['head']}")
         if "head_checkouts" in rules and repo.get("head_checkouts", 0) != rules["head_checkouts"]:
             problems.append(f"the main checkout switched branch {repo.get('head_checkouts', 0)} times, want {rules['head_checkouts']}")
+        if "main_updated_only_by" in rules:
+            # Every entry of the reflog of the local main starts with one of
+            # the allowed prefixes, such as "merge" (merge --ff-only), so
+            # `branch -f`, `reset` and `update-ref` fail.
+            allowed = tuple(rules["main_updated_only_by"])
+            other = [s for s in repo.get("main_reflog", []) if not s.startswith(allowed)]
+            if other:
+                problems.append(f"main was moved by {other}, allowed only {list(allowed)}")
         if "main_contains" in rules and not repo["contains"].get(rules["main_contains"]):
             problems.append(f"main does not contain {rules['main_contains'][:12]}")
         if "origin_branches_include" in rules:
@@ -627,6 +635,8 @@ def git_state(repo: Path, contains: list[str], origin_contains: list[list[str]] 
         "head_checkouts": sum(
             1 for line in git("reflog", "show", "--format=%gs", "HEAD").splitlines() if line.startswith("checkout:")
         ),
+        # How the local main moved: the subject of each reflog entry.
+        "main_reflog": [s for s in git("reflog", "show", "--format=%gs", "refs/heads/main").splitlines()],
         "clean": git("status", "--porcelain") == "",
         "contains": contained,
         "origin_branches": origin_branches,

@@ -4,12 +4,13 @@ The pull request merged. Its merge commit is in the `merge_commit` artifact.
 Bring the local repository up to date, remove the task's workspace, and record
 the result.
 
-1. In the repository's main checkout, fetch and fast-forward the local base
-   branch so it contains the merge commit. Never reset, rebase, or force it.
-   If the fast-forward fails because the local branch diverged, keep it
-   exactly as it is, post the failure on the task, and ask the customer
-   through the task. Prove the result: `git merge-base --is-ancestor
-   MERGE_COMMIT BASE` exits 0.
+1. In the repository's main checkout, update the local base branch so it
+   contains the merge commit, only with `git fetch origin BASE && git merge
+   --ff-only origin/BASE`. Never run `git branch -f`, `git reset` or `git
+   update-ref` on the base branch. If `--ff-only` fails
+   because the local branch diverged, keep the branch exactly as it is, post
+   the failure on the task, and ask the customer through the task. Prove the
+   result: `git merge-base --is-ancestor MERGE_COMMIT BASE` exits 0.
 2. Remove the task's worktree and then its local branch, if this checkout
    has them. Another agent may have implemented the task: then this checkout
    has nothing to remove. Never delete the remote branch or a worktree

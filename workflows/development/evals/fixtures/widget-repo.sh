@@ -235,6 +235,7 @@ PY2
 fi
 
 local_main=$(git -C "$repo" rev-parse main)
+origin_main=$(git --git-dir "$bare" rev-parse refs/heads/main)
 
 cat >"$EVAL_GITHUB_STATE" <<JSON
 {"repos": {"eval/widget": {"bare": "$bare", "default_branch": "main", "pulls": $pulls}}}
@@ -249,6 +250,7 @@ cat >"$EVAL_VARS" <<JSON
   "head_sha": "$head_sha",
   "merge_sha": "$merge_sha",
   "local_main": "$local_main",
+  "origin_main": "$origin_main",
   "pr_url": "https://github.com/eval/widget/pull/7",
   "other_worktree": "$other_worktree",
   "partial_sha": "$partial_sha"

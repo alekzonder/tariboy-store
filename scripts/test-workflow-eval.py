@@ -207,6 +207,19 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, switched_back, ACTOR)), ["repo"])
 
 
+    def test_main_updated_only_by_fails_on_a_forced_move(self):
+        criteria = {"repo": {"main_updated_only_by": ["commit", "merge", "pull"]}}
+        base = snapshot()["repo"]
+        fast_forward = snapshot(repo=dict(base, main_reflog=["merge origin/main: Fast-forward", "commit (initial): Add widget list"]))
+        forced = snapshot(repo=dict(base, main_reflog=["branch: Reset to origin/main", "commit (initial): Add widget list"]))
+        reset = snapshot(repo=dict(base, main_reflog=["reset: moving to origin/main", "commit (initial): Add widget list"]))
+        update_ref = snapshot(repo=dict(base, main_reflog=["", "commit (initial): Add widget list"]))
+        self.assertEqual(failed(runner.check_criteria(criteria, snapshot(), ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, fast_forward, ACTOR)), [])
+        for bad in (forced, reset, update_ref):
+            self.assertEqual(failed(runner.check_criteria(criteria, bad, ACTOR)), ["repo"])
+
+
 class OriginAndPullsTest(unittest.TestCase):
     def test_origin_branches_exact_count_and_contains(self):
         criteria = {
