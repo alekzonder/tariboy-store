@@ -68,7 +68,7 @@
     "iteration-review": {
       "source": "./skills/iteration-review",
       "sourceType": "local",
-      "computedHash": "f86d8864d2806d33aad14dd46eb05ecdb4588d3e8a08a2db8eeae4968bf7748c"
+      "computedHash": "8395969c801d3d6f0984aa384a414202a5a5ecb5edb44305d7fbc37823c136d2"
     },
     "loop": {
       "source": "../../skills/loop",

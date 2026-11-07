@@ -31,8 +31,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-RUBRIC = "iteration-review/2"
-OLD_RUBRICS = ("iteration-review/1",)  # an object with only these from the assessor is re-assessed
+RUBRIC = "iteration-review/3"
+# An assessment by one of these rubrics counts as processed: the object is not a candidate for RUBRIC. Version 3 only
+# changes how recurring cases are scored, so the customer ruled that the earlier assessments are never redone.
+SETTLED_RUBRICS = ("iteration-review/1", "iteration-review/2")
+# An object with only these from the assessor is re-assessed with `--reassess`. Empty since version 3: no rubric
+# is waiting for a re-assessment. Add a rubric here only when the customer asks for that re-assessment.
+OLD_RUBRICS = ()
 AXES = ("image_process", "role", "task_fit")
 KEY_RE = re.compile(r"\b[A-Z][A-Z0-9]*-[0-9a-z]{4}\b|\b[A-Z][A-Z0-9]*-[0-9]+\b")
 INFRA_CODES = {137}  # 143 (SIGTERM) is the normal end after `loop.sh done`
@@ -122,11 +127,13 @@ def task_key_of(prompt):
 def has_assessment(assessor, iteration="", task=""):
     """True when the assessor already wrote an assessment of this iteration, or of this whole task, by RUBRIC.
 
-    An assessment by an older rubric does not count: that object stays a candidate for RUBRIC.
+    An assessment by a rubric of SETTLED_RUBRICS counts too: that object is never assessed again. An assessment by
+    any other rubric does not count.
     """
     args = ["assessment", "ls", "--assessor", assessor, "--limit", "1000"]
     args += ["--iteration", iteration] if iteration else ["--task", task]
-    rows = [r for r in (tb(*args) or {}).get("assessments") or [] if r.get("rubric_version") == RUBRIC]
+    done = (RUBRIC, *SETTLED_RUBRICS)
+    rows = [r for r in (tb(*args) or {}).get("assessments") or [] if r.get("rubric_version") in done]
     if iteration:
         return bool(rows)
     return any(not r.get("iteration_id") for r in rows)
