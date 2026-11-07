@@ -188,8 +188,8 @@ else:
 '''
 
 
-def assessment(iteration="", task="", rubric="iteration-review/2"):
-    obj = {"rubric_version": "iteration-review/2", "summary": "ok",
+def assessment(iteration="", task="", rubric="iteration-review/3"):
+    obj = {"rubric_version": "iteration-review/3", "summary": "ok",
            "axes": [{"axis": a, "verdict": "scored", "score": 80} for a in ("image_process", "role", "task_fit")]}
     obj["rubric_version"] = rubric
     if iteration:
@@ -263,14 +263,15 @@ class Add(unittest.TestCase):
         self.put("it-1.json", assessment("it-1"))
         result = self.add()
         self.assertEqual(len(result["written"]), 1)
-        self.assertEqual([r["rubric_version"] for r in self.written()], ["iteration-review/1", "iteration-review/2"])
+        self.assertEqual([r["rubric_version"] for r in self.written()], ["iteration-review/1", "iteration-review/3"])
 
     def test_an_assessment_of_an_older_rubric_is_invalid(self):
-        self.put("it-1.json", assessment("it-1", rubric="iteration-review/1"))
-        proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "validate", "--dir", str(self.dir)],
-                              capture_output=True, text=True, env=self.env)
-        self.assertEqual(proc.returncode, 1)
-        self.assertIn("rubric_version must be iteration-review/2", proc.stdout)
+        for rubric in ("iteration-review/1", "iteration-review/2"):
+            self.put("it-1.json", assessment("it-1", rubric=rubric))
+            proc = subprocess.run([sys.executable, "-B", str(SCRIPT), "validate", "--dir", str(self.dir)],
+                                  capture_output=True, text=True, env=self.env)
+            self.assertEqual(proc.returncode, 1, rubric)
+            self.assertIn("rubric_version must be iteration-review/3", proc.stdout)
 
 
 def load_review():
@@ -390,7 +391,7 @@ class Parts(unittest.TestCase):
         return proc.returncode, json.loads(proc.stdout)
 
     def notes(self, k, n, **kw):
-        obj = {"rubric_version": "iteration-review/2", "part": k, "of": n, "parts_read": list(range(1, k + 1)),
+        obj = {"rubric_version": "iteration-review/3", "part": k, "of": n, "parts_read": list(range(1, k + 1)),
                "violations": [], "observations": [{"axis": "task_fit", "locator": "seq 3", "note": "asked first"}], "infra": []}
         obj.update(kw)
         return obj
@@ -541,6 +542,45 @@ class TriageCheck(unittest.TestCase):
     def test_unknown_assessment_or_route_is_refused(self):
         self.assertEqual(triage([cause("a", "improve", [99])])[0], 1)
         self.assertEqual(triage([cause("a", "devqueue", [1])])[0], 1)
+
+
+class RubricVersion(unittest.TestCase):
+    """Rubric 3 applies only to objects that no earlier rubric of this assessor covers: nothing is assessed twice."""
+
+    def setUp(self):
+        self.r = load_review()
+
+    def rows(self, *rubrics):
+        return [{"id": f"as-{n}", "iteration_id": f"a-{n}", "subject_agent": "a", "rubric_version": rubric}
+                for n, rubric in enumerate(rubrics, 1)]
+
+    def test_the_current_rubric_is_3(self):
+        self.assertEqual(self.r.RUBRIC, "iteration-review/3")
+
+    def test_an_assessment_by_rubric_1_or_2_counts_as_assessed(self):
+        for rubric, expected in (("iteration-review/1", True), ("iteration-review/2", True),
+                                 ("iteration-review/3", True), ("iteration-review/9", False)):
+            self.r.tb = lambda *args, check=True, rubric=rubric: {"assessments": self.rows(rubric)}
+            self.assertEqual(self.r.has_assessment("reviewer", iteration="a-1"), expected, rubric)
+            self.assertEqual(self.r.has_assessment("reviewer", task="DEV-1"), False)  # no task assessment: iteration row
+
+    def test_reassess_on_takes_no_iteration_that_rubric_2_or_1_covers(self):
+        self.r.tb = lambda *args, check=True: {"assessments": self.rows(
+            "iteration-review/2", "iteration-review/2", "iteration-review/1", "iteration-review/3")}
+        state = self.r.reassess_state("reviewer", "a")
+        self.assertEqual(state["iterations"], {"total": 0, "done": 0, "left": 0})
+        self.assertEqual(state["tasks"], {"total": 0, "done": 0, "left": 0})
+        self.assertEqual(state["_left_iterations"], [])
+        rows, _ = self.r.gather_reassess("a", "reviewer", set())
+        self.assertEqual(rows, [])
+
+    def test_the_rubric_text_names_its_version_and_the_new_rules(self):
+        text = (SCRIPT.parent.parent / "rubric.md").read_text()
+        self.assertTrue(text.startswith("# Rubric `iteration-review/3`"))
+        self.assertNotIn("iteration-review/2", text)
+        for word in ("## Forbidden actions", "git branch -f", "git update-ref", "not_holder", "at most 10",
+                     "never mixed", "git fetch"):
+            self.assertIn(word, text)
 
 
 if __name__ == "__main__":

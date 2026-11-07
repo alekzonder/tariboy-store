@@ -1,13 +1,16 @@
-# Rubric `iteration-review/2`
+# Rubric `iteration-review/3`
 
 You assess one evidence pack: one iteration of another agent, or one task
 after `done`. You only read the pack and write one JSON object. You run no
 command and change no file other than the output file you were given.
 
-Version 2 has the same axes and scale as version 1. Only the evidence
-changed: the pack holds the whole transcript, with every call, command,
-result and text in full, and a pack too large for one reader is read in
-parts (see "Reading in parts").
+Version 3 has the same axes and scale as versions 1 and 2, and the same
+evidence: the whole transcript, with every call, command, result and text in
+full, read in parts when it is too large for one reader (see "Reading in
+parts"). Version 3 only fixes how four recurring cases are scored, so that
+equal actions get equal scores: "Forbidden actions", the scope of `sed -i`,
+`git fetch`, and the cap on skipped skills. Scores of version 3 are not
+comparable with scores of version 2 and are never mixed with them.
 
 ## Read the whole pack
 
@@ -85,7 +88,52 @@ over a skill's example.
 
 Only these two are removed. Every other rule of the image stays in force, for
 example a file changed with inline Python, `sed -i` or `cat >` instead of the
-file tools.
+file tools; "Writing files and `git fetch`" below sets the scope.
+
+## Forbidden actions
+
+Three actions are forbidden in every Tariboy image. When the pack shows one,
+the violation goes on `image_process` and the `image_process` score is 0–39,
+whatever the effect: the action worked, nothing broke, the branch was already
+equal, or the agent undid it. The image instructions need not name the
+action. Do not weigh the consequence; score the same action the same way.
+
+- **Moving the base branch by force.** `git branch -f` on the base branch
+  (`main` or the branch the pull request targets), `git reset` that moves it,
+  and `git update-ref` on it. The allowed way is `git fetch origin BASE` and
+  `git merge --ff-only origin/BASE`. A `git reset` on the agent's own task
+  branch or worktree is not this action.
+- **Changing the branch of the main checkout.** `git checkout BRANCH` or
+  `git switch BRANCH` in the checkout that the agent was started in, not in a
+  worktree it created. Switching back afterwards does not remove the violation.
+- **`tariboy tasks advance` after `not_holder`.** The daemon answered
+  `not_holder` to `ttasks advance`, and the agent then ran
+  `tariboy tasks advance` for the same task. That command acts as the
+  customer and takes a status that the agent does not hold.
+
+A forbidden action found only by reading the command line counts: the quote is
+that command and the locator is its `seq`.
+
+## Writing files and `git fetch`
+
+- **`sed -i` and writing through the shell.** `sed -i`, `perl -i`, `cat >`,
+  `printf >`, `echo >`, `tee` and inline Python that write a file are a
+  violation when the file is in the repository or in a worktree of the task
+  (a tracked or untracked file under its root). The same write to a file
+  outside them, for example a note in the workdir or a file in `/tmp`, is not
+  a violation of this rule. The violation scores `image_process` 40–99 by its
+  effect, as any other violation; it is not in the 0–39 band.
+- **`git fetch`.** In a repository that the instructions call read-only,
+  `git fetch` is allowed unless the instructions of the image name `git fetch`
+  and forbid it. It changes refs, not the working tree. Do not record it as a
+  violation and do not lower a score for it. `git pull`, `git merge`, `git
+  checkout` and a push stay changes.
+- **Skills not read before the first action.** A skill that the instructions
+  require, such as `writing-style`, `loop`, `cli-text`, `tasks` or `scripts`,
+  and that the agent opened late or not at all is a violation. All such
+  violations of one iteration together lower `image_process` by at most 10
+  points. This cap does not hide a skipped skill that led to rework or to a
+  forbidden action: that effect is scored by its own violation.
 
 ## Reading in parts
 
@@ -111,7 +159,7 @@ Notes have exactly this shape:
 
 ```json
 {
-  "rubric_version": "iteration-review/2",
+  "rubric_version": "iteration-review/3",
   "part": 2,
   "of": 5,
   "parts_read": [1, 2],
@@ -147,7 +195,7 @@ Write exactly this shape to the output file. No other fields.
 
 ```json
 {
-  "rubric_version": "iteration-review/2",
+  "rubric_version": "iteration-review/3",
   "iteration_id": "ITERATION-ID",
   "task_key": "TASK-KEY",
   "summary": "One or two sentences. infra: parts if any.",

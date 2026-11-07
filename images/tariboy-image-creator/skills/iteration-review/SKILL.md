@@ -6,7 +6,7 @@ description: Use when the user prompt has or lost a `## Review cycle` configurat
 # Iteration Review
 
 The review cycle assesses the finished iterations of the configured agents,
-and their tasks after `done`, by rubric `iteration-review/2`, and writes each
+and their tasks after `done`, by rubric `iteration-review/3`, and writes each
 assessment to the daemon. The daemon starts the cycle: an iteration that the
 agent's own loop schedule starts runs one cycle, before any goal work of that
 iteration. The skill creates no schedule, script or wake-up of its own, so a
@@ -40,10 +40,11 @@ reassess: off
 - `budget_usd: USD` is an optional line. Without it the cycle has no dollar
   limit: `sample_size` alone bounds what the cycle assesses. With it, step
   3.1 stops the cycle at that cost.
-- `reassess: on` is an optional line. It turns on the one-time
-  re-assessment of "Re-assessment" below. Without it, or with `off`, the
-  cycle re-assesses nothing outside the 24-hour window. The customer turns
-  it on; never turn it on yourself.
+- `reassess: on` is an optional line. It turns on the re-assessment of
+  "Re-assessment" below, which since rubric `iteration-review/3` has no
+  rubric to redo. Without it, or with `off`, the cycle re-assesses nothing
+  outside the 24-hour window. The customer turns it on; never turn it on
+  yourself.
 - The block sets no interval. An `interval_hours` line from an older version
   is ignored: the operator sets how often cycles run, see "Operator setup".
 
@@ -97,18 +98,26 @@ assess stay candidates while they ended within the last 24 hours.
 
 ## Re-assessment
 
-Rubric `iteration-review/2` reads the whole transcript, so its scores differ
-from those of `iteration-review/1`. An assessment counts only for its own
-rubric: an iteration or a task that has only an `iteration-review/1`
-assessment of this assessor is still a candidate for `iteration-review/2`,
-and `add` writes the new assessment next to the old one.
+Rubric `iteration-review/3` scores four recurring cases in a fixed way
+(forbidden actions, `sed -i`, `git fetch`, skipped skills), so its scores
+are not comparable with those of `iteration-review/1` and `/2`. Scores of
+different rubrics are never mixed: an average, a trend or a comparison
+uses the scores of one `rubric_version`, and a report names it.
 
-With `reassess: on`, every cycle also takes the iterations and `done` tasks
-that have an `iteration-review/1` assessment of this assessor and no
-`iteration-review/2` one, at any age. They share `sample_size` and come after
-the iterations of the window: problem iterations first, then round by round
-over the pairs. The cycles go on until none is left; `coverage` reports
-`reassess` with `done` and `left` for the cycle comment.
+The new rubric applies only to objects that the assessor has not assessed
+yet. An iteration or a task that has an assessment of this assessor by
+`iteration-review/1` or `/2` is processed: it is not a candidate for
+`/3`, in the window or at any age, and `add` never writes a second
+assessment for it. The customer decided this, because re-assessing weeks of
+history costs several times the daily cost of the cycle and the comparison
+needs only new scores against future ones. Assessments of a finished cycle
+are not changed.
+
+`reassess: on` and `--reassess` stay in the skill for a later rubric. Their
+list of rubrics to redo (`OLD_RUBRICS` in `scripts/review.py`) is empty, so
+today they take nothing and `coverage` reports `done` and `left` as `0`.
+A rubric joins that list only when the customer asks for that
+re-assessment on a task.
 
 ## Run the cycle
 
@@ -123,9 +132,9 @@ holds only cycle work.
      iteration that no cycle took is skipped for good;
    - an idle iteration (`loop.sh done --idle`) is not taken and is not a
      problem;
-   - an iteration with an `iteration-review/2` assessment from this assessor
-     is processed: it is not taken again, and it is never tagged. An
-     iteration with only an `iteration-review/1` one is a candidate;
+   - an iteration with an `iteration-review/1`, `/2` or `/3` assessment from
+     this assessor is processed: it is not taken again, and it is never
+     tagged;
    - problem iterations come first, newest first. A problem is an end
      without `loop.sh done` (`harness_error`, `timeout`, `no_i_am_done`), a
      refused check or a question to the customer;
@@ -171,7 +180,8 @@ holds only cycle work.
    assess in step 3:
    1. `REVIEW tasks --dir "$DIR" --assessor ASSESSOR` writes a task pack
       (`# Task pack KEY`) for each `done` task whose iterations are all
-      assessed and that has no `iteration-review/2` task assessment, and
+      assessed and that has no task assessment of this assessor by
+      `iteration-review/1`, `/2` or `/3`, and
       prints its `jobs`, as `pack` does.
    2. With `reassess: on`, add `--reassess` to step 4.1: it also takes the
       `done` tasks of "Re-assessment".
@@ -197,7 +207,7 @@ holds only cycle work.
    - `RE_DONE` and `RE_LEFT` are the sums of `done` and of `left` of the
      `coverage` fields `reassess.iterations` and `reassess.tasks`; `IT_*`
      and `TASK_*` are those fields alone. Without `reassess: on`, write
-     `- Re-assessment to iteration-review/2: off`.
+     `- Re-assessment to iteration-review/3: off`.
 
    Without `budget_usd`, write
    `Candidates not assessed (budget): 0` and
@@ -220,7 +230,7 @@ holds only cycle work.
    - Candidates not assessed (budget): N
    - Cycle cost: X USD of budget_usd Y USD
    - Cost of one assessment: X USD (cycle cost / assessments written, iterations and tasks)
-   - Re-assessment to iteration-review/2: done RE_DONE, left RE_LEFT (iterations IT_DONE / IT_LEFT, tasks TASK_DONE / TASK_LEFT)
+   - Re-assessment to iteration-review/3: done RE_DONE, left RE_LEFT (iterations IT_DONE / IT_LEFT, tasks TASK_DONE / TASK_LEFT)
    - Triage: the line of "Triage" step 5 when triage was due, else `Triage: not due`
    CYCLE_EOF
    )
@@ -348,7 +358,7 @@ violation found by an assessment stays in the assessment:
 | "Six causes are worth a task; the limit is only a guide." | Create the top 5; mark the rest `over_limit` and list them in the journal line. |
 | "This is a daemon defect; DEV is the usual queue." | Route `tariboyd` goes to TARI, assignee `tariboy-pm`. Never DEV. |
 | "A timeout or exit 137 iteration is not worth assessing." | Assess it; the rubric puts the defect in `summary` as `infra:`. |
-| "I will assess this one again with better evidence." | An iteration with an `iteration-review/2` assessment is processed. |
+| "I will assess this one again with better evidence." | An iteration with an `iteration-review/1`, `/2` or `/3` assessment is processed. |
 | "The pack is huge; the first parts show enough." | Read every part in order. The last part scores from the notes of all parts. |
 | "Clip this long output so the pack fits one subagent." | Never cut a pack. A pack larger than one subagent is read in parts. |
 | "Ten small packs fit one subagent, as before." | One iteration per subagent; `pack` groups packs only while they fill at most half of one. |
