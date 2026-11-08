@@ -94,8 +94,10 @@ poll.
 A customer-answer wait is completed in the same iteration that records it:
 mention the customer on the task, set `wait_customer`, keep the question and one
 `TASK-KEY next-action-slug` line in context, process every delivered letter,
-and after all live commands finish, run `scripts/loop.sh done` as the exact
-final action. Never wait for an answer in the live session.
+and after all live commands finish, run the `loop` skill's `scripts/loop.sh
+done` as the exact final action, by its absolute path
+`<loop skill directory>/scripts/loop.sh done`; the working directory has no
+`scripts/loop.sh`. Never wait for an answer in the live session.
 
 Recovery reads the task first and reuses what it records — customer, repository,
 approval, source SHA, version, branch, worktree, tag and monitor. A restart,
