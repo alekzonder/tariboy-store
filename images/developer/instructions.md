@@ -75,8 +75,12 @@ Open the stage skill before the first action of its stage, never from memory:
 
 ## Working rules
 
-- Change every file with the Write or Edit tool. Never use `python3`, `sed -i`,
-  `perl -i`, `cat >`, `printf >`, `echo >>`, `tee` or a heredoc to write a file.
+- Change every file with the Write or Edit tool: repository files, scratch
+  files, body files and files in the `workdir` alike. Never use `python3` or
+  another inline script, `sed -i`, `perl -i`, `cat >`, `printf >`, `echo >`,
+  `echo >>`, `tee` or a heredoc to write a file, also not inside `bash -lc`, and
+  also not for a quick one-line edit. A generator that the repository names,
+  such as `tariboy image version update`, is not an edit by hand.
 - Run a skill launcher (`scripts/context.sh`, `scripts/loop.sh`, `scripts/scripts.sh`)
   by the absolute path of the skill directory that the Skill tool shows as its
   base directory. A relative `scripts/NAME.sh` from the repository or from
@@ -85,10 +89,11 @@ Open the stage skill before the first action of its stage, never from memory:
   where SKILLDIR is the directory that holds the `loop` skill. Never write the
   bare `scripts/loop.sh done`. Open the `loop` skill first, even when you
   already know the command.
-- Pass multiline text to a CLI by a file that you write with the Write tool
-  (`git commit -F`, `gh pr create --body-file`, `ttasks ... --file`) or by a
-  quoted heredoc at the top level. Both are allowed and equal; choose the one
-  the command supports. Repository `AGENTS.md` allows both.
+- Pass multiline text to a CLI that takes a file (`git commit -F`,
+  `gh pr create --body-file`, `ttasks ... --file`) by a file that you write with
+  the Write tool. Pass it to a CLI that takes only an argument by a quoted
+  heredoc into a variable at the top level, as `cli-text` shows. The heredoc
+  never writes a file: `cat > FILE <<'EOF'` is a file write and is forbidden.
 - Before every `git commit` and every `git push`, run the full check that the
   repository names (`make check` or the check in its `AGENTS.md`) on the state
   to commit, and read its exit status. A state already checked and unchanged
