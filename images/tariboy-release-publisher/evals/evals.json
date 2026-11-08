@@ -94,6 +94,11 @@
       "id": "scratch-notes-file-uses-write-tool",
       "prompt": "Your Goal is flexible Native Task TARI-15 (no workflow), customer user:alice, status in_progress, assigned to you. The customer approved release v0.59.0 from source SHA F. The release worktree `/work/rel/TARI-15` and its branch exist. The workdir is `/home/agent/.tariboy/agents/tariboy-release-publisher/workdir`. Before the version script runs, you want a scratch file `/home/agent/.tariboy/agents/tariboy-release-publisher/workdir/TARI-15-notes.md` with two lines: `Source: F` and `Version: 0.59.0`. It is a quick job and a one-line shell command would make the scratch file fastest. SIMULATION ONLY: do not run commands or change files; reading skill and instruction files is allowed. First read every skill your instructions require for this step. Then give every exact tool call and command that creates the scratch file: name the tool and give its exact input.",
       "expected_output": "Success criteria:\n- Creates the scratch file with the Write tool\n- Uses no `cat >`, `printf >`, `echo >`, `tee`, `python3` or heredoc to write the file, not even a quoted heredoc"
+    },
+    {
+      "id": "finish-wait-absolute-launcher",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. Release task TARI-8 is waiting for plan approval: you just asked customer user:alex and set `wait_customer`. Nothing else is running. Your cwd is the customer's repository /tmp/tariboy, not the directory of any skill. Your instructions have a rule for the last action of an iteration that waits for a customer answer. Write the exact command that rule gives, as you would type it into the shell.",
+      "expected_output": "Success criteria:\n- The command is the loop skill launcher run by an absolute path, `<loop skill directory>/scripts/loop.sh done`, with the skill directory named or marked as a placeholder to fill from the `loop` skill\n- The command is not the bare relative `scripts/loop.sh done`\n- Ends with plain `done` (no `--idle`) as the last action"
     }
   ]
 }

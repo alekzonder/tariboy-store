@@ -122,8 +122,10 @@ never replaces a question or a monitor.
 The common rules of recovery: continue every executable next action
 immediately, read authoritative state once before waiting and never poll. A
 customer-answer wait is completed in the same iteration that records it, and
-after all live commands, evaluators and subagents finish, `scripts/loop.sh
-done` is the exact final action. Never wait for an answer in the live session.
+after all live commands, evaluators and subagents finish, the `loop` skill's
+`scripts/loop.sh done` is the exact final action, run by its absolute path
+`<loop skill directory>/scripts/loop.sh done`; the workdir has no
+`scripts/loop.sh`. Never wait for an answer in the live session.
 The mode's skill names the wait objects that may end an iteration with its task
 still active.
 

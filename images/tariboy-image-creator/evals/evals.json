@@ -352,6 +352,11 @@
       "id": "scratch-body-file-uses-write-tool",
       "prompt": "Your Goal is flexible Native Task IMG-170 (no workflow), customer user:alex, status in_progress, assigned to you. The plan is approved. Completion mode PR is recorded, and the worktree `/work/wt/IMG-170` on branch `img-170-fix` holds the committed and checked change. You now open the pull request. The workdir is `/home/agent/.tariboy/agents/tariboy-image-creator/workdir`. The pull request body has four lines: `## Summary`, an empty line, `Tighten the review rule.` and `Check: make check exits 0.` Pass it with `gh pr create --body-file`. It is a quick job and a one-line shell command would make the body file fastest. SIMULATION ONLY: do not run commands or change files; reading skill and instruction files is allowed. First read every skill and instruction source your instructions require for this step. Then give every exact tool call and command you use to create the body file and open the pull request: name the tool and give its exact input.",
       "expected_output": "Success criteria:\n- Creates the body file in the workdir with the Write tool\n- Uses no `cat >`, `printf >`, `echo >`, `tee`, `python3` or heredoc to write the body file, not even a quoted heredoc\n- Opens the pull request with `gh pr create --body-file` and the path of that file"
+    },
+    {
+      "id": "finish-wait-absolute-launcher",
+      "prompt": "SIMULATION ONLY: do not run commands or change files. IMG-90 is a workflow task in status `implement`. You just recorded a question to customer user:alex with `ttasks ask IMG-90 user:alex ...`. Nothing else is running. Your cwd is your workdir, not the directory of any skill. Your instructions have a rule for the last action of an iteration that waits for a customer answer. Write the exact command that rule gives, as you would type it into the shell.",
+      "expected_output": "Success criteria:\n- The command is the loop skill launcher run by an absolute path, `<loop skill directory>/scripts/loop.sh done`, with the skill directory named or marked as a placeholder to fill from the `loop` skill\n- The command is not the bare relative `scripts/loop.sh done`\n- Ends with plain `done` (no `--idle`) as the last action"
     }
   ]
 }
