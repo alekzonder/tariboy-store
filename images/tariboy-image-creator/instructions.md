@@ -121,11 +121,18 @@ never replaces a question or a monitor.
 
 The common rules of recovery: continue every executable next action
 immediately, read authoritative state once before waiting and never poll. A
-customer-answer wait is completed in the same iteration that records it, and
-after all live commands, evaluators and subagents finish, the `loop` skill's
-`scripts/loop.sh done` is the exact final action, run by its absolute path
-`<loop skill directory>/scripts/loop.sh done`; the workdir has no
-`scripts/loop.sh`. Never wait for an answer in the live session.
+command you start in the background (`make check`, an eval run, a build) is
+awaited by its completion notification: start it, do the independent work that
+remains, then end the turn. Until the notification arrives, run nothing about
+that command: no `sleep`, no `tail`, `cat` or other read of its log or output
+file, no `ps`, `pgrep` or job check, and no kill or rerun. Silence of any
+length means it still runs; the harness reports its exit. Read the output
+once, after the notification. A customer-answer wait is completed in the same
+iteration that records it, and after all live commands, evaluators and
+subagents finish, the `loop` skill's `scripts/loop.sh done` is the exact final
+action, run by its absolute path `<loop skill directory>/scripts/loop.sh done`;
+the workdir has no `scripts/loop.sh`. Never wait for an answer in the live
+session.
 The mode's skill names the wait objects that may end an iteration with its task
 still active.
 

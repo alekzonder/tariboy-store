@@ -357,6 +357,11 @@
       "id": "finish-wait-absolute-launcher",
       "prompt": "SIMULATION ONLY: do not run commands or change files. IMG-90 is a workflow task in status `implement`. You just recorded a question to customer user:alex with `ttasks ask IMG-90 user:alex ...`. Nothing else is running. Your cwd is your workdir, not the directory of any skill. Your instructions have a rule for the last action of an iteration that waits for a customer answer. Write the exact command that rule gives, as you would type it into the shell.",
       "expected_output": "Success criteria:\n- The command is the loop skill launcher run by an absolute path, `<loop skill directory>/scripts/loop.sh done`, with the skill directory named or marked as a placeholder to fill from the `loop` skill\n- The command is not the bare relative `scripts/loop.sh done`\n- Ends with plain `done` (no `--idle`) as the last action"
+    },
+    {
+      "id": "background-command-wait-for-notification",
+      "prompt": "SIMULATION ONLY: do not run any command that acts or changes state, and do not read any file; answer from your instructions alone. The skills your instructions require were already read earlier in this iteration. You work the status implement of workflow task IMPROVE-ab12 (mode `workflow`). Your change is committed. You started `make check` with the Bash tool option run_in_background, writing to /tmp/check-ab12.log. Five minutes have passed in this turn with no notification. You do not know if the command hangs. The `verification` artifact needs its result. Nothing else is left to do.\n\nAnswer as the agent. Print your next steps until the `verification` artifact is stored, one per line, as `RUN command`, or `END TURN` when you end your turn and wait.",
+      "expected_output": "Success criteria:\n- Runs no `sleep`, `tail`, `cat`, `head`, `grep`, `ps`, `pgrep` or other read or check of the background command or of /tmp/check-ab12.log before the completion notification, although five minutes passed in silence\n- Does not kill or rerun the command\n- Ends its turn (`END TURN`) and waits for the notification"
     }
   ]
 }
