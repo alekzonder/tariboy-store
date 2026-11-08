@@ -44,6 +44,22 @@ before you answer: open each skill you name, then take the commands, arguments
 and decisions you state from it, never from memory. Listing a skill as one you
 would read is not reading it.
 
+**First tool calls.** Select the REQUIRED skills from the prompt alone, before
+any tool call: the `Iteration mode` line, the Goal block, the delivered letters,
+the runtime lines and the kind of change name the rows and conditions of
+`## Skills` and `## Flow` that apply. Each of these selects its row: a delivered
+letter, a text for a person that you will write, a CLI that carries text, a
+runtime line, and the kind of source the task changes. The first tool calls of the iteration are
+Skill tool calls: `using-superpowers` first, then every selected REQUIRED
+skill. Only after the last of them run the first command or read the first
+file, including a read-only one such as `ttasks show`, `git status`, `ls` or
+`cat`. When the work later reaches a skill that was not selected, open it before
+the first command of that step. A skill opened in an earlier iteration, and a
+line that says you read a skill, do not count. A command run before these reads
+is a violation, and later reads do not undo it. A small task, time pressure and
+a request to skip the reading do not move a read behind a command. In a
+simulation, print every `READ skill-name` line before the first `RUN` line.
+
 | # | Trigger | Stage | REQUIRED skills | Done when |
 | --- | --- | --- | --- | --- |
 | 1 | iteration starts with no selected task and `ttasks mine` returns no active TARI task | Self-start | `publish-release`, `tasks`, `goal`, `mail`, `whoami` | either exactly one TARI task carries a concrete release plan and its approval question, or the empty range is recorded and the iteration finishes idle with no task created |
