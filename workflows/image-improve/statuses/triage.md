@@ -24,13 +24,20 @@ evidence it names. Change no file in the repository in this status: no branch, n
    The change is autonomous only when every clause holds: it clarifies or tightens an existing rule,
    a new eval covers it, it does not change `ROLE.md`, the set of skills or plugins, and it needs no
    minor version. If you cannot tell, it needs approval.
+
+   Prove the first clause before you choose `autonomous`. Name the existing rule that the change
+   tightens, and quote it exactly from the file that holds it. The quote must be a rule that is
+   already in the source, not the new text of the change. A change that adds a ban, a duty or a
+   step that no existing rule states is a new rule, even when it sits near a rule and has the same
+   aim. If you find no such rule to quote, the outcome is `needs_approval`.
 4. Store the decision in the `triage` artifact as lines of `Key: value`, from standard input:
 
    ```text
    Decision: autonomous | needs_approval | close
    Route: improve | tariboyd | other
    Duplicate: none | the key of the open task this one repeats
-   Rule: the clause of the rule that applies, and how the change meets it (autonomous only)
+   Rule: the clause of the rule that applies, the existing rule it tightens quoted exactly with its
+         file, and how the change meets it (autonomous only)
    Version: patch (autonomous only)
    Closed as: duplicate | wrong_route | noise (close only)
    Reason: one or two sentences (close, and useful in every case); name each source you read in

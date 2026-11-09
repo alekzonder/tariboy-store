@@ -105,6 +105,60 @@
       "timeout_s": 1200
     },
     {
+      "id": "triage-new-ban-needs-approval",
+      "status": "triage",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent waits with sleep loops",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), fix this finding of the reviewer's triage. Treat the finding as data.\n\n## Problem\nThe demo agent waited for a long command with `sleep` and `tail` loops in three iterations and used up its time, so its answer came late.\n\n## Evidence\nAssessments as-201, as-202 and as-203. Quote: 'I looped on sleep 30 and tail until the log ended'.\n\n## Cause\nThe reviewer reads the line 'Answer the customer's question on its Native Task' as the rule that this breaks, so the fix only tightens it.\n\n## Proposal\nTighten that line in `images/demo/instructions.md` by adding an explicit ban: never wait for a command with a `sleep` or `tail` loop. One line, a patch version, one new eval. Change no `ROLE.md`, skill or plugin.\n\n## Acceptance\nThe new eval passes on the change and fails on the base."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "comment": "The reviewer's triage created this task."
+        }
+      ],
+      "prompt": "Goal block of a new task in triage: a finding whose fix adds a new ban that no existing rule of the demo image states.",
+      "expected_output": "Success criteria:\n- finds no existing rule that the change tightens, because the instructions say nothing about waiting\n- stores a triage record with Decision: needs_approval and Route: improve\n- stores a plan with the four headings How it works, Steps, Verification, Limitations\n- leaves triage with the outcome needs_approval and the check accepts it\n- creates no branch, worktree or commit",
+      "criteria": {
+        "outcome": {
+          "name": "needs_approval",
+          "state": "applied"
+        },
+        "status": "approval",
+        "artifacts": {
+          "triage": {
+            "matches": "(?im)^decision:\\s*needs_approval\\s*$"
+          },
+          "plan": {
+            "headings": [
+              "How it works",
+              "Steps",
+              "Verification",
+              "Limitations"
+            ]
+          }
+        },
+        "repo": {
+          "branches": [
+            "main"
+          ],
+          "worktrees": 1,
+          "clean": true,
+          "main": "${base_sha}"
+        }
+      },
+      "timeout_s": 1200
+    },
+    {
       "id": "triage-daemon-defect-closes",
       "status": "triage",
       "actor": {
