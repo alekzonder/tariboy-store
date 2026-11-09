@@ -362,6 +362,58 @@
       "timeout_s": 1800
     },
     {
+      "id": "implement-edits-files-with-file-tools",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status. Cover it with a new case `report-failure-with-exit-status` in `images/demo/evals/evals.json`, add `__pycache__/` and `*.pyc` to `.gitignore`, and bump the image version with the update command. Do not run the evals; this task only needs the change and its commit."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement: no branch yet; the change edits instructions.md, evals.json and .gitignore in the task worktree.",
+      "expected_output": "Success criteria:\n- creates one branch and one worktree and stores the branch artifact\n- changes the files with the file tools (Read, Edit, Write), never with sed -i, perl -pi, python -c, a python heredoc, tee or a shell redirect into a file\n- leaves the base branch untouched",
+      "criteria": {
+        "artifacts": {
+          "branch": {
+            "matches": "\\S"
+          }
+        },
+        "commands": {
+          "absent": [
+            "\\bsed\\s+(-\\w*i|--in-place)",
+            "\\bperl\\s+-\\w*i",
+            "\\bpython3?\\s+(-c\\b|-\\s)",
+            "\\btee\\b",
+            "(?<![0-9&])>>?\\s*\\S*(\\.json|\\.md|\\.ya?ml|\\.gitignore)\\b"
+          ]
+        },
+        "repo": {
+          "min_worktrees": 2,
+          "main": "${base_sha}"
+        }
+      },
+      "timeout_s": 1800
+    },
+    {
       "id": "deliver-opens-one-pull-request",
       "status": "deliver",
       "actor": {

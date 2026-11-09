@@ -200,6 +200,18 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, detached, ACTOR)), ["repo"])
         self.assertEqual(failed(runner.check_criteria(criteria, other, ACTOR)), ["repo"])
 
+    def test_commands_criterion_reads_only_tool_commands(self):
+        criteria = {"commands": {"absent": [r"\bsed -i\b", r"python3? -c"]}}
+        prompt = '"text": "do not use sed -i or python3 -c"'
+
+        def transcript(command):
+            return prompt + '\n  "input": {\n    "command": ' + json.dumps(command) + ',\n    "description": "x"\n  }'
+
+        clean = snapshot(transcript=transcript("git status && echo a > b.log"))
+        inline = snapshot(transcript=transcript("sed -i 's/a/b/' evals.json"))
+        self.assertEqual(failed(runner.check_criteria(criteria, clean, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, inline, ACTOR)), ["commands"])
+
     def test_head_checkouts_criterion_fails_on_an_undone_switch(self):
         criteria = {"repo": {"head_checkouts": 0}}
         switched_back = snapshot(repo=dict(snapshot()["repo"], head="main", head_checkouts=2))
