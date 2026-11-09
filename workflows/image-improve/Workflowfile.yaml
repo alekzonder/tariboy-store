@@ -1,6 +1,6 @@
 schema_version: 1
 name: image-improve
-workflow_version: 0.1.0
+workflow_version: 0.1.1
 initial_status: triage
 requires_secrets: [GITHUB_TOKEN]
 limits:

@@ -114,6 +114,11 @@ cat >"$repo/AGENTS.md" <<'MD'
 - Verification: `make check` from the repository root.
 - Pull requests land on `main` from a task branch. Bump `image_version` of every changed image.
 MD
+mkdir -p "$repo/evidence"
+printf '%s\n' '# Assessment as-301' '' 'The agent wrote "build failed" and stopped.' >"$repo/evidence/as-301.md"
+printf '%s\n' '# Assessment as-302' '' 'The agent dropped the return code in two comments.' >"$repo/evidence/as-302.md"
+printf '%s\n' '# Iteration demo-20260101000000-1' '' 'The agent ended after one failed command.' >"$repo/evidence/iteration-1.md"
+printf '%s\n' '' 'The demo image never invents a result.' >>"$repo/images/demo/ROLE.md"
 printf '__pycache__/\n' >"$repo/.gitignore"
 git -C "$repo" add -A
 git -C "$repo" commit -q -m "Add the demo image and workflow"
