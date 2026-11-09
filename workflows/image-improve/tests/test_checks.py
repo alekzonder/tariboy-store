@@ -194,6 +194,18 @@ class EvalsCheckTests(ScriptCase):
         code, result, _ = self.run_evals(self.evals(cost_usd=None))
         self.rejected(code, result, "'cost_usd'")
 
+    def test_a_model_alias_is_rejected(self):
+        for alias in ("haiku", "Sonnet", "opus", "latest", "claude-haiku-latest"):
+            code, result, _ = self.run_evals(self.evals(model=alias))
+            self.rejected(code, result, "alias")
+        code, result, _ = self.run_evals(self.evals(model="claude-haiku-5-5"))
+        self.assertEqual(code, 0)
+
+    def test_implement_status_states_both_rules(self):
+        text = " ".join((SCRIPTS.parent / "statuses" / "implement.md").read_text().split())
+        self.assertIn("never an alias such as `haiku`", text)
+        self.assertIn("leads to a fix of the change, never of the scenario's criteria", text)
+
     def test_not_applicable_needs_a_reason(self):
         data = self.evals(scenarios=None, not_applicable="Only a typo in a comment changed.")
         code, result, _ = self.run_evals(data)

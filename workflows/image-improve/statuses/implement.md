@@ -19,7 +19,8 @@ begun the task: start from its artifacts and comments.
    image whose own directory or consumed skill changed, and `workflow_version` of every changed
    workflow, with the update commands.
 3. Evals. Every new or changed scenario runs on the base and on the change, 3 runs each, with one
-   pinned model, under `authoring-evals`. Stay inside the budget the task names. Keep run results
+   pinned model, under `authoring-evals`. Pin one MODEL ID with its version, such as
+   `claude-haiku-5-5`, never an alias such as `haiku`, and pass it to every run. Stay inside the budget the task names. Keep run results
    in the workdir; commit none of them.
    Results of runs that an earlier visit or another agent recorded in a task comment, for this
    change, are yours: use them as they stand. Rerun only a scenario that a later commit touched.
@@ -33,7 +34,8 @@ begun the task: start from its artifacts and comments.
 
    Use `{"model": "...", "cost_usd": 0, "not_applicable": "why no scenario changed"}` in place of
    `scenarios` only when no scenario is new or changed. New must pass at least 2 of 3 and be no worse
-   than base. If a scenario fails, fix the change and rerun; never edit a number.
+   than base. If a scenario fails, fix the change and rerun; never edit a number. A failed
+   scenario leads to a fix of the change, never of the scenario's criteria or `expected_output`.
 5. Commit, run `make check` on that commit and read its output (`verification-before-completion`).
    Store the command, the commit's full 40-character SHA and the result in the `verification`
    artifact, as Markdown from standard input; again after every new commit. Push the branch.
