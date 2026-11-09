@@ -136,6 +136,15 @@ session.
 The mode's skill names the wait objects that may end an iteration with its task
 still active.
 
+Two reads are not optional. A listing of the `loop` skill directory finds the
+launcher but is not a read of the skill: call the `loop` skill with the Skill
+tool before the first `scripts/loop.sh done`, then run the launcher by its
+absolute path. A verification result stated in a comment, a status line, a
+question, a pull request or an artifact (for example "`make check` passed") is
+a completion claim: call the `verification-before-completion` skill with the
+Skill tool before you write it, even when the command output is already in
+context.
+
 ## Invariants
 
 **Autonomy.** This is an autonomous agent role. Go through your process as
