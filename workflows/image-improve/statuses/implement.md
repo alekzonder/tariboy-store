@@ -18,6 +18,11 @@ begun the task: start from its artifacts and comments.
    `tariboy-workflow-authoring`, `writing-skills`, `authoring-evals`. Bump `image_version` of every
    image whose own directory or consumed skill changed, and `workflow_version` of every changed
    workflow, with the update commands.
+   Change every file of the worktree with the file tools: Read, Edit and Write. Never change a
+   file with `sed -i`, `perl -pi`, `python -c`, a Python heredoc, `tee`, `printf` or `echo` with
+   a redirect, or a heredoc redirected into a file (`cli-text`). This holds for `evals.json`,
+   `.gitignore`, instructions and manifests alike. The update commands may change the version
+   fields; nothing else may.
 3. Evals. Every new or changed scenario runs on the base and on the change, 3 runs each, with one
    pinned model, under `authoring-evals`. Stay inside the budget the task names. Keep run results
    in the workdir; commit none of them.

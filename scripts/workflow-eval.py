@@ -71,6 +71,7 @@ CRITERIA_KINDS = {
     "comments",
     "repo",
     "pulls",
+    "commands",
 }
 CASE_FIELDS = {
     "id",
@@ -239,6 +240,19 @@ def request_field(request: dict, *names: str) -> Any:
     return None
 
 
+def shell_commands(transcript: str) -> list[str]:
+    """The shell commands that the actor ran, from its transcript. The
+    transcript also holds the prompt, so only the `command` inputs of tool
+    calls count."""
+    commands = []
+    for raw in re.findall(r'^\s*"command": "(.*)",?$', transcript, re.M):
+        try:
+            commands.append(json.loads(f'"{raw}"'))
+        except ValueError:
+            commands.append(raw)
+    return commands
+
+
 def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bool, str]]:
     """Each criterion as (name, passed, detail). `snap` is the collected
     state: status, requests, artifacts, comments, waits, repo."""
@@ -364,6 +378,17 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
             if not repo.get("origin_contains", {}).get(branch, {}).get(sha):
                 problems.append(f"origin branch {branch} does not contain {sha[:12]}")
         results.append(("repo", not problems, "; ".join(problems) or "ok"))
+
+    if "commands" in criteria:
+        # `absent`: regular expressions that no shell command of the actor
+        # may match, for example an inline write to a file.
+        commands = shell_commands(snap.get("transcript", ""))
+        problems = []
+        for pattern in criteria["commands"].get("absent", []):
+            hit = next((c for c in commands if re.search(pattern, c)), None)
+            if hit is not None:
+                problems.append(f"command matches {pattern!r}: {hit[:120]!r}")
+        results.append(("commands", not problems, "; ".join(problems) or f"{len(commands)} commands checked"))
 
     if "pulls" in criteria:
         rules = criteria["pulls"]
@@ -848,6 +873,7 @@ def run_case(daemon: Daemon, github: FakeGitHub, case: dict, workflow_dir: Path,
     snap = collect(daemon, key, variables, artifacts_before, criteria, fake_dir / "github.json")
     (run_dir / "workflow.json").write_text(json.dumps(snap.pop("workflow"), indent=2))
     (run_dir / "snapshot.json").write_text(json.dumps(snap, indent=2, default=str))
+    snap["transcript"] = transcript.stdout if iteration is not None else ""
     for name, passed, detail in check_criteria(criteria, snap, principal):
         record["checks"].append([name, passed, detail])
     usage = daemon.json("usage", "--agent", agent, check=False) or {}
