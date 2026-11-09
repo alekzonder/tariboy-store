@@ -16,7 +16,7 @@ least 2 of 3 (the same ratio for more runs) and is not worse than the base.
 A change with no new or changed scenario, for example one that only fixes a
 typo, says so with {"not_applicable": "reason"} instead of "scenarios"; the
 reason is plain text of at least 20 characters. The model and the cost are
-required in both forms, so the run can be repeated and its price is known.
+required in both forms; the model is one pinned MODEL ID, never an alias such as haiku, so the run can be repeated and its price is known.
 
 The check proves the evidence has its parts and its numbers agree; running the
 evals honestly is the agent's work and the customer reads the numbers in the
@@ -34,12 +34,25 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pr_lib  # noqa: E402
 
 MIN_RUNS = 3
+MODEL_ALIASES = {"haiku", "sonnet", "opus", "fable", "default", "latest", "best", "small", "fast"}
 MIN_REASON = 20
 
 
 def reject(message: str) -> int:
     pr_lib.write_result(message=message)
     return pr_lib.REJECT_EXIT
+
+
+def alias_problem(model: str) -> str | None:
+    """A pinned MODEL ID names one model version and has a digit, as claude-haiku-5-5."""
+    name = model.strip().lower()
+    if name in MODEL_ALIASES or name.endswith("-latest") or not any(c.isdigit() for c in name):
+        return (
+            f"The model '{model.strip()}' is an alias. Pin one MODEL ID with its version, "
+            "for example claude-haiku-5-5, run the base and the change again on it, and "
+            "record it in 'model'."
+        )
+    return None
 
 
 def is_int(value: object) -> bool:
@@ -77,7 +90,10 @@ def main() -> int:
 
     model = data.get("model")
     if not isinstance(model, str) or not model.strip():
-        return reject("The evals artifact has no 'model': name the pinned model of the runs.")
+        return reject("The evals artifact has no 'model': name the pinned MODEL ID of the runs.")
+    problem = alias_problem(model)
+    if problem:
+        return reject(problem)
     cost = data.get("cost_usd")
     if isinstance(cost, bool) or not isinstance(cost, (int, float)) or cost < 0:
         return reject("The evals artifact has no 'cost_usd': give the actual cost as a number, 0 if none.")
