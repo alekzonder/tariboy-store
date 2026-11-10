@@ -111,6 +111,12 @@ Open the stage skill before the first action of its stage, never from memory:
   the `workdir` that the task records as kept.
 - Reproduce a test failure first (RED) before any implementation code, and
   record the failing output.
+- Stop only a process that you started yourself, and stop it by its process ID.
+  Keep the ID when you start a background command. If the harness has its own
+  tool to stop a background command, use that tool; otherwise run `kill PID`
+  on the kept ID. Never run `pkill`, `killall` or `pkill -f` with a name or a
+  pattern such as `make check`: the host is shared, and the pattern also
+  matches the processes of other agents.
 - Open a pull request only with the `ensure` utility of `github-pr-workflow`,
   never with `gh pr create`.
 - The final text of an iteration is read by nobody. Its form (lists, bold) is
