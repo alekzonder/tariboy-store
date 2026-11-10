@@ -1,8 +1,22 @@
 schema_version: 1
 name: image-improve
-workflow_version: 0.1.1
+workflow_version: 0.2.0
 initial_status: triage
 requires_secrets: [GITHUB_TOKEN]
+# AUTO_MERGE: "true" lets the merge watch merge the pull request itself once
+# its verified head is mergeable, every check and commit status of that head
+# succeeded and nothing needs the image creator. Enable it per queue with
+# `ttasks queue env set QUEUE AUTO_MERGE true`; the queue value overrides this
+# default. Only "true" and "false" are valid. GITHUB_TOKEN then needs
+# permission to merge. The watch uses the first merge method the repository
+# allows: a rebase, else a squash, else a merge commit.
+# AUTO_MERGE_WITHOUT_CHECKS: "true" together with AUTO_MERGE lets the watch
+# also merge a verified head that has no check run or commit status at all, for
+# a repository without CI. A head with checks or statuses still needs every one
+# to succeed.
+env:
+    AUTO_MERGE: "false"
+    AUTO_MERGE_WITHOUT_CHECKS: "false"
 limits:
     idle_iterations: 3
     rejected_requests: 5
@@ -90,7 +104,7 @@ statuses:
         script: ./scripts/pr-watch.py
         every: 120s
         timeout: 60s
-        description: Waits for the customer to merge the pull request; reports the customer's rework, requested changes, a merge conflict, or a close without a merge. It never merges.
+        description: Waits for the merge, or merges when AUTO_MERGE is true and the verified head is green; reports the customer's rework, requested changes, a merge conflict, or a close without a merge.
       limits: {script_failures: 10}
       transitions:
         - {on: merged, to: publish}

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Watch script of the merge status: reports `merged` when the customer merged
-the task's pull request, and one of four outcomes when the pull request needs
-the image creator again. It never merges: the customer owns the merge.
+"""Watch script of the merge status: reports `merged` when the task's pull
+request merged, and one of four outcomes when the pull request needs the image
+creator again. Without AUTO_MERGE=true it never merges: the customer owns the
+merge.
 
 Outcomes, the first that applies:
 
@@ -27,7 +28,27 @@ they hold. A pending entry of the current visit is reported again, because the
 daemon may not have recorded it.
 
 A transient GitHub failure (see pr_lib.TransientFailure) is quiet. Once such
-failures last 15 minutes without a break, each further one is a failure."""
+failures last 15 minutes without a break, each further one is a failure.
+
+With AUTO_MERGE=true in the environment (the workflow's env sets "false"; the
+queue env var overrides it), a run that has nothing to report merges the pull
+request itself when every condition holds: it is open and not a draft, its head
+commit is one the verification artifact names, its base is the repository's
+default branch, GitHub reports it mergeable with the merge state `clean` or
+`has_hooks`, at least one check run or commit status exists, every check run
+completed with `success` and the newest status of every context is `success`,
+and no reviewer's latest decision requests changes. With
+AUTO_MERGE_WITHOUT_CHECKS=true as well, a head without any check run or commit
+status also merges, for a repository that runs no CI; a head that has checks or
+statuses still needs every one to succeed. It asks GitHub to merge exactly the
+observed head SHA, so a concurrent push makes GitHub refuse it, with the first
+method the repository settings allow: a rebase, else a squash, else a merge
+commit. It then reads the pull request again and reports `merged` only when
+GitHub confirms the merge. A refused merge is a failure that names the method
+and quotes GitHub's refusal text when that text is one plain line. A transient
+or uncertain answer stays quiet like any transient failure, and the next run
+finds the merge if it happened. Both variables accept only "true" and "false"
+(unset reads "false"); any other value is a failure."""
 
 from __future__ import annotations
 
@@ -60,6 +81,21 @@ TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 TRANSIENT_LIMIT = datetime.timedelta(minutes=15)
 DECISION_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
 STANDING_KINDS = {"closed", "conflict"}
+AUTO_MERGE_ENV = "AUTO_MERGE"
+AUTO_MERGE_WITHOUT_CHECKS_ENV = "AUTO_MERGE_WITHOUT_CHECKS"
+# Merge states in which GitHub accepts a merge without bypassing a protection.
+MERGEABLE_STATES = {"clean", "has_hooks"}
+# HTTP statuses with which GitHub refuses a merge request it understood.
+MERGE_REFUSED_STATUSES = {405, 409, 422}
+# Merge methods in their order of preference (the Store lands pull requests by
+# rebase), each with the repository setting that allows it and its message name.
+MERGE_METHODS = (
+    ("rebase", "allow_rebase_merge", "rebase merge"),
+    ("squash", "allow_squash_merge", "squash merge"),
+    ("merge", "allow_merge_commit", "merge commit"),
+)
+# A refusal text of GitHub that may be quoted in a failure message.
+SAFE_GITHUB_MESSAGE_RE = re.compile(r"^[A-Za-z0-9 .,:;'()-]{1,200}$")
 MAX_LISTED = 20
 # Outcomes in their order of precedence, each with the item kinds that select it.
 OUTCOMES = (
@@ -133,11 +169,25 @@ def normalize_pr(value: Any, number: int) -> dict[str, Any]:
     mergeable = item.get("mergeable")
     if mergeable is not None and not isinstance(mergeable, bool):
         fail("GitHub pull request has an invalid mergeable flag")
+    mergeable_state = item.get("mergeable_state")
+    if mergeable_state is not None and not isinstance(mergeable_state, str):
+        fail("GitHub pull request has an invalid mergeable state")
+    draft = item.get("draft")
+    if draft is not None and not isinstance(draft, bool):
+        fail("GitHub pull request has an invalid draft flag")
     head = require_dict(item.get("head"), "pull request head")
     head_sha = head.get("sha")
     if not isinstance(head_sha, str) or not SHA_RE.fullmatch(head_sha):
         fail("GitHub pull request has an invalid head SHA")
+    base_ref = require_dict(item.get("base"), "pull request base").get("ref")
+    if not isinstance(base_ref, str) or not base_ref:
+        fail("GitHub pull request has an invalid base branch")
     return {
+        "state": state,
+        "mergeable": mergeable,
+        "mergeable_state": mergeable_state,
+        "draft": draft,
+        "base_ref": base_ref,
         "merged": merged,
         "merge_commit_sha": merge_sha,
         "closed_at": closed_at,
@@ -150,8 +200,8 @@ def make_item(identity: str, kind: str, name: str, url: str, state: str) -> dict
     return {"id": identity, "kind": kind, "name": name, "url": url, "state": state}
 
 
-def review_items(values: list[Any], pr_url: str) -> list[dict[str, str]]:
-    """One item per reviewer whose latest decision requests changes."""
+def latest_decisions(values: list[Any]) -> list[tuple[int, str, str]]:
+    """The latest decision of each reviewer, as (review id, state, login)."""
     latest: dict[str, tuple[int, str, str]] = {}
     for value in values:
         review = require_dict(value, "review")
@@ -165,9 +215,14 @@ def review_items(values: list[Any], pr_url: str) -> list[dict[str, str]]:
         reviewer = f"login:{login}" if login else f"review:{review_id}"
         if reviewer not in latest or latest[reviewer][0] < review_id:
             latest[reviewer] = (review_id, state, login or "unknown")
+    return sorted(latest.values())
+
+
+def review_items(values: list[Any], pr_url: str) -> list[dict[str, str]]:
+    """One item per reviewer whose latest decision requests changes."""
     return [
         make_item(f"review:{review_id}", "review", login, pr_url, "CHANGES_REQUESTED")
-        for review_id, state, login in sorted(latest.values())
+        for review_id, state, login in latest_decisions(values)
         if state == "CHANGES_REQUESTED"
     ]
 
@@ -344,8 +399,145 @@ def message_of(outcome: str, key: str, items: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+# --- Automatic merge ---------------------------------------------------------
+
+
+def env_flag(name: str) -> bool:
+    value = os.environ.get(name)
+    if value is None or value == "false":
+        return False
+    if value == "true":
+        return True
+    fail(f"{name} must be true or false")
+
+
+def checks_of(client: pr_lib.GitHubClient, root: str, head_sha: str) -> tuple[bool, bool]:
+    """Whether the head commit has a check run or commit status, and whether
+    every check run completed with success and the newest status of every
+    context is success."""
+    checks = client.paginated_check_runs(f"{root}/commits/{head_sha}/check-runs")
+    statuses = client.paginate(f"{root}/commits/{head_sha}/statuses")
+    succeeded = True
+    for value in checks:
+        check = require_dict(value, "check run")
+        if check.get("status") != "completed" or check.get("conclusion") != "success":
+            succeeded = False
+    newest: dict[str, tuple[int, Any]] = {}
+    for value in statuses:
+        status = require_dict(value, "commit status")
+        status_id = status.get("id")
+        if isinstance(status_id, bool) or not isinstance(status_id, int):
+            fail("GitHub commit status has an invalid id")
+        context = status.get("context")
+        context = context if isinstance(context, str) and context else str(status_id)
+        if context not in newest or newest[context][0] < status_id:
+            newest[context] = (status_id, status.get("state"))
+    if any(state != "success" for _, state in newest.values()):
+        succeeded = False
+    return bool(checks or statuses), succeeded
+
+
+def merge_waits_for(
+    client: pr_lib.GitHubClient,
+    root: str,
+    pr: dict[str, Any],
+    reviews: list[Any],
+    task: dict,
+    without_checks: bool,
+) -> str | None:
+    """Why the pull request cannot be merged automatically yet, or None."""
+    if pr["state"] != "open":
+        return "the pull request is not open"
+    if pr["draft"] is not False:
+        return "the pull request is a draft"
+    if pr["head_sha"] not in pr_lib.verified_shas(task):
+        return "the verification artifact does not name the head commit"
+    if pr["mergeable"] is not True or pr["mergeable_state"] not in MERGEABLE_STATES:
+        return "GitHub does not report the pull request ready to merge"
+    if any(state == "CHANGES_REQUESTED" for _, state, _ in latest_decisions(reviews)):
+        return "a reviewer requests changes"
+    present, succeeded = checks_of(client, root, pr["head_sha"])
+    if not present and not without_checks:
+        return (
+            "the head commit has no check run or commit status"
+            f" and {AUTO_MERGE_WITHOUT_CHECKS_ENV} is not true"
+        )
+    if not succeeded:
+        return "not every check and commit status of the head commit succeeded"
+    return None
+
+
+def report_merged(name: str, merge_sha: str) -> int:
+    pr_lib.write_result(
+        outcome="merged",
+        message=f"Pull request {name} merged as {merge_sha}.",
+        artifacts={"merge_commit": merge_sha},
+    )
+    return 0
+
+
+def merge_method(repository: dict[str, Any], name: str) -> tuple[str, str]:
+    for method, setting, label in MERGE_METHODS:
+        if repository.get(setting) is True:
+            return method, label
+    fail(
+        f"GitHub reports no merge method that the repository allows for {name}"
+        " (rebase, squash or merge); allow one in the repository settings"
+        " or merge the pull request by hand"
+    )
+
+
+def github_says(exc: pr_lib.GitHubHTTPError) -> str:
+    text = exc.github_message
+    if isinstance(text, str) and SAFE_GITHUB_MESSAGE_RE.fullmatch(text):
+        return f'; GitHub says: "{text}"'
+    return ""
+
+
+def merge(client: pr_lib.GitHubClient, root: str, number: int, pr: dict[str, Any], name: str) -> int:
+    """Request a merge of the observed head and report `merged` only after
+    GitHub confirms it; quiet while the merge is not confirmed."""
+    repository = require_dict(client.get(root), "repository")
+    default_branch = repository.get("default_branch")
+    if not isinstance(default_branch, str) or not default_branch:
+        fail("GitHub returned a repository without a default branch")
+    if pr["base_ref"] != default_branch:
+        sys.stderr.write("automatic merge waits: the base is not the default branch\n")
+        return pr_lib.QUIET_EXIT
+    method, label = merge_method(repository, name)
+    uncertain: pr_lib.TransientFailure | None = None
+    refused: pr_lib.GitHubHTTPError | None = None
+    try:
+        client.request(
+            "PUT",
+            f"{root}/pulls/{number}/merge",
+            body={"sha": pr["head_sha"], "merge_method": method},
+        )
+    except pr_lib.TransientFailure as exc:
+        uncertain = exc
+    except pr_lib.GitHubHTTPError as exc:
+        if exc.status not in MERGE_REFUSED_STATUSES:
+            raise
+        refused = exc
+    after = normalize_pr(client.get(f"{root}/pulls/{number}"), number)
+    if after["merged"]:
+        return report_merged(name, after["merge_commit_sha"])
+    if uncertain is not None:
+        raise uncertain
+    if refused is not None:
+        fail(
+            f"GitHub refused the automatic {label} of {name} at {pr['head_sha'][:12]}"
+            f" (HTTP {refused.status}){github_says(refused)};"
+            " the next run checks the pull request again"
+        )
+    # GitHub accepted the request but does not show the merge yet.
+    return pr_lib.QUIET_EXIT
+
+
 def main() -> int:
     deadline = time.monotonic() + RUN_DEADLINE_SECONDS
+    auto_merge = env_flag(AUTO_MERGE_ENV)
+    without_checks = env_flag(AUTO_MERGE_WITHOUT_CHECKS_ENV)
     task = pr_lib.load_task()
     visit = task.get("visit")
     visit_id = visit.get("id") if isinstance(visit, dict) else None
@@ -379,12 +571,7 @@ def main() -> int:
         fail("the run exceeded its overall time limit")
 
     if pr["merged"]:
-        pr_lib.write_result(
-            outcome="merged",
-            message=f"Pull request {name} merged as {pr['merge_commit_sha']}.",
-            artifacts={"merge_commit": pr["merge_commit_sha"]},
-        )
-        return 0
+        return report_merged(name, pr["merge_commit_sha"])
 
     acknowledged: list[str] = []
     replay: list[dict[str, str]] = []
@@ -428,7 +615,18 @@ def main() -> int:
 
     if state_changed:
         write_state(state_path, state)
-    return pr_lib.QUIET_EXIT
+    if not auto_merge:
+        return pr_lib.QUIET_EXIT
+    try:
+        waits_for = merge_waits_for(client, root, pr, reviews, task, without_checks)
+        if waits_for is not None:
+            sys.stderr.write(f"automatic merge waits: {waits_for}\n")
+            return pr_lib.QUIET_EXIT
+        if time.monotonic() > deadline:
+            fail("the run exceeded its overall time limit")
+        return merge(client, root, number, pr, name)
+    except pr_lib.TransientFailure as exc:
+        return transient(state_path, state, repository, number, exc)
 
 
 if __name__ == "__main__":
