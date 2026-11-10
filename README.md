@@ -204,8 +204,11 @@ record with the outcome. `evals-check.py` rejects `ready` without an `evals`
 artifact, or when a new or changed scenario has no base and new result, when
 new passes fewer than 2 of 3 runs, or when new is worse than base.
 `pr-open.py` needs one open pull request from the branch at the verified
-commit. The `merge` watch only waits: the customer merges, and the workflow
-never does. `published-check.py` rejects `published` unless each image has its
+commit. The `merge` watch waits for the customer's merge. With the queue env
+var `AUTO_MERGE=true` it merges the pull request itself once the verified head
+is mergeable and every check and commit status of it succeeded;
+`AUTO_MERGE_WITHOUT_CHECKS=true` also lets it merge a head without any check,
+for a repository without CI. `published-check.py` rejects `published` unless each image has its
 version tag and `latest` under one full digest in the `publication` artifact,
 and each merged workflow has its version. The check cannot read the registry,
 so the customer confirms the record with `tariboy image ls`.

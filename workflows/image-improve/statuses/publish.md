@@ -1,7 +1,7 @@
 # Publish
 
 This workflow takes one improvement of an image, workflow or skill from a reviewer finding to a
-published image. The customer merged the pull request. In this status you publish the merged images
+published image. The pull request is merged. In this status you publish the merged images
 and record the result, so the improvement reaches the agents.
 
 The merge commit is in the `merge_commit` artifact.

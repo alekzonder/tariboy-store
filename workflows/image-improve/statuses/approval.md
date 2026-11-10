@@ -7,7 +7,8 @@ The image creator found a finding that needs your approval before any change. Th
 Choose one outcome:
 
 - `approved`: the image creator makes the change as written, with evals, and opens one pull
-  request. The task then waits for you to merge it. The image creator never merges.
+  request. The task then waits for you to merge it, or for the merge watch when the queue sets
+  `AUTO_MERGE`. The image creator never merges.
 - `changes_requested`: the plan goes back to triage. Say what to change, and answer any open
   question, in the message of this outcome.
 - `rejected`: the task closes and nobody works on it. Say why in the message.

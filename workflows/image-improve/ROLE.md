@@ -1,1 +1,1 @@
-The image-improve workflow takes an improvement of a Tariboy image, workflow or skill from a reviewer finding to a published image. It exists so that each improvement is checked, approved where required, merged by the customer and published with a known result.
+The image-improve workflow takes an improvement of a Tariboy image, workflow or skill from a reviewer finding to a published image. It exists so that each improvement is checked, approved where required, merged by the customer or the merge watch and published with a known result.

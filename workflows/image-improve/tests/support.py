@@ -37,6 +37,8 @@ class FakeGitHub:
     def __init__(self):
         self.routes = {}
         self.requests = []
+        self.bodies = []
+        self.on_put = None
         owner = self
 
         class Handler(http.server.BaseHTTPRequestHandler):
@@ -44,6 +46,21 @@ class FakeGitHub:
                 owner.requests.append(self.path)
                 path = self.path.split("?", 1)[0]
                 status, body = owner.routes.get(path, (404, {"message": "Not Found"}))
+                payload = json.dumps(body).encode("utf-8")
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
+            def do_PUT(self):
+                owner.requests.append("PUT " + self.path)
+                length = int(self.headers.get("Content-Length") or 0)
+                owner.bodies.append(json.loads(self.rfile.read(length) or b"null"))
+                path = self.path.split("?", 1)[0]
+                status, body = owner.routes.get("PUT " + path, (404, {"message": "Not Found"}))
+                if owner.on_put is not None:
+                    owner.on_put(path)
                 payload = json.dumps(body).encode("utf-8")
                 self.send_response(status)
                 self.send_header("Content-Type", "application/json")
@@ -68,16 +85,19 @@ class FakeGitHub:
 
 
 def pull(state="open", merged=False, head=HEAD_SHA, merge_sha=None, mergeable=True,
-         closed_at=None, title="Tighten a rule", body="Adds an eval."):
+         closed_at=None, title="Tighten a rule", body="Adds an eval.", mergeable_state="clean",
+         draft=False, base="main"):
     return {
         "number": 42,
         "state": state,
         "merged": merged,
         "mergeable": mergeable,
+        "mergeable_state": mergeable_state,
+        "draft": draft,
         "merge_commit_sha": merge_sha,
         "closed_at": closed_at,
         "head": {"sha": head, "ref": BRANCH},
-        "base": {"ref": "main"},
+        "base": {"ref": base},
         "title": title,
         "body": body,
         "user": {"login": "agent-bot"},

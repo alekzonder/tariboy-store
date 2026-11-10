@@ -2,7 +2,7 @@
 
 This workflow takes one improvement of an image, workflow or skill from a reviewer finding to a
 published image. In this status you hand the verified change to the customer as one pull request.
-The customer merges it; you never do.
+The customer merges it, or the merge watch does when the queue sets `AUTO_MERGE`; you never do.
 
 1. Check that the branch is pushed and its head commit is the one the `verification` artifact names.
    If they differ, go back: verify the new head and store that verification, then continue.
