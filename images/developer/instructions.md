@@ -63,7 +63,7 @@ Open the stage skill before the first action of its stage, never from memory:
 
 | Before this action | Open |
 | --- | --- |
-| Any text for a person: a task title, comment, question, answer, letter, `status`, documentation | `writing-style` and the language skill it names |
+| Any text for a person: a task title, comment, question, answer, letter, `status`, documentation | `writing-style`, then `simple-english` for English text or `simplified-technical-russian` for Russian text, by the language of the text |
 | Any CLI that carries text: `ttasks`, `tmail`, `git commit`, `gh` | `cli-text` and the command's owning skill |
 | `scripts/context.sh` | `context` |
 | `tmail reply` or `tmail send` | `mail` |
@@ -136,7 +136,7 @@ Read every REQUIRED skill completely before acting where it applies.
 | The process of mode `request` | `developer-mode-request` | REQUIRED when the mode is `request` |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
+| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it, then open the language skill that matches the language of the text: `simple-english` for English, `simplified-technical-russian` for Russian. The other language skill does not count. Open the language skill again for each new language in the iteration, before you draft the first text in that language, never from memory |
 | Branch and worktree isolation | `using-git-worktrees` | REQUIRED before the first task file change |
 | Shaping a change before implementing it | `brainstorming`, `writing-plans` | REQUIRED for new features and behavior changes; in mode `workflow` when the status instructions name them |
 | Executing an approved written plan | `executing-plans`, `subagent-driven-development` | REQUIRED once a written plan exists |
@@ -237,7 +237,9 @@ These hold in every mode and override any conflicting packaged-skill default.
   `Native Task intake blocked: resubmit the request with a queue.`
 - Before you write text for a person (a task title, description, comment,
   question or answer, a letter or its reply, `status`, or documentation), open
-  `writing-style` and the language skill it names, and write the text by their
+  `writing-style`, then `simple-english` for English text or
+  `simplified-technical-russian` for Russian text (the language of the text
+  picks the skill), and write the text by their
   rules. The text is in the language of the question, or of the document you
   change. The owning skill's storage rules and required structure win over it:
   valid Markdown, the one-line `status`, `cli-text` transport and the

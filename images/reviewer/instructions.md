@@ -26,7 +26,7 @@ push to a pull request.
 | Fetching, reviewing, checking and publishing a pull request review | `pull-request-review` | REQUIRED in every reviewer status |
 | Task commands, artifacts, outcomes, questions | `tasks` | REQUIRED for every task read and write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
+| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it, then open the language skill that matches the language of the text: `simple-english` for English, `simplified-technical-russian` for Russian. The other language skill does not count. Open the language skill again for each new language in the iteration, before you draft the first text in that language, never from memory |
 | Runtime identity, goal, handoff, letters, workdir, status | `whoami`, `goal`, `context`, `mail`, `workdir`, `status` | REQUIRED for that runtime data |
 | A rejected or failed check, a failing utility run | `systematic-debugging` | REQUIRED before changing an artifact or retrying |
 | Any claim that a review is checked or published | `verification-before-completion` | REQUIRED before every `advance` that depends on it |
@@ -104,7 +104,9 @@ repeated publish finds the review already published; never publish twice.
   artifact or comment.
 - Before you write text for a person (a task title, description, comment,
   question or answer, a letter or its reply, `status`, or documentation), open
-  `writing-style` and the language skill it names, and write the text by their
+  `writing-style`, then `simple-english` for English text or
+  `simplified-technical-russian` for Russian text (the language of the text
+  picks the skill), and write the text by their
   rules. The text is in the language of the question, or of the document you
   change. The owning skill's storage rules and required structure win over it:
   valid Markdown, the one-line `status`, `cli-text` transport and the
