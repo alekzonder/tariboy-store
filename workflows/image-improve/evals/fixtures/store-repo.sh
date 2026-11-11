@@ -10,6 +10,10 @@
 #   head-moved       like changed, plus a second commit of the same change
 #                    (a more exact eval prompt) pushed after the first one was
 #                    verified
+#   conflict         like changed, but only origin keeps the task branch (no local
+#                    branch, no worktree), and origin main has one newer commit
+#                    that changes the same lines of images/demo; the local main
+#                    is behind origin
 #   merged-workflow  a pull request that changed only workflows/demo/ and was
 #                    merged on origin; the local main is behind; the task
 #                    branch and worktree exist
@@ -23,7 +27,7 @@
 # the fake GitHub reads pull request heads from.
 set -euo pipefail
 
-variant=${1:?usage: store-repo.sh plain|changed|head-moved|merged-workflow|merged-unbumped}
+variant=${1:?usage: store-repo.sh plain|changed|head-moved|conflict|merged-workflow|merged-unbumped}
 : "${EVAL_DIR:?}" "${EVAL_GITHUB_STATE:?}" "${EVAL_VARS:?}"
 
 export GIT_AUTHOR_NAME="Eval Fixture" GIT_AUTHOR_EMAIL="fixture@eval.invalid"
@@ -131,6 +135,7 @@ pulls='[]'
 head_sha=
 old_head_sha=
 merge_sha=
+origin_main_sha=$base_sha
 
 make_change() {
   # Tighten the rule, add an eval case for it and bump the version.
@@ -175,6 +180,52 @@ if test "$variant" != plain; then
         git -C "$worktree" push -q origin "$branch"
         head_sha=$(git -C "$worktree" rev-parse HEAD)
       fi
+      ;;
+    conflict)
+      make_change "$worktree"
+      # Ten notes that the branch and main both add with different content.
+      mkdir -p "$worktree/images/demo/notes"
+      for n in 01 02 03 04 05 06 07 08 09 10; do
+        printf '%s\n' "# Note $n" '' 'Owner: tighten-failure-rule' >"$worktree/images/demo/notes/note-$n.md"
+      done
+      git -C "$worktree" add -A
+      git -C "$worktree" commit -q -am "Tighten the failure rule and add its eval"
+      git -C "$worktree" push -q -u origin "$branch"
+      head_sha=$(git -C "$worktree" rev-parse HEAD)
+      # Only origin keeps the task branch.
+      git -C "$repo" worktree remove --force "$worktree"
+      git -C "$repo" branch -q -D "$branch"
+      # Another change landed on main and touches the same three lines.
+      python3 - "$repo" <<'PY'
+import json
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+instructions = root / "images/demo/instructions.md"
+instructions.write_text(instructions.read_text().replace(
+    "- Report every failure in a task comment.\n",
+    "- Report every failure in a task comment, with the name of the failed command.\n"))
+evals = root / "images/demo/evals/evals.json"
+data = json.loads(evals.read_text())
+data["evals"].append({
+    "id": "report-failure-with-command-name",
+    "prompt": "A command failed. Which part of it does your comment name?",
+    "expected_output": "Success criteria:\n- the comment names the failed command",
+})
+evals.write_text(json.dumps(data, indent=2) + "\n")
+manifest = root / "images/demo/Tariboyfile.yaml"
+manifest.write_text(manifest.read_text().replace("image_version: 0.1.0", "image_version: 0.1.2"))
+PY
+      mkdir -p "$repo/images/demo/notes"
+      for n in 01 02 03 04 05 06 07 08 09 10; do
+        printf '%s\n' "# Note $n" '' 'Owner: failure-comment' >"$repo/images/demo/notes/note-$n.md"
+      done
+      git -C "$repo" add -A
+      git -C "$repo" commit -q -am "Name the failed command in the failure comment"
+      git -C "$repo" push -q origin main
+      origin_main_sha=$(git -C "$repo" rev-parse HEAD)
+      git -C "$repo" reset -q --hard "$base_sha"
       ;;
     merged-workflow)
       printf '\nClose it with the outcome close.\n' >>"$worktree/workflows/demo/statuses/open.md"
@@ -223,6 +274,7 @@ cat >"$EVAL_VARS" <<JSON
   "head_sha": "$head_sha",
   "old_head_sha": "$old_head_sha",
   "merge_sha": "$merge_sha",
+  "origin_main_sha": "$origin_main_sha",
   "local_main": "$local_main",
   "pr_url": "https://github.com/eval/demo-store/pull/7"
 }

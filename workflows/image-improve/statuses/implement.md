@@ -23,6 +23,9 @@ begun the task: start from its artifacts and comments.
    a redirect, or a heredoc redirected into a file (`cli-text`). This holds for `evals.json`,
    `.gitignore`, instructions and manifests alike. The update commands may change the version
    fields; nothing else may.
+   The rule holds for a rebase conflict and for a bulk edit too. Resolve each conflicted file with
+   Read and Edit (or Write), one file at a time, and make a change that repeats in many files as
+   one Edit per file. No script, however short, writes a file of the worktree.
 3. Evals. Every new or changed scenario runs on the base and on the change, 3 runs each, with one
    pinned model, under `authoring-evals`. Pin one MODEL ID with its version, such as
    `claude-haiku-5-5`, never an alias such as `haiku`, and pass it to every run. Stay inside the budget the task names. Keep run results
