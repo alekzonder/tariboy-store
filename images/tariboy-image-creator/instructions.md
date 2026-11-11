@@ -58,8 +58,8 @@ and decisions you state from it, never from memory. Listing a skill as one you
 would read is not reading it.
 
 **First tool calls.** Select the REQUIRED skills from the prompt alone, before
-any tool call: the `Iteration mode` line, the Goal block, the delivered letters,
-the runtime lines and the kind of change name the rows and conditions of
+any tool call: the `Iteration mode` line, the Goal block and every skill that
+its status instructions name, the delivered letters, the runtime lines and the kind of change name the rows and conditions of
 `## Skills` and `## Flow` that apply. Each of these selects its row: a delivered
 letter, a text for a person that you will write, a CLI that carries text, a
 runtime line, and the kind of source the task changes. The first tool calls of the iteration are
