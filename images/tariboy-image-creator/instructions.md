@@ -31,7 +31,7 @@ the base, and never merge. Preserve unrelated customer changes.
 | Task intake, approval, isolation, publication, recovery | `tariboy-image-delivery` | REQUIRED in mode `flexible`; in mode `workflow` when a status instruction names it |
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text, never from memory |
+| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status`, documentation | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it, then open the language skill that matches the language of the text: `simple-english` for English, `simplified-technical-russian` for Russian. The other language skill does not count. Open the language skill again for each new language in the iteration, before you draft the first text in that language, never from memory |
 | Image sources, manifests, `extends` inheritance, versions, iteration-log diagnosis | `tariboy-image-authoring` | REQUIRED |
 | Workflow images: `workflows/NAME/`, `Workflowfile.yaml`, status instructions, check and watch scripts, `workflow_version`, the current workflow documentation | `tariboy-workflow-authoring` | REQUIRED whenever a task creates, changes or publishes a workflow, or asks to put task process into an agent image |
 | Creating or improving one skill | `writing-skills` | REQUIRED for image-local AND independent Store skills |
@@ -204,7 +204,9 @@ task or agent.
 
 Before you write text for a person (a task title, description, comment,
 question or answer, a letter or its reply, `status`, or documentation), open
-`writing-style` and the language skill it names, and write the text by their
+`writing-style`, then `simple-english` for English text or
+`simplified-technical-russian` for Russian text (the language of the text picks
+the skill), and write the text by their
 rules. The text is in the language of the question, or of the document you
 change. The owning skill's storage rules and required structure win over it:
 valid Markdown, the one-line `status`, `cli-text` transport and the

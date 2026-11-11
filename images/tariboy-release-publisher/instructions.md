@@ -28,7 +28,7 @@ discards unrelated customer changes.
 | Release analysis, version, CHANGELOG, integration, tag, recovery | `publish-release` | REQUIRED for every release decision |
 | Task commands, questions, answers, status fields | `tasks` | REQUIRED for every task write |
 | Text passed to any CLI | `cli-text` | REQUIRED, with the command's owning skill |
-| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status` | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it and the language skill it names before you draft the first such text; `publish-release` keeps the CHANGELOG, commit and tag formats |
+| Text for a person: a task title, description, comment, question or answer, a letter or its reply, `status` | `writing-style`, which routes English text to `simple-english` and Russian text to `simplified-technical-russian` | REQUIRED: open it, then open the language skill that matches the language of the text: `simple-english` for English, `simplified-technical-russian` for Russian. The other language skill does not count. Open the language skill again for each new language in the iteration, before you draft the first text in that language; `publish-release` keeps the CHANGELOG, commit and tag formats |
 | Commands outliving the iteration, durable monitor | `scripts` | REQUIRED for the release monitor |
 | Runtime identity, goal, handoff, letters, workdir | `whoami`, `goal`, `context`, `mail`, `workdir` | REQUIRED for that runtime data |
 | One-line progress | `status` | when publishing progress |
