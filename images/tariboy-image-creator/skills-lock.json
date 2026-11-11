@@ -58,7 +58,7 @@
     "image-creator-mode-flexible": {
       "source": "./skills/image-creator-mode-flexible",
       "sourceType": "local",
-      "computedHash": "86fca4b1491a0af1babdc4bce39588765f2f55dbaaa45b537180b61507736e55"
+      "computedHash": "bc4c8bad7ee79e3f6a9bc4713a2d26dbd0a311114078401e5d7a0dcb7d8fc1fd"
     },
     "image-creator-mode-workflow": {
       "source": "./skills/image-creator-mode-workflow",

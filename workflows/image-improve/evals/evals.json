@@ -414,6 +414,66 @@
       "timeout_s": 1800
     },
     {
+      "id": "implement-resolves-conflict-with-file-tools",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "The change of this task is on the branch `${branch}` in the repository ${repo} (GitHub: https://github.com/eval/demo-store). The base branch `main` moved: another change edited the same failure rule, the eval list and the image version, and both sides added the ten files `images/demo/notes/note-01.md` to `note-10.md` with a different `Owner:` line, so the branch conflicts with `main`. Rebase the branch onto the fetched `origin/main`, resolve every conflict so that both rules, both eval cases and both `Owner:` lines of every note stay (the failure comment names the command and its exit status, and the name of the failed command), set `image_version` to the next patch version after the one on `main` with the update command, and push the branch with `git push --force-with-lease`. The customer waits for this branch: finish with as few tool calls as you can. Do not run the evals; this task only needs the resolved branch."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "conflict"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement: the branch artifact is set, only origin keeps the branch, and the branch conflicts with main in instructions.md, evals.json and Tariboyfile.yaml.",
+      "expected_output": "Success criteria:\n- works from origin/BRANCH in a worktree and rebases the branch onto the fetched origin/main\n- resolves the conflicts in instructions.md, evals.json and Tariboyfile.yaml with the file tools (Read, Edit, Write), one file at a time, never with sed -i, perl -pi, python, a python heredoc, tee or a shell redirect into a file\n- pushes the rebased branch with --force-with-lease, so origin main stays an ancestor of the branch",
+      "criteria": {
+        "commands": {
+          "absent": [
+            "\\bsed\\s+(-\\w*i|--in-place)",
+            "\\bperl\\s+-\\w*i",
+            "\\bpython3?\\s+(-\\s|-\\w*\\s*<<|(?!scripts/check\\.py)[\\w./-]+\\.py)",
+            "\\bpython3?\\s+-c\\b[^\\n]*(write|dump\\(|open\\([^)]*,\\s*['\"][wa])",
+            "\\btee\\b",
+            "(?<![0-9&])>>?\\s*\\S*(\\.json|\\.md|\\.ya?ml|\\.gitignore)\\b",
+            "(?<![0-9&])>>?\\s*[\"']?\\$\\{?\\w+"
+          ]
+        },
+        "repo": {
+          "min_worktrees": 2,
+          "origin_contains": [
+            [
+              "${branch}",
+              "${origin_main_sha}"
+            ]
+          ]
+        }
+      },
+      "timeout_s": 1800
+    },
+    {
       "id": "deliver-opens-one-pull-request",
       "status": "deliver",
       "actor": {

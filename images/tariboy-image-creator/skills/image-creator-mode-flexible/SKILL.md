@@ -47,6 +47,11 @@ the task active and blocks `ttasks done`. An image whose bump is missing is not
 built or published under any tag, `latest` included; its fix is a follow-up
 change asked through the task, never a bump or commit made after the merge.
 
+Rows 3 to 7 change every file with Read, Edit and Write, also when a rebase
+conflict stops the branch and also when one change repeats in many files.
+Resolve each conflicted file with Read and Edit (or Write), one file at a time,
+and make a repeated change as one Edit per file. No inline script writes a file.
+
 Never run `ttasks advance` in this mode, and never use a workflow status
 instruction: the task has no workflow. A task that does follow a workflow is
 mode `workflow`.
