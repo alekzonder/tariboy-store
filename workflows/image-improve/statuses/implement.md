@@ -49,7 +49,13 @@ begun the task: start from its artifacts and comments.
    artifact, as Markdown from standard input; again after every new commit. Push the branch.
 6. Post every task comment, each difference from the plan included, before `ready`: after it your
    task writes fail, often as `not_found`.
-7. Leave the status with the outcome `ready`. A check reads the `evals` artifact; if it rejects,
+7. Compare the heads before `ready`. Run `git rev-parse HEAD` in the worktree and read the 40-character
+   SHA in the `verification` artifact (`ttasks artifacts show KEY verification`). A rebase, a
+   commit or a push changes the head. If the two SHAs differ, the stored results are void: run
+   `make check` on the new head, store a new `verification` artifact with the new SHA, rerun and
+   store again the `evals` scenarios that the new commits touched, push, and compare again. Do not
+   leave the status until the two SHAs are equal.
+8. Leave the status with the outcome `ready`. A check reads the `evals` artifact; if it rejects,
    fix what its message names and advance again.
 
 ## When the task came back
@@ -68,4 +74,5 @@ visits: work from `origin/BRANCH` on the same branch and pull request.
   replaces it. Never open one on your own.
 
 After a fix: rerun the evals the fix touches, update the `evals` and `verification` artifacts for
-the new head commit (a new head voids every earlier result), push, and leave with `ready` again.
+the new head commit (a new head voids every earlier result), push, compare `git rev-parse HEAD` with
+the SHA in the `verification` artifact as step 7 says, and leave with `ready` again.

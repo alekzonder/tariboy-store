@@ -5,7 +5,11 @@ published image. In this status you hand the verified change to the customer as 
 The customer merges it, or the merge watch does when the queue sets `AUTO_MERGE`; you never do.
 
 1. Check that the branch is pushed and its head commit is the one the `verification` artifact names.
-   If they differ, go back: verify the new head and store that verification, then continue.
+   Run `git rev-parse HEAD` in the worktree and compare it with the 40-character SHA in the
+   `verification` artifact. If they differ, go back: run `make check` on the new head, store a new
+   `verification` artifact with the new SHA, store again the `evals` results that the new commits
+   touched, push, and compare again. Continue only when the two SHAs are equal. Run the same
+   comparison again just before `submitted`.
 2. Find or create the task's one pull request with `github-pr-workflow`'s `ensure` (find the one in
    `pull_request` first); never open a second one. The base is the repository's default branch.
    Title and body are English and carry no task key. The body has what changed, the versions bumped
