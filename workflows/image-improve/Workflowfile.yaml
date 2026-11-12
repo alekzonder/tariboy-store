@@ -1,6 +1,6 @@
 schema_version: 1
 name: image-improve
-workflow_version: 0.2.3
+workflow_version: 0.3.0
 initial_status: triage
 requires_secrets: [GITHUB_TOKEN]
 # AUTO_MERGE: "true" lets the merge watch merge the pull request itself once

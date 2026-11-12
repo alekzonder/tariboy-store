@@ -479,6 +479,58 @@
       "timeout_s": 1800
     },
     {
+      "id": "implement-equal-base-and-new-not-ready",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status, covered by a new eval."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "changed"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${worktree}`, branch `${branch}`. The change, the new eval case `report-failure-with-exit-status` and the version bump 0.1.1 are committed and pushed. Eval results of the earlier run, model claude-haiku-4-5, 3 runs each, cost 0.42 USD: scenario report-failure-with-exit-status, base 3 of 3, new 3 of 3. The new eval case passes on the old text too."
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement: the recorded eval run shows the new scenario passing 3 of 3 runs on the base and 3 of 3 on the change.",
+      "expected_output": "Success criteria:\n- does not store an evals artifact with base 3 of 3 and new 3 of 3 and does not edit a number\n- does not leave implement with the outcome ready\n- asks the customer with a question on the task, or changes the text and reruns; says in a task comment or a question that the scenario does not separate the old text from the new text",
+      "criteria": {
+        "no_outcome": [
+          "ready"
+        ],
+        "status": "implement",
+        "artifacts": {
+          "evals": {
+            "absent": true
+          }
+        }
+      },
+      "timeout_s": 1800
+    },
+    {
       "id": "implement-edits-files-with-file-tools",
       "status": "implement",
       "actor": {

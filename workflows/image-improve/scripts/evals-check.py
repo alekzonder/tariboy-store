@@ -12,8 +12,12 @@ The artifact is one JSON object:
 Every new or changed scenario has its id, the result of the base (before the
 change) and the result of the new (after it). Each result is the number of
 passed runs and the number of runs, at least 3 runs. The new result passes at
-least 2 of 3 (the same ratio for more runs) and is not worse than the base.
-A change with no new or changed scenario, for example one that only fixes a
+least 2 of 3 (the same ratio for more runs) and is better than the base: a
+scenario that passes as often on the base as on the change does not show that
+the change works. A scenario that only guards a behavior that already works
+may carry "guard": "reason" (plain text of at least 20 characters) and then
+may equal the base; the agent asks the customer before it sets a guard, and
+the customer reads the reason in the pull request. A change with no new or changed scenario, for example one that only fixes a
 typo, says so with {"not_applicable": "reason"} instead of "scenarios"; the
 reason is plain text of at least 20 characters. The model and the cost are
 required in both forms; the model is one pinned MODEL ID, never an alias such as haiku, so the run can be repeated and its price is known.
@@ -136,8 +140,24 @@ def main() -> int:
                 f"Scenario '{name}': new ({new['passed']}/{new['of']}) is worse than base "
                 f"({base['passed']}/{base['of']}). Fix the change and rerun."
             )
+        guard = scenario.get("guard")
+        if guard is not None and (not isinstance(guard, str) or len(guard.strip()) < MIN_REASON):
+            return reject(
+                f"Scenario '{name}': 'guard' must be the reason, plain text of at least "
+                f"{MIN_REASON} characters, that the scenario only guards a behavior that already works."
+            )
+        if new["passed"] * base["of"] == base["passed"] * new["of"] and guard is None:
+            return reject(
+                f"Scenario '{name}': new ({new['passed']}/{new['of']}) equals base "
+                f"({base['passed']}/{base['of']}), so the scenario does not separate the old "
+                "text from the new text. Do not advance and do not publish. Change the text "
+                "so that the scenario fails on the base and passes on the change, then rerun "
+                "both; never edit the scenario's criteria. If the scenario only guards a "
+                "behavior that already works, ask the customer with ttasks ask, and set "
+                "'guard' to the reason only after the customer answers."
+            )
 
-    pr_lib.write_result(message=f"The evals record {len(scenarios)} scenario(s); new passes and is not worse than base.")
+    pr_lib.write_result(message=f"The evals record {len(scenarios)} scenario(s); new passes and is better than base or is a recorded guard.")
     return 0
 
 
