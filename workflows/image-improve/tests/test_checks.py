@@ -175,6 +175,43 @@ class EvalsCheckTests(ScriptCase):
         code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
         self.rejected(code, result, "worse than base")
 
+    def test_new_equal_to_base_is_rejected(self):
+        for passed in (0, 3):
+            scenarios = [{"id": "a", "base": {"passed": passed, "of": 3}, "new": {"passed": passed, "of": 3}}]
+            code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+            if passed == 3:
+                self.rejected(code, result, "Scenario 'a'", "equals base", "does not separate", "ttasks ask")
+            else:
+                self.assertEqual(code, REJECT, result)
+
+    def test_equal_ratio_with_other_run_counts_is_rejected(self):
+        scenarios = [{"id": "a", "base": {"passed": 4, "of": 6}, "new": {"passed": 2, "of": 3}}]
+        code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+        self.rejected(code, result, "equals base")
+
+    def test_better_new_is_accepted(self):
+        scenarios = [{"id": "a", "base": {"passed": 2, "of": 3}, "new": {"passed": 3, "of": 3}}]
+        code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+        self.assertEqual(code, 0, result)
+
+    def test_guard_with_a_reason_accepts_equal_results(self):
+        reason = "The scenario guards the wait rule that already works."
+        scenarios = [{"id": "a", "base": {"passed": 3, "of": 3}, "new": {"passed": 3, "of": 3}, "guard": reason}]
+        code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+        self.assertEqual(code, 0, result)
+
+    def test_guard_needs_a_reason_of_twenty_characters(self):
+        for guard in ("works", "", 1, True):
+            scenarios = [{"id": "a", "base": {"passed": 3, "of": 3}, "new": {"passed": 3, "of": 3}, "guard": guard}]
+            code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+            self.rejected(code, result, "'guard'", "20 characters")
+
+    def test_guard_does_not_excuse_a_worse_new(self):
+        reason = "The scenario guards the wait rule that already works."
+        scenarios = [{"id": "a", "base": {"passed": 3, "of": 3}, "new": {"passed": 2, "of": 3}, "guard": reason}]
+        code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
+        self.rejected(code, result, "worse than base")
+
     def test_fewer_than_three_runs_is_rejected(self):
         scenarios = [{"id": "a", "base": {"passed": 0, "of": 1}, "new": {"passed": 1, "of": 1}}]
         code, result, _ = self.run_evals(self.evals(scenarios=scenarios))
@@ -205,6 +242,8 @@ class EvalsCheckTests(ScriptCase):
         text = " ".join((SCRIPTS.parent / "statuses" / "implement.md").read_text().split())
         self.assertIn("never an alias such as `haiku`", text)
         self.assertIn("leads to a fix of the change, never of the scenario's criteria", text)
+        self.assertIn("Stop when new equals base in a scenario", text)
+        self.assertIn("ask the customer with `ttasks ask`", text)
 
     def test_not_applicable_needs_a_reason(self):
         data = self.evals(scenarios=None, not_applicable="Only a typo in a comment changed.")

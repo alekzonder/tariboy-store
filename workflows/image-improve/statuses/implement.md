@@ -41,9 +41,16 @@ begun the task: start from its artifacts and comments.
    ```
 
    Use `{"model": "...", "cost_usd": 0, "not_applicable": "why no scenario changed"}` in place of
-   `scenarios` only when no scenario is new or changed. New must pass at least 2 of 3 and be no worse
+   `scenarios` only when no scenario is new or changed. New must pass at least 2 of 3 and be better
    than base. If a scenario fails, fix the change and rerun; never edit a number. A failed
    scenario leads to a fix of the change, never of the scenario's criteria or `expected_output`.
+   Stop when new equals base in a scenario, for example 3 of 3 on both: that scenario does not
+   separate the old text from the new text. Do not store the `evals` artifact, do not advance and
+   do not publish. Change the text so that the scenario fails on the base and passes on the
+   change, and rerun both; or, when the scenario only guards a behavior that already works, ask
+   the customer with `ttasks ask`. Only after the customer's recorded answer add `"guard":
+   "REASON"` (at least 20 characters) to that scenario in the `evals` artifact. Say the equal
+   result in a task comment, never only in the pull request.
 5. Commit, run `make check` on that commit and read its output (`verification-before-completion`).
    Store the command, the commit's full 40-character SHA and the result in the `verification`
    artifact, as Markdown from standard input; again after every new commit. Push the branch.
