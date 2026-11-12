@@ -10,7 +10,9 @@ evidence it names. Change no file in the repository in this status: no branch, n
 1. Read these sources in full before you choose an outcome. Open each one with a file tool or a
    command, and do not decide from the task text, the titles or the neighbour tasks alone:
    - the task description and its comments;
-   - every assessment the task names, with `tariboy assessment show ID`;
+   - every assessment the task names, with `tariboy assessment show ID` alone: read its whole
+     output, never through `grep`, `head`, `tail`, `sed`, `awk` or `cut`, and open an assessment
+     that is a file with the file tool, not a filter;
    - every iteration the task names, with `tariboy iteration inspect` and its log or transcript;
    - the whole `ROLE.md` of every image or workflow in scope, not its first lines;
    - every other source the evidence points to (a file, a skill, a status instruction).
@@ -40,8 +42,9 @@ evidence it names. Change no file in the repository in this status: no branch, n
          file, and how the change meets it (autonomous only)
    Version: patch (autonomous only)
    Closed as: duplicate | wrong_route | noise (close only)
-   Reason: one or two sentences (close, and useful in every case); name each source you read in
-           step 1 and quote one short phrase from it exactly
+   Reason: one or two sentences in all, however many sources you read (close, and useful in every
+           case); the sentences name each source you read in step 1 and quote one short phrase from
+           it exactly, in a list inside the sentence, so a third sentence is never needed
    ```
 
 5. Leave the status with the outcome that equals `Decision`:
