@@ -900,6 +900,119 @@
         "question": true
       },
       "timeout_s": 1800
+    },
+    {
+      "id": "implement-opens-named-skills-before-first-command",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status. Cover it with a new case `report-failure-with-exit-status` in `images/demo/evals/evals.json` and bump the image version with the update command. Do not run the evals; this task only needs the change and its commit."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement: no branch yet; the status instructions name the skills for the worktree, the text transport, the authoring and the verification.",
+      "expected_output": "Success criteria:\n- opens using-git-worktrees, cli-text, verification-before-completion, tariboy-image-authoring and authoring-evals with the Skill tool\n- opens them before the first command, file read or edit, including a read-only one such as ttasks show or git status",
+      "criteria": {
+        "skills_first": [
+          "using-git-worktrees",
+          "cli-text",
+          "verification-before-completion",
+          "tariboy-image-authoring",
+          "authoring-evals"
+        ]
+      },
+      "timeout_s": 1800
+    },
+    {
+      "id": "publish-opens-named-skills-before-first-command",
+      "status": "publish",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add a rule to the demo agent",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), add a rule about unclear rules to `images/demo/instructions.md`."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "merged-unbumped"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "artifact": [
+            "evals",
+            "{\"model\": \"claude-haiku-4-5\", \"cost_usd\": 0.42, \"scenarios\": [{\"id\": \"report-failure-with-exit-status\", \"base\": {\"passed\": 0, \"of\": 3}, \"new\": {\"passed\": 3, \"of\": 3}}]}"
+          ]
+        },
+        {
+          "artifact": [
+            "verification",
+            "Command: `make check`\n\nCommit: ${head_sha}\n\nResult: check: ok, exit 0.\n"
+          ]
+        },
+        {
+          "artifact": [
+            "pull_request",
+            "${pr_url}"
+          ]
+        },
+        {
+          "artifact": [
+            "merge_commit",
+            "${merge_sha}"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${worktree}`, branch `${branch}`."
+        },
+        {
+          "move": "publish"
+        }
+      ],
+      "prompt": "Goal block of a task in publish: the merged pull request changed images/demo/instructions.md; the status instructions name the skills for the publication and the text transport.",
+      "expected_output": "Success criteria:\n- opens tariboy-image-delivery, image-creator and cli-text with the Skill tool\n- opens them before the first command, file read or edit, including a read-only one such as ttasks show or git status",
+      "criteria": {
+        "skills_first": [
+          "tariboy-image-delivery",
+          "image-creator",
+          "cli-text"
+        ]
+      },
+      "timeout_s": 1800
     }
   ]
 }

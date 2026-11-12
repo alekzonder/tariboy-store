@@ -6,6 +6,10 @@ and record the result, so the improvement reaches the agents.
 
 The merge commit is in the `merge_commit` artifact.
 
+Open the skills this status names with the Skill tool before the first command, file read or edit,
+`ttasks show` and `git status` included: `tariboy-image-delivery`, `image-creator` and `cli-text`. A command run before these reads is a
+violation, and later reads do not undo it.
+
 1. Fetch and fast-forward the base branch in the main checkout until it contains the merge commit.
    Never reset, rebase or force it. If the fast-forward fails because the local branch diverged,
    keep it as it is and ask the customer through the task. Prove it:

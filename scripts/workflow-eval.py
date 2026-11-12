@@ -72,6 +72,7 @@ CRITERIA_KINDS = {
     "repo",
     "pulls",
     "commands",
+    "skills_first",
 }
 CASE_FIELDS = {
     "id",
@@ -253,6 +254,27 @@ def shell_commands(transcript: str) -> list[str]:
     return commands
 
 
+def tool_calls(transcript: str) -> list[tuple[str, dict]]:
+    """The tool calls of the actor in order, as (tool name, input). The
+    transcript is `calls:` and a JSON list; the request history repeats each
+    call, so a call counts once, by its `tool_use_id`."""
+    start = transcript.find("[")
+    if start < 0:
+        return []
+    try:
+        calls, _ = json.JSONDecoder().raw_decode(transcript[start:])
+    except ValueError:
+        return []
+    found, seen = [], set()
+    for call in calls if isinstance(calls, list) else []:
+        for block in (call.get("response") or {}).get("blocks") or []:
+            if block.get("type") != "tool_use" or block.get("tool_use_id") in seen:
+                continue
+            seen.add(block.get("tool_use_id"))
+            found.append((str(block.get("tool_name", "")), block.get("input") or {}))
+    return found
+
+
 def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bool, str]]:
     """Each criterion as (name, passed, detail). `snap` is the collected
     state: status, requests, artifacts, comments, waits, repo."""
@@ -389,6 +411,18 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
             if hit is not None:
                 problems.append(f"command matches {pattern!r}: {hit[:120]!r}")
         results.append(("commands", not problems, "; ".join(problems) or f"{len(commands)} commands checked"))
+
+    if "skills_first" in criteria:
+        # Every named skill is opened with the Skill tool before the first
+        # call of any other tool: a command, a file read or an edit.
+        calls = tool_calls(snap.get("transcript", ""))
+        first_other = next((i for i, (name, _) in enumerate(calls) if name != "Skill"), len(calls))
+        opened = {str(inp.get("skill", "")).rsplit(":", 1)[-1] for name, inp in calls[:first_other] if name == "Skill"}
+        late = [s for s in criteria["skills_first"] if s not in opened]
+        detail = f"{first_other} Skill calls before the first other tool call"
+        if first_other < len(calls):
+            detail += f" ({calls[first_other][0]})"
+        results.append(("skills_first", not late, f"opened after the first other tool call or never: {late}; {detail}" if late else detail))
 
     if "pulls" in criteria:
         rules = criteria["pulls"]
@@ -600,6 +634,9 @@ def prepare_store(dest: Path, workflow: str, overrides: dict[str, Path], images:
                 )
             if result.returncode != 0:
                 raise EvalError(f"restoring the skills of image {layer} failed; see {log}")
+            # The skills tool also links the skills into `.claude/skills` when
+            # it detects Claude Code; the image build rejects those symlinks.
+            shutil.rmtree(directory / ".claude", ignore_errors=True)
     return workflow_dir
 
 
