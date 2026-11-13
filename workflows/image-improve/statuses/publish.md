@@ -6,6 +6,11 @@ and record the result, so the improvement reaches the agents.
 
 The merge commit is in the `merge_commit` artifact.
 
+Open the skills this status names with the Skill tool before the first command, file read or edit,
+`ttasks show` and `git status` included: `workdir`, `tariboy-image-delivery`, `image-creator` and
+`cli-text`. A command run before these reads is a violation, and later reads do not undo it. The
+disposable copies of step 3 go under `WORKDIR/KEY/`, as `workdir` says.
+
 1. Fetch and fast-forward the base branch in the main checkout until it contains the merge commit.
    Never reset, rebase or force it. If the fast-forward fails because the local branch diverged,
    keep it as it is and ask the customer through the task. Prove it:
@@ -36,7 +41,12 @@ The merge commit is in the `merge_commit` artifact.
 6. Post one consolidated task comment with `Required:`, `Completed:`, `Verification:`,
    `Integration:` (pull request URL and merge commit), `Publication:` (per image: name, version,
    `latest`, digest; per workflow: version, not built by you, and the two operator commands) and
-   `Cleanup:`. Mention the customer.
+   `Cleanup:`. The `Cleanup:` line names the removed worktree and local branch, and the folder
+   `WORKDIR/KEY/` by its absolute path in the workdir, which step 8 removes after `published`.
+   Mention the customer.
 7. Leave the status with the outcome `published`. A check confirms each image has its version and
    `latest` under one full digest. If it rejects, fix the build or the record and advance again.
    Never record a digest you did not read from the build output.
+8. After `advance` accepts `published`, the task is complete: remove the folder `WORKDIR/KEY/` with
+   everything in it, as `workdir` says in "Cleanup at completion". Keep only a path that a task
+   comment named as kept. Do it before the iteration ends; a rejected `published` keeps the folder.
