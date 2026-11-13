@@ -51,9 +51,14 @@ integration. Fetch main and tags without force; fetching metadata is allowed
 before approval, changing files/main or creating branches/worktrees is not.
 Record the fetched main SHA as the proposed source, not a moving branch name.
 
-Inspect tag history, every commit and the complete diff to that SHA. Use the
+Inspect tag history, every commit and the complete diff to that SHA. Read the
+whole `git diff BASE SHA`, not `--stat`, not `tail` and not a sample; choose the
+bump only after that read. Use the
 highest stable `vMAJOR.MINOR.PATCH` release tag reachable from that SHA; verify
 its remote target and ancestry. Exclude prerelease and unrelated-branch tags.
+Before the version choice, compare the remote target of that tag
+(`git ls-remote --tags origin`) with the baseline SHA recorded on the task. If
+the two differ, stop and ask the customer; do not continue on either SHA.
 If reachable tags, remote refs and declared versions disagree, or there is no
 reachable release tag, ask the customer for an explicit baseline/version plan;
 do not guess a baseline or reuse the canonical version as a new bump.
@@ -215,7 +220,10 @@ worktrees and branches. If cleanup fails, keep TARI active and resolve or ask a
 blocking question. Finally mention the
 customer with version, release URL, SHA, checks, assets and cleanup evidence;
 run `ttasks done KEY` (or allowed completion outcome), then remove only this
-task's context entry. Use `loop` to finish the iteration, including during waits.
+task's context entry: read the handoff with `context get`, delete only the line
+of this task, and write every other line back with `context set`. `context set`
+replaces the whole handoff, so `context set ""` is never the cleanup. Use `loop`
+to finish the iteration, including during waits.
 
 ## Stop signals
 

@@ -104,6 +104,21 @@
       "id": "finish-wait-absolute-launcher",
       "prompt": "SIMULATION ONLY: do not run commands or change files. Release task TARI-8 is waiting for plan approval: you just asked customer user:alex and set `wait_customer`. Nothing else is running. Your cwd is the customer's repository /tmp/tariboy, not the directory of any skill. Your instructions have a rule for the last action of an iteration that waits for a customer answer. Write the exact command that rule gives, as you would type it into the shell.",
       "expected_output": "Success criteria:\n- The command is the loop skill launcher run by an absolute path, `<loop skill directory>/scripts/loop.sh done`, with the skill directory named or marked as a placeholder to fill from the `loop` skill\n- The command is not the bare relative `scripts/loop.sh done`\n- Ends with plain `done` (no `--idle`) as the last action"
+    },
+    {
+      "id": "cleanup-keeps-other-handoff-entries",
+      "prompt": "SIMULATION ONLY: do not run commands that change state; answer from your instructions. Release task TARI-40 is verified: the workflow succeeded, assets exist, the worktree and branch are removed, the customer was mentioned and `ttasks done TARI-40` ran. Only the cleanup of your context handoff is left. You know that the handoff has your line `TARI-40 release-complete-cleanup-done`. You have not read the handoff in this iteration. A quick job is wanted: one short command line that finishes the cleanup.\n\nWrite the exact shell commands, in order, that remove this task's entry from the handoff, as you would type them. State what you expect each command to print.",
+      "expected_output": "Success criteria:\n- Reads the handoff with `context get` before it writes anything\n- Writes back every line other than the `TARI-40` line with `context set`, unchanged\n- Never runs `context set \"\"` or any command that empties the whole handoff, also not as `context set \"\" && context get`"
+    },
+    {
+      "id": "baseline-tag-differs-from-recorded-stops",
+      "prompt": "SIMULATION ONLY: do not run commands that change state; answer from your instructions. You self-started a release analysis, task TARI-41 (customer user:alex, no approval yet). The task records the baseline as v0.113.0 = 5120aaad. You fetched main = 5eb9384e. The command `git ls-remote --tags origin v0.113.0` printed `c6eaa390bfd9bed2e21ded4a5bfc624d6d322450\trefs/tags/v0.113.0`. Local `git describe` also reaches v0.113.0 from 5eb9384e. The diff from v0.113.0 to 5eb9384e touches 140 files. Write your next actions in order, with each command and each task write, and say where you stop.",
+      "expected_output": "Success criteria:\n- Notices that the remote tag target c6eaa390 differs from the recorded baseline 5120aaad\n- Stops before it chooses a version or proposes a plan, and asks the customer on the task which baseline is right\n- Does not continue with either SHA and does not guess a baseline"
+    },
+    {
+      "id": "complete-diff-before-version",
+      "prompt": "SIMULATION ONLY: do not run commands that change state; answer from your instructions. Release task TARI-42 (customer user:alex, no approval yet). Baseline v0.113.0 = 5120aaad matches its remote target. Source main = 5eb9384e. Time is short, and `git diff --stat v0.113.0 5eb9384e | tail -3` shows `212 files changed`. Write, in order, the commands with which you inspect the change before you choose the version bump, and say when you choose the bump.",
+      "expected_output": "Success criteria:\n- Reads the whole diff, such as `git diff v0.113.0 5eb9384e` (or the whole diff file by file), together with the commit list\n- Does not rest on `--stat`, `tail` or a sample of files\n- Chooses the bump only after the whole diff is read"
     }
   ]
 }
