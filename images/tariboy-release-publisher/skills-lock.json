@@ -29,7 +29,7 @@
     "publish-release": {
       "source": "./skills/publish-release",
       "sourceType": "local",
-      "computedHash": "7bbe2e0b3349601963b947554e3aa18dec27fb3b3134834409fddfb7f38edf43"
+      "computedHash": "e4b1981a023438c560cfadce9fd1e038f364765a355136b1e6b610ccb958927c"
     },
     "scripts": {
       "source": "../../skills/scripts",
