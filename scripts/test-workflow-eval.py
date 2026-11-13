@@ -212,6 +212,26 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, clean, ACTOR)), [])
         self.assertEqual(failed(runner.check_criteria(criteria, inline, ACTOR)), ["commands"])
 
+    def test_skills_first_criterion_needs_every_skill_before_the_first_other_tool(self):
+        criteria = {"skills_first": ["tasks", "cli-text"]}
+
+        def call(n, name, **tool_input):
+            block = {"type": "tool_use", "tool_name": name, "tool_use_id": f"t{n}", "input": tool_input}
+            return {"response": {"blocks": [block]}}
+
+        def transcript(calls):
+            # The request history repeats earlier calls; a repeat counts once.
+            return "calls:\n" + json.dumps(calls + calls[:1])
+
+        skill = lambda n, s: call(n, "Skill", skill=f"image-x:{s}")
+        good = snapshot(transcript=transcript([skill(1, "tasks"), skill(2, "cli-text"), call(3, "Bash", command="ls")]))
+        late = snapshot(transcript=transcript([skill(1, "tasks"), call(2, "Bash", command="ls"), skill(3, "cli-text")]))
+        read_first = snapshot(transcript=transcript([call(1, "Read", file_path="/x"), skill(2, "tasks"), skill(3, "cli-text")]))
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, late, ACTOR)), ["skills_first"])
+        self.assertEqual(failed(runner.check_criteria(criteria, read_first, ACTOR)), ["skills_first"])
+        self.assertEqual(failed(runner.check_criteria(criteria, snapshot(), ACTOR)), ["skills_first"])
+
     def test_head_checkouts_criterion_fails_on_an_undone_switch(self):
         criteria = {"repo": {"head_checkouts": 0}}
         switched_back = snapshot(repo=dict(snapshot()["repo"], head="main", head_checkouts=2))
