@@ -126,8 +126,14 @@ awaited by its completion notification: start it, do the independent work that
 remains, then end the turn. Until the notification arrives, run nothing about
 that command: no `sleep`, no `tail`, `cat` or other read of its log or output
 file, no `ps`, `pgrep` or job check, and no kill or rerun. Silence of any
-length means it still runs; the harness reports its exit. Read the output
-once, after the notification. A customer-answer wait is completed in the same
+length means it still runs; the harness reports its exit. The notification of
+the whole run is the only signal. A wrapper command (a script or `make` target
+that starts the eval run or the build) can exit before the processes under it
+do: its notification does not end the run, so end the turn again and wait for
+the notification of the whole run. Run no `sleep`, `pgrep` or other check on
+the processes under a wrapper, and write no wait loop such as
+`while pgrep ...; do sleep 10; done`: a wait loop is a background command of
+its own. Read the output once, after the notification. A customer-answer wait is completed in the same
 iteration that records it, and after all live commands, evaluators and
 subagents finish, the `loop` skill's `scripts/loop.sh done` is the exact final
 action, run by its absolute path `<loop skill directory>/scripts/loop.sh done`;
