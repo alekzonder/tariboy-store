@@ -50,6 +50,10 @@ file of this task that you write into the workdir go under `WORKDIR/KEY/`, never
    `scenarios` only when no scenario is new or changed. New must pass at least 2 of 3 and be better
    than base. If a scenario fails, fix the change and rerun; never edit a number. A failed
    scenario leads to a fix of the change, never of the scenario's criteria or `expected_output`.
+   Every count in the `evals` artifact, a task comment, a question and the pull request text is
+   copied from the run output, one run at a time, never from memory or from a summary line. When
+   the run lines and a summary disagree, the run lines win. State a disputed run as it is: a run
+   that failed, was refused or gave no result counts as not passed, and the text says so.
    Stop when new equals base in a scenario, for example 3 of 3 on both: that scenario does not
    separate the old text from the new text. Do not store the `evals` artifact, do not advance and
    do not publish. Change the text so that the scenario fails on the base and passes on the
