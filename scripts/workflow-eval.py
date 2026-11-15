@@ -73,6 +73,7 @@ CRITERIA_KINDS = {
     "pulls",
     "commands",
     "skills_first",
+    "skill_before_command",
 }
 CASE_FIELDS = {
     "id",
@@ -423,6 +424,23 @@ def check_criteria(criteria: dict, snap: dict, actor: str) -> list[tuple[str, bo
         if first_other < len(calls):
             detail += f" ({calls[first_other][0]})"
         results.append(("skills_first", not late, f"opened after the first other tool call or never: {late}; {detail}" if late else detail))
+
+    if "skill_before_command" in criteria:
+        # `skill`: the skill must be opened with the Skill tool before the
+        # first shell command that matches the regular expression `command`.
+        # A run with no matching command passes.
+        rules = criteria["skill_before_command"]
+        pattern = re.compile(rules["command"])
+        opened_at = None
+        problem = None
+        for i, (name, inp) in enumerate(tool_calls(snap.get("transcript", ""))):
+            if name == "Skill" and str(inp.get("skill", "")).rsplit(":", 1)[-1] == rules["skill"]:
+                opened_at = i if opened_at is None else opened_at
+            elif name == "Bash" and pattern.search(str(inp.get("command", ""))):
+                if opened_at is None:
+                    problem = f"command matches {rules['command']!r} before {rules['skill']!r} was opened: {str(inp.get('command', ''))[:120]!r}"
+                break
+        results.append(("skill_before_command", problem is None, problem or "ok"))
 
     if "pulls" in criteria:
         rules = criteria["pulls"]
