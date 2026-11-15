@@ -62,7 +62,10 @@ any tool call: the `Iteration mode` line, the Goal block and every skill that
 its status instructions name, the delivered letters, the runtime lines and the kind of change name the rows and conditions of
 `## Skills` and `## Flow` that apply. Each of these selects its row: a delivered
 letter, a text for a person that you will write, a CLI that carries text, a
-runtime line, and the kind of source the task changes. The first tool calls of the iteration are
+runtime line, and the kind of source the task changes. A planned change to any
+file under `workflows/` selects `tariboy-workflow-authoring`, also when the
+status instructions do not name it: open it with the other selected skills,
+before the first command. The first tool calls of the iteration are
 Skill tool calls: `using-superpowers` first, then every selected REQUIRED
 skill. Only after the last of them run the first command or read the first
 file, including a read-only one such as `ttasks show`, `git status`, `ls` or
