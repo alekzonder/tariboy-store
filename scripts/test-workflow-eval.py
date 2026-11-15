@@ -232,6 +232,26 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, read_first, ACTOR)), ["skills_first"])
         self.assertEqual(failed(runner.check_criteria(criteria, snapshot(), ACTOR)), ["skills_first"])
 
+    def test_skill_before_command_criterion_orders_the_skill_and_the_command(self):
+        criteria = {"skill_before_command": {"skill": "verification-before-completion", "command": r"\d+ of \d+"}}
+
+        def call(n, name, **tool_input):
+            block = {"type": "tool_use", "tool_name": name, "tool_use_id": f"t{n}", "input": tool_input}
+            return {"response": {"blocks": [block]}}
+
+        def transcript(calls):
+            return "calls:\n" + json.dumps(calls)
+
+        skill = call(2, "Skill", skill="image-x:verification-before-completion")
+        counts = call(3, "Bash", command="ttasks comment K 'base 1 of 3, new 3 of 3'")
+        other = call(1, "Bash", command="git status")
+        good = snapshot(transcript=transcript([other, skill, counts]))
+        late = snapshot(transcript=transcript([other, counts, skill]))
+        unrelated = snapshot(transcript=transcript([other]))
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, late, ACTOR)), ["skill_before_command"])
+        self.assertEqual(failed(runner.check_criteria(criteria, unrelated, ACTOR)), [])
+
     def test_head_checkouts_criterion_fails_on_an_undone_switch(self):
         criteria = {"repo": {"head_checkouts": 0}}
         switched_back = snapshot(repo=dict(snapshot()["repo"], head="main", head_checkouts=2))

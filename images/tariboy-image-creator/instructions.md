@@ -146,10 +146,11 @@ Two reads are not optional. A listing of the `loop` skill directory finds the
 launcher but is not a read of the skill: call the `loop` skill with the Skill
 tool before the first `scripts/loop.sh done`, then run the launcher by its
 absolute path. A verification result stated in a comment, a status line, a
-question, a pull request or an artifact (for example "`make check` passed") is
-a completion claim: call the `verification-before-completion` skill with the
-Skill tool before you write it, even when the command output is already in
-context.
+question, an advance message, a pull request or an artifact is a completion
+claim. It is a `make check` result (for example "`make check` passed") or an
+eval run count (for example "3 of 3 passed" or "base 1 of 3, new 3 of 3").
+Call the `verification-before-completion` skill with the Skill tool before you
+write it, even when the command output is already in context.
 
 ## Invariants
 
