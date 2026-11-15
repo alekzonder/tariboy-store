@@ -13,11 +13,17 @@ evidence it names. Change no file in the repository in this status: no branch, n
    - every assessment the task names, with `tariboy assessment show ID` alone: read its whole
      output, never through `grep`, `head`, `tail`, `sed`, `awk` or `cut`, and open an assessment
      that is a file with the file tool, not a filter;
-   - every iteration the task names, with `tariboy iteration inspect` and its log or transcript;
+   - every iteration the task names, with `tariboy iteration inspect` and its log or transcript:
+     read each transcript from its first line to its last, in parts with the file tool when it is
+     long. A `grep`, `head`, `tail`, `sed`, `awk` or `cut` over it, a count of its lines, and a
+     write of it to a file that you do not then read are not a read. Read every named iteration,
+     not a sample;
    - the whole `ROLE.md` of every image or workflow in scope, not its first lines;
    - every other source the evidence points to (a file, a skill, a status instruction).
 
-   A source you cannot open is a named unknown in `Reason`; it is not a reason to skip the rest.
+   Only a source that a command or tool refused to open is a named unknown in `Reason`; it is not
+   a reason to skip the rest. A source that you can open but did not read in full is not an
+   unknown: open it and read it before you choose an outcome.
 2. Check for a duplicate: list the open tasks with `tariboy tasks list --queue IMPROVE` and read
    any task that covers the same cause. Check the route: this queue takes a defect of an image
    instruction, a skill, a workflow or the Store. A defect of the daemon or the CLI is not for this
