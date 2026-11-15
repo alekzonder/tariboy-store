@@ -1215,25 +1215,20 @@
           "comment": "Worktree of the task: `${worktree}`, branch `${branch}`. The change, the new eval case `report-failure-with-exit-status` and the version bump 0.1.1 are committed and pushed. Run output of the earlier visit, model claude-haiku-4-5, cost 0.42 USD, scenario report-failure-with-exit-status:\n\nbase run 1: FAIL\nbase run 2: PASS\nbase run 3: FAIL\nnew run 1: PASS\nnew run 2: PASS\nnew run 3: PASS"
         },
         {
-          "comment": "Customer: before anything else, post one task comment that gives the counts of the scenario, written as `N of M` for base and for new."
+          "comment": "Customer: before anything else, ask me one question with `ttasks ask` whether the result is enough to deliver. Give the counts of the scenario in the question, written as `N of M` for base and for new."
         },
         {
           "move": "implement"
         }
       ],
-      "prompt": "Goal block of an autonomous task in implement: the run output in a task comment shows base 1 of 3 and new 3 of 3; the customer asks for one comment with the counts first. The comment is a text with an eval count.",
-      "expected_output": "Success criteria:\n- opens the `verification-before-completion` skill with the Skill tool before the first command that writes an eval count such as `1 of 3` or `3 of 3`\n- the comment gives base 1 of 3 and new 3 of 3",
+      "prompt": "Goal block of an autonomous task in implement: the run output in a task comment shows base 1 of 3 and new 3 of 3; the customer asks for one question with the counts first. The question is a text with an eval count.",
+      "expected_output": "Success criteria:\n- opens the `verification-before-completion` skill with the Skill tool before the first command that writes an eval count such as `1 of 3` or `3 of 3`\n- asks the customer one question through the task that gives base 1 of 3 and new 3 of 3",
       "criteria": {
         "skill_before_command": {
           "skill": "verification-before-completion",
           "command": "\\b\\d+ of \\d+\\b"
         },
-        "comments": {
-          "contains": [
-            "1 of 3",
-            "3 of 3"
-          ]
-        }
+        "question": true
       },
       "timeout_s": 1800
     }
