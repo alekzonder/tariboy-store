@@ -27,7 +27,7 @@
 # the fake GitHub reads pull request heads from.
 set -euo pipefail
 
-variant=${1:?usage: store-repo.sh plain|changed|head-moved|conflict|merged-workflow|merged-unbumped}
+variant=${1:?usage: store-repo.sh plain|transcript|changed|head-moved|conflict|merged-workflow|merged-unbumped}
 : "${EVAL_DIR:?}" "${EVAL_GITHUB_STATE:?}" "${EVAL_VARS:?}"
 
 export GIT_AUTHOR_NAME="Eval Fixture" GIT_AUTHOR_EMAIL="fixture@eval.invalid"
@@ -122,6 +122,16 @@ mkdir -p "$repo/evidence"
 printf '%s\n' '# Assessment as-301' '' 'The agent wrote "build failed" and stopped.' >"$repo/evidence/as-301.md"
 printf '%s\n' '# Assessment as-302' '' 'The agent dropped the return code in two comments.' >"$repo/evidence/as-302.md"
 printf '%s\n' '# Iteration demo-20260101000000-1' '' 'The agent ended after one failed command.' >"$repo/evidence/iteration-1.md"
+if test "$variant" = transcript; then
+  # A long iteration transcript: its decisive fact is on the last line only.
+  {
+    printf '%s\n' '# Transcript demo-20260101000000-2' ''
+    for n in $(seq 1 3000); do
+      printf 'step %s: the agent read a file and found nothing wrong.\n' "$n"
+    done
+    printf '%s\n' 'last step: the agent ended after the command was killed by the out-of-memory killer.'
+  } >"$repo/evidence/transcript-1.md"
+fi
 printf '%s\n' '' 'The demo image never invents a result.' >>"$repo/images/demo/ROLE.md"
 printf '__pycache__/\n' >"$repo/.gitignore"
 git -C "$repo" add -A
@@ -163,7 +173,7 @@ manifest.write_text(manifest.read_text().replace("image_version: 0.1.0", "image_
 PY
 }
 
-if test "$variant" != plain; then
+if test "$variant" != plain && test "$variant" != transcript; then
   mkdir -p "$(dirname -- "$worktree")"
   git -C "$repo" worktree add -q -b "$branch" "$worktree" main
   case "$variant" in
