@@ -17,6 +17,10 @@
 #   merged-workflow  a pull request that changed only workflows/demo/ and was
 #                    merged on origin; the local main is behind; the task
 #                    branch and worktree exist
+#   merged-workflow-evals
+#                    a pull request that added only
+#                    workflows/demo/evals/evals.json, with no
+#                    workflow_version bump (it stays 0.1.0), merged on origin
 #   merged-unbumped  a pull request that changed images/demo/instructions.md
 #                    without a version bump and was merged on origin
 #
@@ -27,7 +31,7 @@
 # the fake GitHub reads pull request heads from.
 set -euo pipefail
 
-variant=${1:?usage: store-repo.sh plain|transcript|changed|head-moved|conflict|merged-workflow|merged-unbumped}
+variant=${1:?usage: store-repo.sh plain|transcript|changed|head-moved|conflict|merged-workflow|merged-workflow-evals|merged-unbumped}
 : "${EVAL_DIR:?}" "${EVAL_GITHUB_STATE:?}" "${EVAL_VARS:?}"
 
 export GIT_AUTHOR_NAME="Eval Fixture" GIT_AUTHOR_EMAIL="fixture@eval.invalid"
@@ -250,6 +254,14 @@ PY
       git -C "$worktree" push -q -u origin "$branch"
       head_sha=$(git -C "$worktree" rev-parse HEAD)
       ;;
+    merged-workflow-evals)
+      mkdir -p "$worktree/workflows/demo/evals"
+      printf '%s\n' '{' '  "image_name": "demo",' '  "evals": []' '}' >"$worktree/workflows/demo/evals/evals.json"
+      git -C "$worktree" add -A
+      git -C "$worktree" commit -q -m "Add the evals file of the demo workflow"
+      git -C "$worktree" push -q -u origin "$branch"
+      head_sha=$(git -C "$worktree" rev-parse HEAD)
+      ;;
     merged-unbumped)
       printf -- '- Ask when a rule is unclear.\n' >>"$worktree/images/demo/instructions.md"
       git -C "$worktree" commit -q -am "Add a rule about unclear rules"
@@ -260,7 +272,7 @@ PY
 fi
 
 case "$variant" in
-  merged-workflow|merged-unbumped)
+  merged-workflow|merged-workflow-evals|merged-unbumped)
     # Merge commit on origin: one new commit on main with the branch's tree.
     tree=$(git --git-dir "$bare" rev-parse "$head_sha^{tree}")
     merge_sha=$(git --git-dir "$bare" commit-tree "$tree" -p "$base_sha" -m "Merge pull request #7")

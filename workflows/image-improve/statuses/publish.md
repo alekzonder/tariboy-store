@@ -26,6 +26,11 @@ disposable copies of step 3 go under `WORKDIR/KEY/`, as `workdir` says.
    A selected image whose `image_version` the merge did not bump is a blocker. Build and publish no
    tag of it, `latest` included. Bump and commit nothing after the merge. Ask the customer through
    the task, with `ttasks ask`, for a follow-up change, and wait.
+
+   The same holds for a workflow: a merge that changed any file under `workflows/NAME/` without a
+   bump of its `workflow_version` is a blocker. Store no `publication` artifact and do not leave
+   with `published`. Ask the customer through the task, with `ttasks ask`, for a follow-up change,
+   and wait.
 4. Remove the task's worktree and local branch. Use `git branch -D` once step 1 proved the merge
    commit is on the base.
 5. Store the result in the `publication` artifact, as JSON, from standard input:
@@ -35,7 +40,9 @@ disposable copies of step 3 go under `WORKDIR/KEY/`, as `workdir` says.
     "workflows": [{"name": "NAME", "workflow_version": "X.Y.Z"}]}
    ```
 
-   Use the full digests. List each merged workflow with its merged version; the operator builds it
+   Use the full digests. List each merged workflow with its merged version. A merge that changed
+   any file under `workflows/NAME/`, an eval-only change included, lists NAME; the `workflows` list
+   is empty only when the merge touched no path under `workflows/`. The operator builds it
    with `tariboy workflow build STORE/NAME` and binds a queue with
    `ttasks queue workflow set QUEUE NAME:VERSION`.
 6. Post one consolidated task comment with `Required:`, `Completed:`, `Verification:`,

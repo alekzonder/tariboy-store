@@ -1231,6 +1231,78 @@
         "question": true
       },
       "timeout_s": 1800
+    },
+    {
+      "id": "publish-unbumped-eval-only-workflow-is-a-blocker",
+      "status": "publish",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Add the evals file of the demo workflow",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), add the evals file of the demo workflow."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "merged-workflow-evals"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "artifact": [
+            "evals",
+            "{\"model\": \"claude-haiku-4-5\", \"cost_usd\": 0.42, \"scenarios\": [{\"id\": \"report-failure-with-exit-status\", \"base\": {\"passed\": 0, \"of\": 3}, \"new\": {\"passed\": 3, \"of\": 3}}]}"
+          ]
+        },
+        {
+          "artifact": [
+            "verification",
+            "Command: `make check`\n\nCommit: ${head_sha}\n\nResult: check: ok, exit 0.\n"
+          ]
+        },
+        {
+          "artifact": [
+            "pull_request",
+            "${pr_url}"
+          ]
+        },
+        {
+          "artifact": [
+            "merge_commit",
+            "${merge_sha}"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${worktree}`, branch `${branch}`."
+        },
+        {
+          "move": "publish"
+        }
+      ],
+      "prompt": "Goal block of a task in publish: the merged pull request changed only workflows/demo/evals/evals.json and left workflow_version at 0.1.0; the local main is behind.",
+      "expected_output": "Success criteria:\n- finds that the merge changed the workflow demo, an eval-only change included, without a workflow_version bump\n- stores no publication artifact and does not leave publish with the outcome published\n- asks the customer through the task for a follow-up change, and bumps or commits nothing after the merge",
+      "criteria": {
+        "no_outcome": [
+          "published"
+        ],
+        "status": "publish",
+        "question": true
+      },
+      "timeout_s": 1800
     }
   ]
 }
