@@ -10,8 +10,9 @@ begun the task: start from its artifacts and comments.
 
 Open the skills this status names with the Skill tool before the first command, file read or edit,
 `ttasks show` and `git status` included: `workdir`, `using-git-worktrees`, `cli-text` and
-`verification-before-completion`. A command run before these reads is a violation, and later reads
-do not undo it. The `workdir` skill comes first because the eval runs and every other
+`verification-before-completion`. When the change touches a file under `workflows/`, also open
+`tariboy-workflow-authoring` in this block, before the first command, file read or edit. A command
+run before these reads is a violation, and later reads do not undo it. The `workdir` skill comes first because the eval runs and every other
 file of this task that you write into the workdir go under `WORKDIR/KEY/`, never at the workdir root.
 
 1. Work in one branch and one worktree for this task, never in the main checkout and never on the

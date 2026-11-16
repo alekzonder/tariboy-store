@@ -1231,6 +1231,44 @@
         "question": true
       },
       "timeout_s": 1800
+    },
+    {
+      "id": "implement-opens-workflow-skill-before-first-command",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo workflow review status lacks the base rule",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), reword the first paragraph of `workflows/demo/statuses/review.md` so that it names the base branch, and bump `workflow_version` of the demo workflow with the update command. Do not run the evals; this task only needs the change and its commit."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing review status text, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement whose change edits a file under workflows/; the status instructions list tariboy-workflow-authoring in the skills to open first.",
+      "expected_output": "Success criteria:\n- opens the tariboy-workflow-authoring skill with the Skill tool\n- opens it before the first command, file read or edit, including a read-only one such as ttasks show or git status",
+      "criteria": {
+        "skill_before_command": {
+          "skill": "tariboy-workflow-authoring",
+          "command": "."
+        }
+      },
+      "timeout_s": 1800
     }
   ]
 }
