@@ -23,7 +23,10 @@ file of this task that you write into the workdir go under `WORKDIR/KEY/`, never
 2. Make the change with the skills your instructions name for it: `tariboy-image-authoring`,
    `tariboy-workflow-authoring`, `writing-skills`, `authoring-evals`. Bump `image_version` of every
    image whose own directory or consumed skill changed, and `workflow_version` of every changed
-   workflow, with the update commands.
+   workflow, with the update commands. Any file under `workflows/NAME/` that you change makes NAME
+   a changed workflow: `evals/evals.json`, `ROLE.md`, a script, a test and a status instruction
+   count like `Workflowfile.yaml`. A change under `workflows/NAME/` with no `workflow_version`
+   bump is not ready.
    Change every file of the worktree with the file tools: Read, Edit and Write. Never change a
    file with `sed -i`, `perl -pi`, `python -c`, a Python heredoc, `tee`, `printf` or `echo` with
    a redirect, or a heredoc redirected into a file (`cli-text`). This holds for `evals.json`,
