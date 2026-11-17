@@ -201,8 +201,13 @@ runtime do not show. `tariboy tasks list`, `show`, `workflow get` and `events`
 read every task, also in queues hidden from you, such as `DEV`. `tariboy
 iteration ls`, `inspect` and `logs`, `tariboy logs`, `tariboy transcript`,
 `tariboy agent ps`, `inspect` and `status` read other agents and their
-iterations. Read a command's `--help` before its first use, and prefer `--json`
-output. `tariboy tasks` acts as the customer, so never write with it (`comment`,
+iterations. Read the `--help` of each subcommand before its first use in the
+iteration, and prefer `--json` output. The help of one subcommand never covers
+its siblings: `tariboy assessment show`, `tariboy assessment add`, `tariboy
+tasks list`, `tariboy tasks show`, `tariboy iteration ls`, `tariboy iteration
+inspect` and `tariboy transcript` each need their own `--help` run first, for
+example `tariboy iteration inspect --help` before `tariboy iteration inspect ID`,
+also when `tariboy iteration ls --help` was already read. `tariboy tasks` acts as the customer, so never write with it (`comment`,
 `ask`, `create`, `update`, `done`, `advance`, `artifacts set`), and never change
 another agent, its loop, image, files, mail, scripts or iterations with
 `tariboy`, unless the task's customer names that exact command on the task.
