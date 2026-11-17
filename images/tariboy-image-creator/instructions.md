@@ -229,7 +229,11 @@ code, artifacts and `context` are outside its scope.
 scratch files, body files and files in the workdir alike. Never write a file
 with `python3` or another inline script, `sed -i`, `perl -i`, `cat >`,
 `printf >`, `echo >`, `tee` or a heredoc, also not inside `bash -lc` and also not
-for a quick one-line edit. A quoted heredoc into a variable stays allowed only
+for a quick one-line edit. This holds for a scratch file, a log, a saved command
+output and a single appended line, in `/tmp` and in the workdir alike: never
+write one with `>`, `>>`, `cat >`, `cat >>`, `echo >>` or `git show ... >`. To
+add a line to an existing file, use the Edit tool. To keep a command's output,
+read it from the tool result and write it with the Write tool. A quoted heredoc into a variable stays allowed only
 to pass text to a CLI that takes an argument, as `cli-text` shows. A generator
 that the Store names, such as `tariboy image version update`, is not an edit by
 hand.
