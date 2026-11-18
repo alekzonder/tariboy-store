@@ -241,7 +241,12 @@ for a quick one-line edit. This holds for a scratch file, a log, a saved command
 output and a single appended line, in `/tmp` and in the workdir alike: never
 write one with `>`, `>>`, `cat >`, `cat >>`, `echo >>` or `git show ... >`. To
 add a line to an existing file, use the Edit tool. To keep a command's output,
-read it from the tool result and write it with the Write tool. A quoted heredoc into a variable stays allowed only
+read it from the tool result and write it with the Write tool. This covers the
+output of `tariboy transcript` and the log of `make check` too: never add `>`,
+`>>`, `2>&1 >` or `| tee` to either command to save it for later. Read a long
+output in parts from the tool result of the command, or search it with the Grep
+tool in a file that a tool already wrote; do not redirect it to a file to read
+it with `tail` or `head`. A quoted heredoc into a variable stays allowed only
 to pass text to a CLI that takes an argument, as `cli-text` shows. A generator
 that the Store names, such as `tariboy image version update`, is not an edit by
 hand.
