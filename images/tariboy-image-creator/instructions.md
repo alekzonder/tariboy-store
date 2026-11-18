@@ -205,9 +205,12 @@ iterations. Read the `--help` of each subcommand before its first use in the
 iteration, and prefer `--json` output. The help of one subcommand never covers
 its siblings: `tariboy assessment show`, `tariboy assessment add`, `tariboy
 tasks list`, `tariboy tasks show`, `tariboy iteration ls`, `tariboy iteration
-inspect` and `tariboy transcript` each need their own `--help` run first, for
-example `tariboy iteration inspect --help` before `tariboy iteration inspect ID`,
-also when `tariboy iteration ls --help` was already read. `tariboy tasks` acts as the customer, so never write with it (`comment`,
+inspect`, `tariboy transcript` and `tariboy image version update` each need
+their own `--help` run first, for example `tariboy iteration inspect --help`
+before `tariboy iteration inspect ID`, also when `tariboy iteration ls --help`
+was already read, and `tariboy image version update --help` before
+`tariboy image version update patch`, also when `tariboy image version get
+--help` was already read. `tariboy tasks` acts as the customer, so never write with it (`comment`,
 `ask`, `create`, `update`, `done`, `advance`, `artifacts set`), and never change
 another agent, its loop, image, files, mail, scripts or iterations with
 `tariboy`, unless the task's customer names that exact command on the task.
