@@ -15,7 +15,10 @@ disposable copies of step 3 go under `WORKDIR/KEY/`, as `workdir` says.
    Never reset, rebase or force it. If the fast-forward fails because the local branch diverged,
    keep it as it is and ask the customer through the task. Prove it:
    `git merge-base --is-ancestor MERGE_COMMIT BASE` exits 0.
-2. Run the post-merge checks (`make check`) on the base.
+2. Run the post-merge checks (`make check`) on the base. If it exits with any code other than 0,
+   whatever the cause looks like, even an infra fault or a generated directory, it is a blocker.
+   Build and publish no tag, remove or change no file to make it pass, and store no `publication`
+   artifact. Ask the customer through the task, with `ttasks ask`, and wait.
 3. Select the affected images by the merge's changed paths, the local skills their
    `skills-lock.json` records, and the `extends` chains, as `tariboy-image-delivery` says in
    "Publication after merge". Build each one from a disposable copy under the workdir, under its
