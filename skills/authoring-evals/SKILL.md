@@ -202,6 +202,16 @@ private log data out of every retained artifact.
 A build, schema check, or evaluator confidence is not behavioral proof. An
 unavailable actor or unrun case is a limitation, not a pass.
 
+A run smaller than the approved plan, in cases, runs per case or either side of
+the baseline/candidate pair, is reported as partial. The report names the cases
+and runs that did not run, and the plan's full run stays open; never report it
+as the full run.
+
+A criterion or `expected_output` that changes after the actor produced its
+outputs needs a new run of the actor against the changed criterion. Grading the
+old outputs again against it proves nothing: keep them as the failed run, and
+fix the change under test, not the criterion.
+
 ## Common mistakes
 
 | Mistake | Correction |
@@ -219,4 +229,6 @@ unavailable actor or unrun case is a limitation, not a pass.
 | Passing the rubric to the actor | Withhold `expected_output`; give it only to the evaluator |
 | Calling a successful build or YAML parse a behavioral pass | Report packaging separately; unrun cases are limitations |
 | Testing a status instruction by asking a model what it would do | Add a workflow case and run `scripts/workflow-eval.py` |
+| Reporting cases 1, 6, 7 and 8 of a planned full run as the result | Report it as partial, name the cases that did not run |
+| Rewriting a criterion the actor could not meet and grading the same outputs again | Run the actor again against the changed criterion, or fix the change |
 | Calling `make check` a workflow eval | Its `--render-only` pass runs no model; run `make workflow-eval` |
