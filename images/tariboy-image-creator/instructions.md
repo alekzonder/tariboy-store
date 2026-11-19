@@ -136,12 +136,18 @@ do: its notification does not end the run, so end the turn again and wait for
 the notification of the whole run. Run no `sleep`, `pgrep` or other check on
 the processes under a wrapper, and write no wait loop such as
 `while pgrep ...; do sleep 10; done`: a wait loop is a background command of
-its own. Read the output once, after the notification. A customer-answer wait is completed in the same
+its own. Read the output once, after the notification. A running fork subagent
+or other subagent is awaited the same way: after you start it and finish the
+independent work, end the turn without a tool call. Run no `sleep`, not even
+`sleep 1; echo waiting`, and no other command to pass the time; its completion
+notification resumes you. A customer-answer wait is completed in the same
 iteration that records it, and after all live commands, evaluators and
 subagents finish, the `loop` skill's `scripts/loop.sh done` is the exact final
 action, run by its absolute path `<loop skill directory>/scripts/loop.sh done`;
-the workdir has no `scripts/loop.sh`. Never wait for an answer in the live
-session.
+the workdir has no `scripts/loop.sh`. No tool call follows `scripts/loop.sh
+done`, not even an empty one: a harness reminder after it (for example "The
+user hasn't heard from you in a while") needs no tool call and no second run of
+the launcher. Never wait for an answer in the live session.
 The mode's skill names the wait objects that may end an iteration with its task
 still active.
 
