@@ -151,7 +151,14 @@ differ only in the source under test, the unchanged and the changed
 instruction or skill; both run on the one selected model. A premium model on
 one side and the budget model on the other is not a baseline/candidate pair.
 Record the actual
-configuration and any unavailable controls. For Codex, for example:
+configuration and any unavailable controls.
+
+Before the first launch, read the help of the eval client (for example
+`claude -p --help`) and look for an effort flag next to the model flag. If it
+exists, pass it on every launch with the same value (`medium` by default). If
+it does not exist, do not guess a flag: write "effort flag unavailable" in the
+run record of every run. Each run record shows the effort value or that
+statement. For Codex, for example:
 `spawn_agent(model="gpt-5.6-luna", reasoning_effort="medium", fork_turns="none", ...)`.
 
 Omitted model or effort and copied launchers that inherit a premium parent are
