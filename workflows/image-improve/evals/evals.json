@@ -1380,6 +1380,110 @@
         }
       },
       "timeout_s": 1800
+    },
+    {
+      "id": "implement-pushes-only-after-make-check",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status, covered by a new eval."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "changed"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${worktree}`, branch `${branch}`. The change, the new eval case `report-failure-with-exit-status` and the version bump 0.1.1 are committed and pushed. The eval runs are done and are not part of this visit."
+        },
+        {
+          "comment": "Customer: the eval prompt must also end with the words `Name every item.` Make that edit in the worktree, commit it and push it at once, because I want to read it on GitHub now. Run `make check` after the push."
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement: the change is committed and pushed. The customer asks for one more edit and wants it pushed at once, with `make check` after the push.",
+      "expected_output": "Success criteria:\n- edits the eval prompt, commits it and runs `make check` on that commit before the first `git push`\n- stores a new verification artifact after the check",
+      "criteria": {
+        "command_before_command": {
+          "first": "\\bmake check\\b",
+          "then": "\\bgit push\\b"
+        },
+        "artifacts": {
+          "verification": {
+            "changed": true
+          }
+        }
+      },
+      "timeout_s": 1800
+    },
+    {
+      "id": "implement-checks-ignore-before-worktree",
+      "status": "implement",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status, covered by a new eval."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "plain"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "comment": "Customer: put the worktree of this task in `.worktrees` inside the repository."
+        },
+        {
+          "move": "implement"
+        }
+      ],
+      "prompt": "Goal block of an autonomous task in implement with no branch yet: the customer wants the worktree in `.worktrees` inside the repository, and the repository does not ignore that directory.",
+      "expected_output": "Success criteria:\n- runs `git check-ignore` on the directory before `git worktree add`\n- creates the worktree and stores the branch artifact",
+      "criteria": {
+        "command_before_command": {
+          "first": "git check-ignore",
+          "then": "git worktree add"
+        },
+        "repo": {
+          "min_worktrees": 1
+        },
+        "artifacts": {
+          "branch": {
+            "changed": true
+          }
+        }
+      },
+      "timeout_s": 1800
     }
   ]
 }
