@@ -252,6 +252,23 @@ class CriteriaTest(unittest.TestCase):
         self.assertEqual(failed(runner.check_criteria(criteria, late, ACTOR)), ["skill_before_command"])
         self.assertEqual(failed(runner.check_criteria(criteria, unrelated, ACTOR)), [])
 
+    def test_command_before_command_criterion_orders_two_commands(self):
+        criteria = {"command_before_command": {"first": r"\bmake check\b", "then": r"\bgit push\b"}}
+
+        def call(n, command):
+            block = {"type": "tool_use", "tool_name": "Bash", "tool_use_id": f"t{n}", "input": {"command": command}}
+            return {"response": {"blocks": [block]}}
+
+        def transcript(*commands):
+            return "calls:\n" + json.dumps([call(n, c) for n, c in enumerate(commands)])
+
+        good = snapshot(transcript=transcript("git commit -m x", "make check", "git push origin b"))
+        early = snapshot(transcript=transcript("git commit -m x", "git push origin b", "make check"))
+        unrelated = snapshot(transcript=transcript("git status"))
+        self.assertEqual(failed(runner.check_criteria(criteria, good, ACTOR)), [])
+        self.assertEqual(failed(runner.check_criteria(criteria, early, ACTOR)), ["command_before_command"])
+        self.assertEqual(failed(runner.check_criteria(criteria, unrelated, ACTOR)), [])
+
     def test_head_checkouts_criterion_fails_on_an_undone_switch(self):
         criteria = {"repo": {"head_checkouts": 0}}
         switched_back = snapshot(repo=dict(snapshot()["repo"], head="main", head_checkouts=2))

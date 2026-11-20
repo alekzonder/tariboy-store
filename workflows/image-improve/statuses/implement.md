@@ -16,12 +16,15 @@ file of this task that you write into the workdir go under `WORKDIR/KEY/`, never
 
 1. Work in one branch and one worktree for this task, never in the main checkout and never on the
    base branch. Fetch and fast-forward the local base branch first; never reset or force it. Use
-   `using-git-worktrees` and record your worktree path in a comment. Never create a second branch.
+   `using-git-worktrees` and record your worktree path in a comment. Before `git worktree add` into
+   a project-local directory such as `.worktrees`, run `git check-ignore -q DIR` on it, and commit
+   an ignore entry first when it is not ignored. Never create a second branch.
    - `branch` empty: branch from the base and store the name as the VALUE argument,
      `ttasks artifacts set KEY branch NAME`.
    - `branch` set: `git fetch origin BRANCH` and work from `origin/BRANCH`.
-2. Make the change with the skills your instructions name for it: `tariboy-image-authoring`,
-   `tariboy-workflow-authoring`, `writing-skills`, `authoring-evals`. Bump `image_version` of every
+2. Read the `ROLE.md` of every image and workflow you will change before the first Edit or Write
+   of the worktree. Make the change with the skills your instructions name for it:
+   `tariboy-image-authoring`, `tariboy-workflow-authoring`, `writing-skills`, `authoring-evals`. Bump `image_version` of every
    image whose own directory or consumed skill changed, and `workflow_version` of every changed
    workflow, with the update commands. Any file under `workflows/NAME/` that you change makes NAME
    a changed workflow: `evals/evals.json`, `ROLE.md`, a script, a test and a status instruction
@@ -54,7 +57,9 @@ file of this task that you write into the workdir go under `WORKDIR/KEY/`, never
    than base. If a scenario fails, fix the change and rerun; never edit a number. A failed
    scenario leads to a fix of the change, never of the scenario's criteria or `expected_output`.
    Every count in the `evals` artifact, a task comment, a question and the pull request text is
-   copied from the run output, one run at a time, never from memory or from a summary line. When
+   copied from the run output, one run at a time, never from memory or from a summary line. A
+   question to the customer says a side was run or not run only after you checked your own
+   transcript: it names only the runs that the transcript shows. When
    the run lines and a summary disagree, the run lines win. State a disputed run as it is: a run
    that failed, was refused or gave no result counts as not passed, and the text says so.
    Stop when new equals base in a scenario, for example 3 of 3 on both: that scenario does not
@@ -66,7 +71,9 @@ file of this task that you write into the workdir go under `WORKDIR/KEY/`, never
    result in a task comment, never only in the pull request.
 5. Commit, run `make check` on that commit and read its output (`verification-before-completion`).
    Store the command, the commit's full 40-character SHA and the result in the `verification`
-   artifact, as Markdown from standard input; again after every new commit. Push the branch.
+   artifact, as Markdown from standard input; again after every new commit. Push the branch only
+   after `make check` ran on the commit that you push, in the same iteration, and its output
+   showed success. Never push first and check afterwards, whoever asks and however urgent.
 6. Post every task comment, each difference from the plan included, before `ready`: after it your
    task writes fail, often as `not_found`.
 7. Compare the heads before `ready`. Run `git rev-parse HEAD` in the worktree and read the 40-character

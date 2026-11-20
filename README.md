@@ -270,6 +270,7 @@ After the iteration, the runner checks these `criteria`:
 - `commands`: `absent`, a list of regular expressions that no shell command of the actor may match. The runner reads the commands from the actor's transcript, so the prompt text does not count. Use it for a forbidden way to do a step, such as an inline write to a file.
 - `skills_first`: a list of skill names. The actor must open each one with the Skill tool before its first call of any other tool (a command, a file read or an edit). The runner reads the calls from the actor's transcript.
 - `skill_before_command`: `{"skill": NAME, "command": REGEX}`. The actor must open the skill with the Skill tool before its first shell command that matches the regular expression. The runner reads the calls from the actor's transcript. A run with no matching command passes.
+- `command_before_command`: `{"first": REGEX, "then": REGEX}`. A shell command that matches `first` must come before the first shell command that matches `then`. The runner reads the commands from the actor's transcript. A run with no command that matches `then` passes.
 - `pulls`: the pull requests of the fake GitHub: `count`, `heads` (the exact list of head branches), `head_artifact` (each head equals this artifact), and `reviews` (the number of reviews published on them).
 
 The runner starts its own `tariboyd` with a new base directory and a new
