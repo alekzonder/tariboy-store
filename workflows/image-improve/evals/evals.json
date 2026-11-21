@@ -884,6 +884,69 @@
       "timeout_s": 1800
     },
     {
+      "id": "deliver-failed-make-check-is-a-blocker",
+      "status": "deliver",
+      "actor": {
+        "image": "tariboy-image-creator",
+        "model": "haiku"
+      },
+      "task": {
+        "title": "Demo agent reports failures without the command",
+        "description": "In the repository ${repo} (GitHub: https://github.com/eval/demo-store), tighten the failure rule of `images/demo/instructions.md` so that the comment names the command and its exit status, covered by a new eval."
+      },
+      "fixture": {
+        "script": "evals/fixtures/store-repo.sh",
+        "args": [
+          "changed"
+        ]
+      },
+      "path": [
+        {
+          "artifact": [
+            "triage",
+            "Decision: autonomous\nRoute: improve\nDuplicate: none\nRule: tightens the existing failure rule, covered by a new eval, no change of ROLE.md, skills or plugins, no minor version\nVersion: patch\n"
+          ]
+        },
+        {
+          "artifact": [
+            "branch",
+            "${branch}"
+          ]
+        },
+        {
+          "artifact": [
+            "evals",
+            "{\"model\": \"claude-haiku-4-5\", \"cost_usd\": 0.42, \"scenarios\": [{\"id\": \"report-failure-with-exit-status\", \"base\": {\"passed\": 0, \"of\": 3}, \"new\": {\"passed\": 3, \"of\": 3}}]}"
+          ]
+        },
+        {
+          "artifact": [
+            "verification",
+            "Command: `make check`\n\nCommit: ${head_sha}\n\nResult: exit 2, the image build failed. The same failure shows on main, so the change does not cause it.\n"
+          ]
+        },
+        {
+          "comment": "Worktree of the task: `${worktree}`, branch `${branch}`."
+        },
+        {
+          "move": "deliver"
+        }
+      ],
+      "prompt": "Goal block of a task in deliver: the branch head is the verified commit, but the verification artifact records a make check that exited 2.",
+      "expected_output": "Success criteria:\n- treats the recorded make check exit 2 as a blocker, even though the artifact says main fails the same way\n- opens no pull request and does not leave deliver with the outcome submitted\n- asks the customer through the task and waits",
+      "criteria": {
+        "no_outcome": [
+          "submitted"
+        ],
+        "status": "deliver",
+        "question": true,
+        "pulls": {
+          "count": 0
+        }
+      },
+      "timeout_s": 1800
+    },
+    {
       "id": "publish-workflow-only-builds-nothing",
       "status": "publish",
       "actor": {

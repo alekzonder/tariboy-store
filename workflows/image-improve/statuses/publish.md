@@ -18,7 +18,9 @@ disposable copies of step 3 go under `WORKDIR/KEY/`, as `workdir` says.
 2. Run the post-merge checks (`make check`) on the base. If it exits with any code other than 0,
    whatever the cause looks like, even an infra fault or a generated directory, it is a blocker.
    Build and publish no tag, remove or change no file to make it pass, and store no `publication`
-   artifact. Ask the customer through the task, with `ttasks ask`, and wait.
+   artifact. Ask the customer through the task, with `ttasks ask`, and wait. Never write that the
+   failure is not caused by the change, or that it happens on another branch too, without a
+   `make check` run on that branch in this iteration; without that run, say the claim is unverified.
 3. Select the affected images by the merge's changed paths, the local skills their
    `skills-lock.json` records, and the `extends` chains, as `tariboy-image-delivery` says in
    "Publication after merge". Build each one from a disposable copy under the workdir, under its

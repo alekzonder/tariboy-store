@@ -10,6 +10,12 @@ The customer merges it, or the merge watch does when the queue sets `AUTO_MERGE`
    `verification` artifact with the new SHA, store again the `evals` results that the new commits
    touched, push, and compare again. Continue only when the two SHAs are equal. Run the same
    comparison again just before `submitted`.
+   A `verification` artifact that records a `make check` which did not exit 0 is a blocker, whatever
+   the cause looks like, even an infra fault or a failure that `main` shares. Do not open a pull
+   request and do not run `ttasks advance`. Ask the customer through the task, with `ttasks ask`,
+   and wait. A claim about `main`, such as "main fails the same way", goes into a comment, question
+   or pull request text only after a `make check` run on `main` in this iteration; without that run,
+   the text says the claim is unverified.
 2. Find or create the task's one pull request with `github-pr-workflow`'s `ensure` (find the one in
    `pull_request` first); never open a second one. The base is the repository's default branch.
    Title and body are English and carry no task key. The body has what changed, the versions bumped
