@@ -40,6 +40,21 @@ RULE_CLAUSE_RE = re.compile(
     r"уточня|ужесточа|clarif|tighten|eval|ROLE\.md|скил|skill|plugin|плагин|minor|минор",
     re.IGNORECASE,
 )
+# A Reason that admits a source was not read. A sentence that also says the
+# source could not be opened is a named unknown and stays allowed.
+SKIPPED_READ_RE = re.compile(
+    r"\bI\s+(did not|didn't|have not|haven't|never)\s+(yet\s+)?(read|open|opened|inspect|inspected)\b"
+    r"|\bI\s+(read|opened|inspected)\s+only\b"
+    r"|\bя\s+не\s+(читал|открыл|открывал|прочитал)"
+    r"|\bя\s+(прочитал|открыл)\s+только\b",
+    re.IGNORECASE,
+)
+UNOPENABLE_RE = re.compile(
+    r"cannot|can't|could not|couldn't|unable to|refused|denied|not found|no such|does not exist"
+    r"|не удалось|не смог|отказал|нет доступа|не существует",
+    re.IGNORECASE,
+)
+SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 MIN_TEXT = 20
 LINE_RE = re.compile(r"^\s*[-*]?\s*([A-Za-z][A-Za-z ]{1,20}?)\s*:\s*(.*?)\s*$")
 TASK_KEY_RE = re.compile(r"^[A-Z][A-Z0-9]*-[A-Za-z0-9]+$")
@@ -158,6 +173,17 @@ def main() -> int:
             f"advance with the outcome {outcome}. Make them agree, or choose the right "
             "outcome, and advance again."
         )
+
+    for sentence in SENTENCE_SPLIT_RE.split(record.get("reason", "")):
+        if SKIPPED_READ_RE.search(sentence) and not UNOPENABLE_RE.search(sentence):
+            return reject(
+                "The Reason line says that a source was not read: "
+                f"'{sentence.strip()[:120]}'. Read it first. For an iteration run "
+                "'tariboy iteration inspect AGENT ITERATION_ID' and 'tariboy transcript "
+                "AGENT ITERATION_ID', and read the whole transcript. Then write the Reason "
+                "again and advance again. Only a source that a command refused to open may "
+                "stay in the Reason, with the words that say it could not be opened."
+            )
 
     route = record.get("route", "").lower()
     duplicate = record.get("duplicate", "")
