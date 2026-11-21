@@ -4,6 +4,9 @@
 #
 # Usage: store-repo.sh VARIANT
 #   plain            main only; nothing started
+#   assessment-iteration
+#                    like plain, plus an assessment that names an iteration
+#                    file whose last sentence holds the decisive fact
 #   changed          a task branch and worktree with one committed change (a
 #                    tightened rule, a new eval case, image_version bumped),
 #                    pushed; no pull request
@@ -35,7 +38,7 @@
 # the fake GitHub reads pull request heads from.
 set -euo pipefail
 
-variant=${1:?usage: store-repo.sh plain|transcript|changed|head-moved|conflict|merged-workflow|merged-workflow-evals|merged-unbumped|merged-check-fails}
+variant=${1:?usage: store-repo.sh plain|transcript|assessment-iteration|changed|head-moved|conflict|merged-workflow|merged-workflow-evals|merged-unbumped|merged-check-fails}
 : "${EVAL_DIR:?}" "${EVAL_GITHUB_STATE:?}" "${EVAL_VARS:?}"
 
 export GIT_AUTHOR_NAME="Eval Fixture" GIT_AUTHOR_EMAIL="fixture@eval.invalid"
@@ -143,6 +146,13 @@ if test "$variant" = transcript; then
     printf '%s\n' 'last step: the agent ended after the command was killed by the out-of-memory killer.'
   } >"$repo/evidence/transcript-1.md"
 fi
+if test "$variant" = assessment-iteration; then
+  # An assessment that names the iteration it judged; the iteration file holds
+  # the decisive fact, which no assessment repeats.
+  # The assessment gives the iteration id only; the iteration file is named by that id.
+  printf '%s\n' '# Assessment as-303' '' 'The agent ended without a comment. It judged the iteration demo-20260101000000-3.' >"$repo/evidence/as-303.md"
+  printf '%s\n' '# Iteration demo-20260101000000-3' '' 'The agent ran `make check`. The shell killed the command with signal 9. The agent then wrote no comment.' >"$repo/evidence/iteration-demo-20260101000000-3.md"
+fi
 printf '%s\n' '' 'The demo image never invents a result.' >>"$repo/images/demo/ROLE.md"
 printf '__pycache__/\n' >"$repo/.gitignore"
 git -C "$repo" add -A
@@ -184,7 +194,7 @@ manifest.write_text(manifest.read_text().replace("image_version: 0.1.0", "image_
 PY
 }
 
-if test "$variant" != plain && test "$variant" != transcript; then
+if test "$variant" != plain && test "$variant" != transcript && test "$variant" != assessment-iteration; then
   mkdir -p "$(dirname -- "$worktree")"
   git -C "$repo" worktree add -q -b "$branch" "$worktree" main
   case "$variant" in

@@ -118,6 +118,32 @@ class TriageCheckTests(ScriptCase):
         code, result, _ = self.run_triage("close", {"triage": CLOSE.replace("IMPROVE-zz99 asks for the same change and is open.", "dup")})
         self.rejected(code, result, "Reason")
 
+    def test_reason_that_admits_an_unread_source_is_rejected_for_every_outcome(self):
+        admits = "Reason: I read the task. I read only its metadata of iteration demo-1.\n"
+        for outcome, record in (
+            ("autonomous", AUTONOMOUS + admits),
+            ("needs_approval", NEEDS_APPROVAL.split("Reason:")[0] + admits),
+            ("close", CLOSE.split("Reason:")[0] + admits),
+        ):
+            with self.subTest(outcome=outcome):
+                code, result, _ = self.run_triage(outcome, {"triage": record, "plan": PLAN})
+                self.rejected(code, result, "not read", "tariboy transcript AGENT ITERATION_ID")
+
+    def test_reason_with_i_did_not_read_is_rejected(self):
+        record = AUTONOMOUS + "Reason: I did not read the transcript of the iteration.\n"
+        code, result, _ = self.run_triage("autonomous", {"triage": record})
+        self.rejected(code, result, "not read")
+
+    def test_reason_with_an_unopenable_source_passes(self):
+        record = AUTONOMOUS + "Reason: I did not read iteration demo-1, because tariboy transcript refused to open it.\n"
+        code, result, _ = self.run_triage("autonomous", {"triage": record})
+        self.assertEqual(code, 0, result)
+
+    def test_reason_that_describes_the_finding_passes(self):
+        record = AUTONOMOUS + "Reason: The assessment says the agent read only the metadata; I read the whole transcript.\n"
+        code, result, _ = self.run_triage("autonomous", {"triage": record})
+        self.assertEqual(code, 0, result)
+
     def test_unknown_outcome_is_a_failure(self):
         code, result, _ = self.run_triage("approved", {"triage": AUTONOMOUS})
         self.assertEqual(code, 1)
