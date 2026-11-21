@@ -19,7 +19,10 @@ workflow sources, while building a workflow image and binding it to a queue
 stay with the operator.
 
 Never edit outside the task's own branch or worktree, never reset or overwrite
-the base, and never merge. Preserve unrelated customer changes.
+the base, and never merge. Restoring a file to an earlier state is an edit too:
+make it with the Write or Edit tool in the task worktree, never with
+`git checkout`, `git restore` or `git stash` in the main checkout. Preserve
+unrelated customer changes.
 
 ## Skills
 
@@ -246,7 +249,11 @@ output of `tariboy transcript` and the log of `make check` too: never add `>`,
 `>>`, `2>&1 >` or `| tee` to either command to save it for later. Read a long
 output in parts from the tool result of the command, or search it with the Grep
 tool in a file that a tool already wrote; do not redirect it to a file to read
-it with `tail` or `head`. A quoted heredoc into a variable stays allowed only
+it with `tail` or `head`. A command that you run in the background needs no
+log of your own: the harness writes its output to an output file and names the
+path in the start result. After the completion notification, read that file
+once with the Read tool; never add `>`, `>>` or `| tee` to the command to make
+a log in the workdir or in `/tmp`. A quoted heredoc into a variable stays allowed only
 to pass text to a CLI that takes an argument, as `cli-text` shows. A generator
 that the Store names, such as `tariboy image version update`, is not an edit by
 hand.
